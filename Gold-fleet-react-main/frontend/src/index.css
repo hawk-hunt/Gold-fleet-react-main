@@ -1,0 +1,334 @@
+@import url('https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbars while keeping scroll functionality */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+html, body {
+  -ms-overflow-style: none;
+}
+
+@layer base {
+  :root {
+    font-family: 'Figtree', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #ffffff;
+    color: #333333;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    height: 100%;
+    width: 100%;
+  }
+
+  a {
+    font-weight: 500;
+    color: #646cff;
+    text-decoration: inherit;
+  }
+
+  a:hover {
+    color: #747bff;
+  }
+
+  h1 {
+    font-size: 3.2em;
+    line-height: 1.1;
+  }
+
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: border-color 0.25s;
+  }
+
+  button:hover {
+    border-color: #646cff;
+  }
+
+  button:focus,
+  button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+  }
+}
+
+/* Grid Layout Styles */
+.grid-layout {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top, width, height;
+}
+
+.react-grid-item img {
+  pointer-events: none;
+  user-select: none;
+}
+
+.react-grid-item.cssTransforms {
+  transition-property: transform, width, height;
+}
+
+.react-grid-item.resizing {
+  z-index: 1;
+  will-change: width, height;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.react-grid-item.static {
+  background: #cce;
+}
+
+.react-grid-item.text {
+  font-size: 24px;
+  text-align: center;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.react-grid-item .resizing {
+  opacity: 0.9;
+}
+
+.react-grid-item .static {
+  background: #cce;
+}
+
+.react-grid-item .text {
+  font-size: 24px;
+  text-align: center;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.react-grid-item .minMax {
+  font-size: 12px;
+}
+
+.react-grid-item .add {
+  cursor: pointer;
+}
+
+.dragging {
+  background: transparent;
+  z-index: 3;
+  will-change: left, top, width, height;
+}
+
+.react-draggable.dragging {
+  transition: none;
+  z-index: 3;
+}
+
+.react-grid-placeholder {
+  background: rgb(59, 130, 246);
+  opacity: 0.2;
+  border-radius: 8px;
+  z-index: 2;
+  border: 2px solid rgb(59, 130, 246);
+  animation: pulse 0.6s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.grid-stack-drag-area {
+  cursor: grab;
+}
+
+.grid-stack-drag-area:active {
+  cursor: grabbing;
+}
+
+/* Dark mode support for grid items */
+@media (prefers-color-scheme: dark) {
+  .react-grid-placeholder {
+    background: rgb(96, 165, 250);
+    opacity: 0.3;
+    border: 2px solid rgb(96, 165, 250);
+  }
+}
+
+/* Map Dashboard Styles */
+.map-fullscreen-wrapper {
+  width: 100%;
+  height: 100%;
+  display: block !important;
+}
+
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  background: #e5e3df;
+  z-index: 1;
+  position: relative !important;
+  font-family: Figtree, system-ui, -apple-system, sans-serif;
+}
+
+.leaflet-pane {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 400;
+}
+
+.leaflet-tile-pane {
+  z-index: 200;
+}
+
+.leaflet-overlay-pane {
+  z-index: 400;
+}
+
+.leaflet-shadow-pane {
+  z-index: 500;
+}
+
+.leaflet-marker-pane {
+  z-index: 600;
+}
+
+.leaflet-tooltip-pane {
+  z-index: 650;
+}
+
+.leaflet-popup-pane {
+  z-index: 700;
+}
+
+.leaflet-map-pane canvas {
+  display: block;
+}
+
+.leaflet-tile {
+  background: #e5e3df;
+  border: 1px solid #ccc;
+}
+
+.leaflet-tile-loaded {
+  background-color: transparent;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+  will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+  will-change: auto;
+}
+
+.leaflet-zoom-anim .leaflet-objects-zoom-animate {
+  will-change: transform;
+}
+
+.leaflet-double-click-zoom {
+  cursor: zoom-in;
+}
+
+.leaflet-double-click-zoom.leaflet-zoom-anim {
+  cursor: auto;
+}
+
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-popup {
+  cursor: crosshair;
+}
+
+.leaflet-popup-pane .leaflet-popup {
+  margin-bottom: 20px;
+}
+
+.leaflet-container .leaflet-control-zoom,
+.leaflet-container .leaflet-control-layers,
+.leaflet-container .leaflet-control-scale {
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Vehicle and Device Markers */
+.vehicle-marker,
+.device-marker {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

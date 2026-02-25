@@ -1,0 +1,111 @@
+/* Default dashboard styles (supplement Tailwind) */
+:root{
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --accent: #f59e0b; /* yellow-500 */
+  --card-border: rgba(15,23,42,0.06);
+  --radius: 0.75rem;
+  --shadow: 0 6px 18px rgba(15,23,42,0.06);
+  --font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.dashboard-root{
+  font-family: var(--font-family);
+  color: #0f172a;
+  padding: 1rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.dashboard-root .dashboard-header{
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* Quick links grid */
+.dashboard-root .quick-links-grid,
+.dashboard-root .grid-quick-links{
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.dashboard-root .quick-link-card{
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.dashboard-root .quick-link-card:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+}
+
+/* KPI / Stat cards */
+.dashboard-root .kpi-grid{
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.dashboard-root .stat-card{
+  background: var(--bg);
+  border-radius: .75rem;
+  border: 1px solid var(--card-border);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+.dashboard-root .stat-card .value{
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #92400e; /* amber-700-ish */
+}
+.dashboard-root .stat-card .subtitle{
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+/* Chart area */
+.dashboard-root .chart-card{
+  background: #fff;
+  border-radius: .75rem;
+  padding: 1rem;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+}
+
+.dashboard-root .chart-placeholder{
+  height: 18rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: var(--muted);
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: .5rem;
+  border: 1px dashed rgba(15,23,42,0.04);
+}
+
+/* Cost breakdown */
+.dashboard-root .cost-breakdown{
+  background: rgba(255,255,255,0.96);
+  border-radius: .75rem;
+  padding: 1rem;
+  border: 1px solid rgba(245,158,11,0.15);
+}
+.dashboard-root .cost-breakdown .row{
+  display:flex;
+  justify-content:space-between;
+  padding: .6rem 0;
+  border-bottom: 1px solid rgba(15,23,42,0.04);
+}
+.dashboard-root .muted{ color: var(--muted); }
+
+/* Responsive tweaks */
+@media (min-width:1024px){
+  .dashboard-root{ padding: 1.5rem 2rem; }
+}

@@ -124,12 +124,12 @@ export default function ResourcesPage() {
       <Header sidebarOpen={false} setSidebarOpen={() => {}} />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-500 py-20 px-6">
+      <section className="bg-gradient-to-r from-yellow-600 to-yellow-500 py-20 px-6">
         <div className="max-w-7xl mx-auto text-center text-white">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Resources & Support
           </h1>
-          <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-yellow-100 max-w-2xl mx-auto">
             Everything you need to get started, learn, and maximize Gold Fleet. Documentation, tutorials, guides, and more.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function ResourcesPage() {
       {/* Quick Navigation Bar */}
       <section className="bg-white border-b border-gray-200 py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap gap-4 justify-center">
-          <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+          <button className="px-4 py-2 bg-yellow-50 text-yellow-600 rounded-lg font-medium hover:bg-yellow-100 transition-colors">
             Documentation
           </button>
           <button className="px-4 py-2 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-gray-200">
@@ -164,17 +164,17 @@ export default function ResourcesPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {resourceCategories.map((category, idx) => (
-              <div key={idx} className="p-8 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-lg transition-all">
+              <div key={idx} className="p-8 border border-gray-200 rounded-lg hover:border-yellow-500 hover:shadow-lg transition-all">
                 <div className="flex items-center gap-3 mb-6">
                   <span className="text-4xl">{category.icon}</span>
                   <h3 className="text-2xl font-bold text-gray-900">{category.title}</h3>
                 </div>
                 <ul className="space-y-4">
                   {category.items.map((item, iIdx) => (
-                    <li key={iIdx} className="border-l-2 border-blue-200 pl-4">
+                    <li key={iIdx} className="border-l-2 border-yellow-200 pl-4">
                       <a
                         href={item.link}
-                        className="text-blue-600 font-semibold hover:text-blue-700 block"
+                        className="text-yellow-600 font-semibold hover:text-yellow-700 block"
                       >
                         {item.name}
                       </a>
@@ -225,7 +225,7 @@ export default function ResourcesPage() {
                 <div className="text-5xl mb-4">{option.icon}</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{option.title}</h3>
                 <p className="text-gray-700 text-sm mb-3">{option.description}</p>
-                <p className="text-blue-600 font-medium text-sm">{option.availability}</p>
+                <p className="text-yellow-600 font-medium text-sm">{option.availability}</p>
               </div>
             ))}
           </div>
@@ -243,9 +243,9 @@ export default function ResourcesPage() {
               <a
                 key={idx}
                 href={study.link}
-                className="p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-lg transition-shadow cursor-pointer"
+                className="p-8 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200 hover:shadow-lg transition-shadow cursor-pointer"
               >
-                <div className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full mb-4">
+                <div className="inline-block px-3 py-1 bg-yellow-600 text-white text-xs font-semibold rounded-full mb-4">
                   {study.industry}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{study.title}</h3>
@@ -253,12 +253,12 @@ export default function ResourcesPage() {
                 <ul className="space-y-2">
                   {study.results.map((result, rIdx) => (
                     <li key={rIdx} className="flex items-center gap-2 text-gray-700">
-                      <span className="text-blue-600 font-bold">✓</span>
+                      <span className="text-yellow-600 font-bold">✓</span>
                       {result}
                     </li>
                   ))}
                 </ul>
-                <div className="mt-4 text-blue-600 font-semibold">
+                <div className="mt-4 text-yellow-600 font-semibold">
                   Read Case Study →
                 </div>
               </a>
@@ -275,13 +275,13 @@ export default function ResourcesPage() {
           </h2>
           <div className="space-y-4">
             {faqs.map((faq, idx) => (
-              <div key={idx} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-blue-500 transition-colors">
+              <div key={idx} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-yellow-500 transition-colors">
                 <button
                   onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
                   className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                 >
                   <h3 className="text-lg font-semibold text-gray-900 text-left">{faq.question}</h3>
-                  <span className={`text-2xl text-blue-600 transition-transform ${expandedFaq === idx ? 'rotate-180' : ''}`}>
+                  <span className={`text-2xl text-yellow-600 transition-transform ${expandedFaq === idx ? 'rotate-180' : ''}`}>
                     ▼
                   </span>
                 </button>
@@ -304,7 +304,7 @@ export default function ResourcesPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {partners.map((partner, idx) => (
-              <div key={idx} className="p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 text-center">
+              <div key={idx} className="p-8 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200 text-center">
                 <div className="text-5xl mb-4">{partner.icon}</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-4">{partner.name}</h3>
                 <ul className="space-y-2">
@@ -355,7 +355,7 @@ export default function ResourcesPage() {
                 <div className="text-5xl mb-4">{community.icon}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{community.title}</h3>
                 <p className="text-gray-700 mb-4">{community.description}</p>
-                <span className="text-blue-600 font-semibold">Join Now →</span>
+                <span className="text-yellow-600 font-semibold">Join Now →</span>
               </a>
             ))}
           </div>
@@ -377,15 +377,15 @@ export default function ResourcesPage() {
               { level: 'Professional', duration: '8 weeks', focus: 'Advanced operations and analytics' },
               { level: 'Expert', duration: '12 weeks', focus: 'API integration and customization' },
             ].map((cert, idx) => (
-              <div key={idx} className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-500 transition-colors">
-                <div className="text-3xl font-bold text-blue-600 mb-2">{cert.level}</div>
+              <div key={idx} className="p-6 border-2 border-yellow-200 rounded-lg hover:border-yellow-500 transition-colors">
+                <div className="text-3xl font-bold text-yellow-600 mb-2">{cert.level}</div>
                 <div className="text-gray-700 text-sm mb-3">
                   <strong>Duration:</strong> {cert.duration}
                 </div>
                 <div className="text-gray-700 text-sm mb-4">
                   <strong>Focus:</strong> {cert.focus}
                 </div>
-                <button className="px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition-colors">
+                <button className="px-4 py-2 bg-yellow-600 text-white font-medium rounded hover:bg-yellow-700 transition-colors">
                   Enroll
                 </button>
               </div>
@@ -422,16 +422,16 @@ export default function ResourcesPage() {
               },
             ].map((post, idx) => (
               <div key={idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="h-40 bg-gradient-to-br from-blue-400 to-blue-600"></div>
+                <div className="h-40 bg-gradient-to-br from-yellow-400 to-yellow-600"></div>
                 <div className="p-6">
-                  <div className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full mb-3">
+                  <div className="inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full mb-3">
                     {post.tag}
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-3">{post.title}</h3>
                   <p className="text-gray-700 text-sm mb-4">{post.excerpt}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-xs">{post.date}</span>
-                    <a href="#" className="text-blue-600 font-semibold text-sm hover:text-blue-700">
+                    <a href="#" className="text-yellow-600 font-semibold text-sm hover:text-yellow-700">
                       Read More →
                     </a>
                   </div>
@@ -443,24 +443,24 @@ export default function ResourcesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-blue-500">
+      <section className="py-20 px-6 bg-gradient-to-r from-yellow-600 to-yellow-500">
         <div className="max-w-3xl mx-auto text-center text-white">
           <h2 className="text-4xl font-bold mb-6">
             Can't Find What You're Looking For?
           </h2>
-          <p className="text-lg text-blue-100 mb-8">
+          <p className="text-lg text-yellow-100 mb-8">
             Contact our support team for personalized assistance
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/signup"
-              className="px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-colors text-lg"
+              className="px-8 py-4 bg-white text-yellow-600 font-bold rounded-lg hover:bg-yellow-50 transition-colors text-lg"
             >
               Start Free Trial
             </Link>
             <a
               href="#"
-              className="px-8 py-4 border-2 border-white text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-lg"
+              className="px-8 py-4 border-2 border-white text-white font-bold rounded-lg hover:bg-yellow-700 transition-colors text-lg"
             >
               Contact Support
             </a>

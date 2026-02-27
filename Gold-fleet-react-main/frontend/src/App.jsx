@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
+import FeaturesPage from './pages/FeaturesPage';
+import SolutionsPage from './pages/SolutionsPage';
+import ResourcesPage from './pages/ResourcesPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -76,6 +79,9 @@ function AppRoutes() {
     <Routes>
       <Route path="/about" element={<AboutPage />} />
       <Route path="/" element={<LandingPage />} />
+      <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/solutions" element={<SolutionsPage />} />
+      <Route path="/resources" element={<ResourcesPage />} />
       <Route path="/login" element={<AuthPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/signup" element={<AuthPage />} />

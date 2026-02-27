@@ -133,9 +133,9 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
               </div>
 
               <div className="hidden md:flex space-x-6">
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Solutions</Link>
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Features</Link>
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Resources</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/solutions">Solutions</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/features">Features</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/resources">Resources</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Pricing</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/about">About</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Contact</Link>

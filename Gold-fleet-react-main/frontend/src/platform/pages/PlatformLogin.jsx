@@ -38,11 +38,12 @@ export default function PlatformLogin() {
         backgroundImage: 'url(/images/maxresdefault-3490897627.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
+        // do not fix attachment so the image disappears when this component unmounts
+        // (fixed backgrounds can linger under other pages due to viewport anchoring)
       }}
     >
-      {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      {/* Light overlay for readability; only 30% so the image shows through */}
+      <div className="absolute inset-0 bg-black/30"></div>
       <div className="w-full max-w-md relative z-10">
         {/* Logo Card */}
         <div className="text-center mb-8">

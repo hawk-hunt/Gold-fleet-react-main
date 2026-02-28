@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PlatformAuthController;
+use App\Http\Controllers\Api\PlatformDashboardController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapDashboardController;
@@ -34,10 +35,19 @@ Route::prefix('platform')->group(function () {
     Route::post('/login', [PlatformAuthController::class, 'login']);
     Route::post('/signup', [PlatformAuthController::class, 'signup']);
     
-    // Protected platform routes
-    Route::middleware('auth:sanctum')->group(function () {
+    // Protected platform routes (require api_token authentication)
+    Route::middleware('authorize.api.token')->group(function () {
         Route::post('/logout', [PlatformAuthController::class, 'logout']);
         Route::get('/user', [PlatformAuthController::class, 'getUser']);
+        
+        // Dashboard endpoints
+        Route::get('/dashboard/stats', [PlatformDashboardController::class, 'getStats']);
+        Route::get('/companies', [PlatformDashboardController::class, 'getCompanies']);
+        Route::get('/analytics', [PlatformDashboardController::class, 'getAnalytics']);
+        Route::get('/subscriptions', [PlatformDashboardController::class, 'getSubscriptions']);
+        Route::get('/messages', [PlatformDashboardController::class, 'getMessages']);
+        Route::get('/settings', [PlatformDashboardController::class, 'getSettings']);
+        Route::post('/settings', [PlatformDashboardController::class, 'updateSettings']);
     });
 });
 

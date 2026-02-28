@@ -28,7 +28,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-yellow-500/20 z-50 flex items-center px-4 lg:px-6"
+      className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 shadow-sm z-50 flex items-center px-4 lg:px-6"
       style={{
         paddingLeft: isLarge ? `calc(1.5rem + ${sidebarWidth}px)` : '1.5rem',
       }}
@@ -40,7 +40,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
           {!isLarge && (
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-slate-300 hover:text-white transition-colors"
+              className="text-gray-700 hover:text-gray-900 transition-colors"
             >
               <FaBars className="w-5 h-5" />
             </button>
@@ -54,11 +54,11 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
                 placeholder="Search companies, subscriptions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-slate-700/30 border border-slate-600/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:border-yellow-500/50 transition-colors"
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-colors"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
                 <FaSearch className="w-4 h-4" />
               </button>
@@ -69,7 +69,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
         {/* Right Section - Notifications & Profile */}
         <div className="flex items-center gap-4">
           {/* Notifications */}
-          <button className="relative text-slate-300 hover:text-white transition-colors">
+          <button className="relative text-gray-700 hover:text-gray-900 transition-colors">
             <FaBell className="w-5 h-5" />
             <span className="absolute top-0 right-0 w-2 h-2 bg-yellow-500 rounded-full" />
           </button>
@@ -78,7 +78,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/30 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <FaUser className="w-4 h-4" />
               <span className="text-sm font-medium hidden sm:inline">Platform Owner</span>
@@ -86,18 +86,18 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
 
             {/* Profile Menu */}
             {profileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-lg py-2 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
                 <button
                   onClick={() => navigate('/platform/settings')}
-                  className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-2"
                 >
                   <FaUser className="w-4 h-4" />
                   Settings
                 </button>
-                <hr className="border-slate-700/50 my-2" />
+                <hr className="border-gray-200 my-2" />
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-red-400 hover:bg-slate-700/50 hover:text-red-300 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2"
                 >
                   <FaSignOutAlt className="w-4 h-4" />
                   Logout

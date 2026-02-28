@@ -30,14 +30,14 @@ export default function PlatformSidebar({ isOpen, setIsOpen, isCollapsed, setIsC
       {/* Overlay on mobile when sidebar is open */}
       {!isLarge && isOpen && (
         <div
-          className="fixed inset-0 top-16 bg-black/50 z-30"
+          className="fixed inset-0 top-16 bg-black/30 z-30"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-16 h-[calc(100vh-64px)] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 transition-all duration-300 z-40 overflow-y-auto flex flex-col ${
+        className={`fixed left-0 top-16 h-[calc(100vh-64px)] bg-white border-r border-gray-200 transition-all duration-300 z-40 overflow-y-auto flex flex-col ${
           !isLarge && !isOpen ? '-translate-x-full' : ''
         } ${isCollapsed ? 'lg:w-20' : 'lg:w-64'} ${!isLarge ? 'w-64' : ''}`}
         style={{
@@ -45,13 +45,13 @@ export default function PlatformSidebar({ isOpen, setIsOpen, isCollapsed, setIsC
         }}
       >
         {/* Logo/Platform Name */}
-        <div className="p-4 border-b border-slate-700/50">
+        <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-center gap-2">
             {!isCollapsed && (
-              <div className="text-lg font-bold text-yellow-400">Platform</div>
+              <div className="text-lg font-bold text-yellow-600">Platform</div>
             )}
             {isCollapsed && (
-              <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-sm">
                 PO
               </div>
             )}
@@ -70,8 +70,8 @@ export default function PlatformSidebar({ isOpen, setIsOpen, isCollapsed, setIsC
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                   active
-                    ? 'bg-yellow-500/20 text-yellow-400 border-l-2 border-yellow-400'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/30'
+                    ? 'bg-yellow-50 text-yellow-600 border-l-2 border-yellow-600'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >
@@ -84,10 +84,10 @@ export default function PlatformSidebar({ isOpen, setIsOpen, isCollapsed, setIsC
 
         {/* Collapse Toggle (lg screens only) */}
         {isLarge && (
-          <div className="p-4 border-t border-slate-700/50">
+          <div className="p-4 border-t border-gray-200">
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/30 transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all"
             >
               <FaChevronDown
                 className={`w-4 h-4 transition-transform ${

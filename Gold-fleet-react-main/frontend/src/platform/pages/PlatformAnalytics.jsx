@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { FaChartLine, FaSpinner } from 'react-icons/fa';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import React, { useEffect, useState, useCallback } from 'react';
+import { FaChartLine, FaSpinner, FaSync } from 'react-icons/fa';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend as RechartsLegend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import platformApi from '../services/platformApi';
 
 /**
  * Platform Analytics
- * SaaS metrics and analytics
+ * SaaS metrics and analytics with light theme
  */
 export default function PlatformAnalytics() {
   const [companyGrowth, setCompanyGrowth] = useState(null);
@@ -15,33 +15,33 @@ export default function PlatformAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      setLoading(true);
-      try {
-        const growth = await platformApi.getCompanyGrowth();
-        const trips = await platformApi.getTripsPerCompany();
-        const vehicles = await platformApi.getVehicleUsage();
-        const revenue = await platformApi.getSubscriptionRevenue();
+  const fetchAnalytics = useCallback(async () => {
+    setLoading(true);
+    try {
+      const growth = await platformApi.getCompanyGrowth();
+      const trips = await platformApi.getTripsPerCompany();
+      const vehicles = await platformApi.getVehicleUsage();
+      const revenue = await platformApi.getSubscriptionRevenue();
 
-        setCompanyGrowth(growth.data || defaultCompanyGrowth);
-        setTripsPerCompany(trips.data || defaultTripsPerCompany);
-        setVehicleUsage(vehicles.data || defaultVehicleUsage);
-        setSubscriptionRevenue(revenue.data || defaultRevenue);
-      } catch (err) {
-        setError(err.message || 'Failed to load analytics');
-        // Set default data on error
-        setCompanyGrowth(defaultCompanyGrowth);
-        setTripsPerCompany(defaultTripsPerCompany);
-        setVehicleUsage(defaultVehicleUsage);
-        setSubscriptionRevenue(defaultRevenue);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnalytics();
+      setCompanyGrowth(growth.data || defaultCompanyGrowth);
+      setTripsPerCompany(trips.data || defaultTripsPerCompany);
+      setVehicleUsage(vehicles.data || defaultVehicleUsage);
+      setSubscriptionRevenue(revenue.data || defaultRevenue);
+    } catch (err) {
+      setError(err.message || 'Failed to load analytics');
+      // Set default data on error
+      setCompanyGrowth(defaultCompanyGrowth);
+      setTripsPerCompany(defaultTripsPerCompany);
+      setVehicleUsage(defaultVehicleUsage);
+      setSubscriptionRevenue(defaultRevenue);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const defaultCompanyGrowth = [
     { month: 'Jan', registered: 12, active: 10 },
@@ -78,35 +78,48 @@ export default function PlatformAnalytics() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <FaSpinner className="w-12 h-12 text-yellow-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-300">Loading analytics...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading analytics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <FaChartLine className="text-yellow-500" />
-          Platform Analytics
-        </h1>
-        <p className="text-slate-400 mt-2">Detailed SaaS Business Metrics</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+      <div className="max-w-7xl mx-auto px-4 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <FaChartLine className="text-yellow-600" />
+            Platform Analytics
+          </h1>
+          <p className="text-gray-600 mt-2">Detailed SaaS Business Metrics</p>
+        </div>
+        <button
+          onClick={fetchAnalytics}
+          className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+        >
+          <FaSync className="text-sm" />
+          Refresh
+        </button>
       </div>
 
       {error && (
-        <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
           Using demo data. {error}
         </div>
       )}
 
       {/* Company Growth Chart */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900/50 border border-slate-700/50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Company Growth Trend</h3>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <FaChartLine className="text-yellow-600" />
+          Company Growth Trend
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={companyGrowth}>
             <defs>
@@ -115,61 +128,59 @@ export default function PlatformAnalytics() {
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#eab308" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100, 116, 139, 0.1)" />
-            <XAxis dataKey="month" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid rgba(226, 232, 240, 0.1)',
-                borderRadius: '8px',
-              }}
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="month" stroke="#999" />
+            <YAxis stroke="#999" />
+            <RechartsTooltip
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #ddd', borderRadius: '8px' }}
+              labelStyle={{ color: '#333333' }}
             />
-            <Legend />
+            <RechartsLegend />
             <Area type="monotone" dataKey="registered" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRegistered)" />
-            <Area type="monotone" dataKey="active" stroke="#eab308" fillOpacity={1} fill="url(#colorActive)" />
+            <Area type="monotone" dataKey="active" stroke="#fbbf24" fillOpacity={1} fill="url(#colorActive)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       {/* Trips Per Company */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900/50 border border-slate-700/50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Top Companies by Trips</h3>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <FaChartLine className="text-yellow-600" />
+          Top Companies by Trips
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={tripsPerCompany}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100, 116, 139, 0.1)" />
-            <XAxis dataKey="company" stroke="#94a3b8" angle={-45} textAnchor="end" height={80} />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid rgba(226, 232, 240, 0.1)',
-                borderRadius: '8px',
-              }}
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="company" stroke="#999" angle={-45} textAnchor="end" height={80} />
+            <YAxis stroke="#999" />
+            <RechartsTooltip
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #ddd', borderRadius: '8px' }}
+              labelStyle={{ color: '#333333' }}
               formatter={(value) => [`${value} trips`, 'Trips']}
             />
-            <Bar dataKey="trips" fill="#eab308" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="trips" fill="#fbbf24" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* Vehicle Usage */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900/50 border border-slate-700/50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Vehicle Type Usage</h3>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <FaChartLine className="text-yellow-600" />
+          Vehicle Type Usage
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={vehicleUsage}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100, 116, 139, 0.1)" />
-            <XAxis dataKey="vehicle" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid rgba(226, 232, 240, 0.1)',
-              }}
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="vehicle" stroke="#999" />
+            <YAxis stroke="#999" />
+            <RechartsTooltip
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #ddd', borderRadius: '8px' }}
+              labelStyle={{ color: '#333333' }}
               formatter={(value) => [`${value}%`, 'Usage']}
             />
             <Bar dataKey="usage" fill="#06b6d4" radius={[8, 8, 0, 0]} />
@@ -178,26 +189,28 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Revenue by Plan */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900/50 border border-slate-700/50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Revenue by Subscription Plan</h3>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <FaChartLine className="text-yellow-600" />
+          Revenue by Subscription Plan
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={subscriptionRevenue}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100, 116, 139, 0.1)" />
-            <XAxis dataKey="month" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid rgba(226, 232, 240, 0.1)',
-              }}
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="month" stroke="#999" />
+            <YAxis stroke="#999" />
+            <RechartsTooltip
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #ddd', borderRadius: '8px' }}
+              labelStyle={{ color: '#333333' }}
               formatter={(value) => `$${value}`}
             />
-            <Legend />
+            <RechartsLegend />
             <Line type="monotone" dataKey="basic" stroke="#06b6d4" strokeWidth={2} dot={{ r: 4 }} />
-            <Line type="monotone" dataKey="pro" stroke="#eab308" strokeWidth={2} dot={{ r: 4 }} />
+            <Line type="monotone" dataKey="pro" stroke="#fbbf24" strokeWidth={2} dot={{ r: 4 }} />
             <Line type="monotone" dataKey="enterprise" stroke="#a855f7" strokeWidth={2} dot={{ r: 4 }} />
           </LineChart>
         </ResponsiveContainer>
+      </div>
       </div>
     </div>
   );

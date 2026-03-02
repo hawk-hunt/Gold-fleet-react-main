@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBars, FaSearch, FaBell, FaUser, FaSignOutAlt } from 'react-icons/fa';
 
@@ -11,6 +11,37 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // notifications
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/notifications', {
+        headers: platformApi.getAuthHeader(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || data.data || []);
+        setUnreadCount(data.unread_count || data.unreadCount || 0);
+      }
+    } catch (err) {
+      console.error('Failed to load notifications', err);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   const handleLogout = () => {
     sessionStorage.removeItem('platformToken');
@@ -69,10 +100,67 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
         {/* Right Section - Notifications & Profile */}
         <div className="flex items-center gap-4">
           {/* Notifications */}
-          <button className="relative text-gray-700 hover:text-gray-900 transition-colors">
-            <FaBell className="w-5 h-5" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-yellow-500 rounded-full" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => { setNotificationsOpen(!notificationsOpen); setProfileOpen(false); }}
+              className="relative text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <FaBell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-yellow-500 rounded-full" />
+              )}
+            </button>
+
+            {notificationsOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto">
+                <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+                </div>
+                {notifLoading ? (
+                  <div className="p-4">
+                    <div className="animate-pulse space-y-2">
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={async () => {
+                          try {
+                            await fetch(`http://localhost:8000/api/notifications/${n.id}/read`, {
+                              method: 'PATCH',
+                              headers: platformApi.getAuthHeader(),
+                            });
+                            loadNotifications();
+                          } catch (err) {
+                            console.error('Mark read failed', err);
+                          }
+                        }}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 p-2 rounded-full bg-blue-100">
+                            <FaBell className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900">{n.title || n.message}</p>
+                            <p className="mt-0.5 text-xs text-gray-500">
+                              {n.message?.substring(0, 40)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Profile Dropdown */}
           <div className="relative">
@@ -88,7 +176,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
                 <button
-                  onClick={() => navigate('/platform/settings')}
+                  onClick={() => { setProfileOpen(false); navigate('/platform/settings'); }}
                   className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-2"
                 >
                   <FaUser className="w-4 h-4" />
@@ -96,7 +184,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
                 </button>
                 <hr className="border-gray-200 my-2" />
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setProfileOpen(false); handleLogout(); }}
                   className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2"
                 >
                   <FaSignOutAlt className="w-4 h-4" />
@@ -107,6 +195,13 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
           </div>
         </div>
       </div>
+      {/* backdrop for dropdowns */}
+      {(notificationsOpen || profileOpen) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => { setNotificationsOpen(false); setProfileOpen(false); }}
+        />
+      )}
     </header>
   );
 }

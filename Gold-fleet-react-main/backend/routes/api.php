@@ -23,12 +23,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PhoneTrackerController;
 use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\Api\ChartController;
+use App\Http\Controllers\Api\ContactController;
 
 // API routes for frontend consumption. These return JSON and are prefixed with /api by the framework.
 
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
+// Public contact endpoint for inbound messages
+Route::post('/messages', [ContactController::class, 'store']);
 
 // Platform Owner Auth routes (public)
 Route::prefix('platform')->group(function () {

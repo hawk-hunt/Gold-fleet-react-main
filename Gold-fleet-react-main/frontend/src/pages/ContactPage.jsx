@@ -14,11 +14,28 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // placeholder: normally send to API
-    console.log('contact form', formData);
-    setSubmitted(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to send message');
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Contact submit error:', error);
+      alert('Failed to send message. Please try again later.');
+    }
   };
 
   return (

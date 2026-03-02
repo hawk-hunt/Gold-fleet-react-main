@@ -24,6 +24,7 @@ use App\Http\Controllers\PhoneTrackerController;
 use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\Api\ChartController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\MapClickController;
 
 // API routes for frontend consumption. These return JSON and are prefixed with /api by the framework.
 
@@ -33,6 +34,10 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Public contact endpoint for inbound messages
 Route::post('/messages', [ContactController::class, 'store']);
+
+// Public endpoint to record map clicks
+Route::post('/map-clicks', [MapClickController::class, 'store']);
+Route::get('/map-clicks', [MapClickController::class, 'index']);
 
 // Platform Owner Auth routes (public)
 Route::prefix('platform')->group(function () {

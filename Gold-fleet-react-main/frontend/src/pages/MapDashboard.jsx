@@ -85,13 +85,86 @@ const createDeviceIcon = () => {
 
 // Map control component to handle auto-pan 
 function MapControl({ selectedVehicle, deviceLocation, map }) {
+  // only recenter when the selected vehicle/device location actually changes
+  const lastCenteredRef = useRef({ vehicleId: null, deviceKey: null });
+
   useEffect(() => {
-    if (selectedVehicle && selectedVehicle.lat && selectedVehicle.lng && map) {
-      map.setView([selectedVehicle.lat, selectedVehicle.lng], 15, { animate: true });
-    } else if (deviceLocation && map) {
-      map.setView([deviceLocation.lat, deviceLocation.lng], 14, { animate: true });
+    if (!map) return;
+
+    if (selectedVehicle && selectedVehicle.lat && selectedVehicle.lng) {
+      if (lastCenteredRef.current.vehicleId !== selectedVehicle.id) {
+        map.setView([selectedVehicle.lat, selectedVehicle.lng], 15, { animate: true });
+        lastCenteredRef.current.vehicleId = selectedVehicle.id;
+        // reset device key so switching back will recenter correctly
+        lastCenteredRef.current.deviceKey = null;
+      }
+    } else if (deviceLocation && deviceLocation.lat && deviceLocation.lng) {
+      const deviceKey = `${deviceLocation.lat.toFixed(6)}|${deviceLocation.lng.toFixed(6)}`;
+      if (lastCenteredRef.current.deviceKey !== deviceKey) {
+        map.setView([deviceLocation.lat, deviceLocation.lng], 14, { animate: true });
+        lastCenteredRef.current.deviceKey = deviceKey;
+        lastCenteredRef.current.vehicleId = null;
+      }
     }
   }, [selectedVehicle, deviceLocation, map]);
+
+  return null;
+}
+
+// Click capture component - returns latitude, longitude and area name
+function ClickCapture({ onPoint }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    const onClick = async (e) => {
+      const { lat, lng } = e.latlng;
+      let address = '';
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          // prefer display_name, otherwise build from address parts
+          if (data.display_name) {
+            address = data.display_name;
+          } else if (data.address) {
+            const a = data.address;
+            const parts = [a.road, a.neighbourhood, a.suburb, a.city_district, a.city, a.county, a.state, a.postcode, a.country].filter(Boolean);
+            address = parts.join(', ');
+          }
+        }
+      } catch (err) {
+        console.error('Reverse geocode failed', err);
+      }
+
+      console.log('map clicked', lat, lng, address);
+      onPoint({ lat, lng, address });
+
+      // open popup immediately at click location with full address + coords
+      try {
+        const content = `
+          <div class="text-sm">
+            <p class="font-bold">Clicked Point</p>
+            <p class="text-xs">Lat: ${lat.toFixed(6)}</p>
+            <p class="text-xs">Lng: ${lng.toFixed(6)}</p>
+            ${address ? `<p class="text-xs mt-1">${address}</p>` : '<p class="text-xs text-gray-500 mt-1">No address found</p>'}
+          </div>`;
+
+        L.popup({ maxWidth: 400 })
+          .setLatLng([lat, lng])
+          .setContent(content)
+          .openOn(map);
+      } catch (err) {
+        console.warn('Popup open failed', err);
+      }
+    };
+
+    map.on('click', onClick);
+    return () => map.off('click', onClick);
+  }, [map, onPoint]);
 
   return null;
 }
@@ -107,10 +180,34 @@ export default function MapDashboard() {
   const [locationError, setLocationError] = useState('');
   const [panelOpen, setPanelOpen] = useState(true);
   const [panelMinimized, setPanelMinimized] = useState(false);
-  const mapRef = useRef(null);
+  const [clickedPoint, setClickedPoint] = useState(null);
+
+  const mapRef = useRef(null); // ref attached to MapContainer
+  const [mapObj, setMapObj] = useState(null); // actual Leaflet map instance
 
   const defaultCenter = [5.6037, -0.1870];
   const defaultZoom = 10;
+
+  // when a point is clicked show a popup at that location
+  useEffect(() => {
+    // show a popup when clickedPoint updates, using the real map instance
+    if (clickedPoint && mapObj) {
+      L.popup()
+        .setLatLng([clickedPoint.lat, clickedPoint.lng])
+        .setContent(
+          `<div class="text-sm">
+            <p class="font-bold">Clicked Point</p>
+            <p class="text-xs">Lat: ${clickedPoint.lat.toFixed(6)}</p>
+            <p class="text-xs">Lng: ${clickedPoint.lng.toFixed(6)}</p>
+            ${clickedPoint.address ? `<p class="text-xs">${clickedPoint.address}</p>` : ''}
+          </div>`
+        )
+        .openOn(mapObj);
+    }
+  }, [clickedPoint, mapObj]);
+
+  
+
 
   // Get actual device location
   const getDeviceLocation = useCallback(() => {
@@ -230,7 +327,7 @@ export default function MapDashboard() {
   };
 
   return (
-    <div className="w-full h-full relative bg-white overflow-hidden flex flex-col" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="w-full h-full relative bg-white overflow-visible flex flex-col" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Top Control Bar */}
       <div className="z-10 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm p-4 flex-shrink-0">
         <div className="flex items-center justify-between max-w-full flex-wrap gap-2">
@@ -271,7 +368,7 @@ export default function MapDashboard() {
       </div>
 
       {/* Fullscreen Map */}
-      <div className="flex-1 relative bg-gradient-to-br from-gray-100 to-gray-50 overflow-hidden" style={{ width: '100%', height: '100%', flex: 1, position: 'relative' }}>
+      <div className="flex-1 relative bg-gradient-to-br from-gray-100 to-gray-50 overflow-visible" style={{ width: '100%', height: '100%', flex: 1, position: 'relative' }}>
         {error && (
           <div className="absolute inset-0 flex items-center justify-center z-30">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 max-w-sm">
@@ -283,10 +380,16 @@ export default function MapDashboard() {
 
         <MapContainer
           ref={mapRef}
+          whenCreated={(map) => {
+            mapRef.current = map;
+            setMapObj(map);
+          }}
           center={selectedVehicle ? [selectedVehicle.lat, selectedVehicle.lng] : deviceLocation ? [deviceLocation.lat, deviceLocation.lng] : defaultCenter}
           zoom={selectedVehicle ? 15 : deviceLocation ? 14 : defaultZoom}
           style={{ height: '100%', width: '100%', display: 'block' }}
           className="map-fullscreen-wrapper"
+          tap={false}
+          scrollWheelZoom={true}
           key={`${selectedVehicle?.id || deviceLocation?.lat || 'default'}`}
           whenReady={(mapInstance) => {
             try {
@@ -331,9 +434,46 @@ export default function MapDashboard() {
             </Marker>
           )}
 
-          <MapControl selectedVehicle={selectedVehicle} deviceLocation={deviceLocation} map={mapRef.current} />
+          <MapControl selectedVehicle={selectedVehicle} deviceLocation={deviceLocation} map={mapObj} />
+          {/* Click handler - capture any map click, show coordinates/address */}
+          <ClickCapture onPoint={(pt) => setClickedPoint(pt)} />
+          {clickedPoint && (
+            <Marker position={[clickedPoint.lat, clickedPoint.lng]}>
+              <Popup>
+                <div className="text-sm">
+                  <p className="font-bold">Clicked Point</p>
+                  <p className="text-xs text-gray-600">Lat: {clickedPoint.lat.toFixed(6)}</p>
+                  <p className="text-xs text-gray-600">Lng: {clickedPoint.lng.toFixed(6)}</p>
+                  {clickedPoint.address && <p className="text-xs text-gray-600">{clickedPoint.address}</p>}
+                </div>
+              </Popup>
+            </Marker>
+          )}
         </MapContainer>
       </div>
+
+      {/* Clicked point summary (top-right, below nav) */}
+      {clickedPoint && (
+        <div className="absolute top-20 right-4 z-50 bg-white/95 border border-gray-200 rounded p-3 shadow max-w-xs text-xs">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1">
+              <div className="font-semibold text-sm">Clicked Point</div>
+              <div className="text-gray-700 mt-1 font-mono">{clickedPoint.lat.toFixed(6)}, {clickedPoint.lng.toFixed(6)}</div>
+              {clickedPoint.address ? (
+                <div className="text-gray-600 mt-2 break-words">{clickedPoint.address}</div>
+              ) : (
+                <div className="text-gray-400 mt-2">No address found</div>
+              )}
+            </div>
+            <button
+              onClick={() => setClickedPoint(null)}
+              className="ml-2 text-gray-500 hover:text-gray-800"
+              title="Close">
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating Vehicle Info Panel */}
       {panelOpen && (

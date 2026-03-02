@@ -258,6 +258,15 @@ html, body {
   z-index: 400;
 }
 
+/* Ensure leaflet popups render above app chrome */
+.leaflet-popup {
+  z-index: 99999 !important;
+}
+
+.leaflet-container .leaflet-popup-pane {
+  z-index: 99999;
+}
+
 .leaflet-shadow-pane {
   z-index: 500;
 }

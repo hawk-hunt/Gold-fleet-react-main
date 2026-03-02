@@ -47,6 +47,8 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 import CompanySettingsPage from './pages/CompanySettingsPage';
 import PlatformRouter from './platform/routes/PlatformRouter';
 import AboutPage from './pages/AboutPage';
+import PricingPage from './pages/PricingPage';
+import ContactPage from './pages/ContactPage';
 import './App.css';
 
 // Debug page to clear auth
@@ -81,6 +83,8 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/features" element={<FeaturesPage />} />
       <Route path="/solutions" element={<SolutionsPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/resources" element={<ResourcesPage />} />
       <Route path="/login" element={<AuthPage />} />
       <Route path="/auth" element={<AuthPage />} />

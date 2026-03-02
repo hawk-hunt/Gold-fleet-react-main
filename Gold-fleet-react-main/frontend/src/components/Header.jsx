@@ -136,9 +136,9 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/solutions">Solutions</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/features">Features</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/resources">Resources</Link>
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Pricing</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/pricing">Pricing</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/about">About</Link>
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Contact</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/contact">Contact</Link>
               </div>
 
               <div className="hidden md:flex items-center space-x-3">

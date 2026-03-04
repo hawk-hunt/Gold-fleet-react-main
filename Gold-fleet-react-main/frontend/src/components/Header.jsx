@@ -136,9 +136,9 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/solutions">Solutions</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/features">Features</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/resources">Resources</Link>
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Pricing</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/pricing">Pricing</Link>
                 <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/about">About</Link>
-                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/">Contact</Link>
+                <Link className="text-[#5C4B1F] hover:text-[#C9A227] font-medium transition-all duration-300 ease-in-out" to="/contact">Contact</Link>
               </div>
 
               <div className="hidden md:flex items-center space-x-3">
@@ -329,13 +329,13 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
                 </div>
                 <div className="py-1">
                   <button
-                    onClick={() => navigate('/profile')}
+                    onClick={() => { setProfileOpen(false); navigate('/profile'); }}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Profile Settings
                   </button>
                   <button
-                    onClick={() => navigate('/account')}
+                    onClick={() => { setProfileOpen(false); navigate('/account'); }}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Account
@@ -343,7 +343,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
                 </div>
                 <div className="border-t border-gray-200 py-1">
                   <button
-                    onClick={handleLogout}
+                    onClick={() => { setProfileOpen(false); handleLogout(); }}
                     className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                   >
                     Logout

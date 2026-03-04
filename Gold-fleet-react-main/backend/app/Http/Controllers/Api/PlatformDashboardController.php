@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Models\Company;
 use App\Models\Vehicle;
 use App\Models\Trip;
+use App\Models\Message;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class PlatformDashboardController extends Controller
 {
@@ -251,7 +253,7 @@ class PlatformDashboardController extends Controller
     /**
      * Get Messages
      */
-    public function getMessages()
+    public function getMessages(Request $request)
     {
         $user = Auth::user();
         
@@ -259,31 +261,40 @@ class PlatformDashboardController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Return mock message data for now
-        $messages = [
-            [
-                'id' => 1,
-                'from' => 'ABC Logistics',
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+
+        // Fetch real messages from the messages table
+        $messagesQuery = Message::orderBy('created_at', 'desc');
+        $total = $messagesQuery->count();
+        $messagesData = $messagesQuery->skip(($page - 1) * $limit)->take($limit)->get();
+
+        // Format messages for frontend
+        $messages = $messagesData->map(function ($msg) {
+            return [
+                'id' => $msg->id,
+                'from' => $msg->name,
                 'to' => 'Support Team',
-                'subject' => 'Need help with vehicle setup',
-                'preview' => 'Hi, we need assistance in setting up our vehicles in the system...',
-                'read' => false,
-                'date' => '2 hours ago'
-            ],
-            [
-                'id' => 2,
-                'from' => 'Fast Delivery Co',
-                'to' => 'Support Team',
-                'subject' => 'Feature request - bulk import',
-                'preview' => 'Can we have a bulk import feature for our 50+ vehicles?',
-                'read' => true,
-                'date' => '5 hours ago'
-            ],
-        ];
+                'subject' => $msg->subject ?? 'Contact Form Submission',
+                'preview' => substr($msg->message, 0, 100) . (strlen($msg->message) > 100 ? '...' : ''),
+                'read' => $msg->read,
+                'date' => $msg->created_at->format('Y-m-d H:i'),
+                'email' => $msg->email,
+                'fullMessage' => $msg->message,
+            ];
+        });
+
+        $unreadCount = Message::where('read', false)->count();
 
         return response()->json([
             'data' => $messages,
-            'unreadCount' => collect($messages)->where('read', false)->count()
+            'unreadCount' => $unreadCount,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'last_page' => ceil($total / $limit),
+            ]
         ]);
     }
 

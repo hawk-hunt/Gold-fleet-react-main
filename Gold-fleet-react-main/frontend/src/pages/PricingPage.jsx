@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from '../components/Header';
+import { Link } from 'react-router-dom';
 
 /**
  * Pricing Page
@@ -80,15 +81,21 @@ export default function PricingPage() {
                     ))}
                   </ul>
                 </div>
-                <button
-                  className={
-                    plan.popular
-                      ? 'mt-auto px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors'
-                      : 'mt-auto px-6 py-3 bg-white text-yellow-600 border border-yellow-600 rounded-md hover:bg-yellow-50 transition-colors'
-                  }
-                >
-                  {plan.popular ? 'Get Started' : 'Learn More'}
-                </button>
+                {plan.popular ? (
+                  <Link
+                    to="/signup"
+                    className="mt-auto px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors text-center"
+                  >
+                    Get Started
+                  </Link>
+                ) : (
+                  <Link
+                    to="/features"
+                    className="mt-auto px-6 py-3 bg-white text-yellow-600 border border-yellow-600 rounded-md hover:bg-yellow-50 transition-colors text-center"
+                  >
+                    Learn More
+                  </Link>
+                )}
               </div>
             ))}
           </div>

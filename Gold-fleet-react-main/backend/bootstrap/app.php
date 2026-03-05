@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.api' => \App\Http\Middleware\AuthorizeApiToken::class,
             'authorize.api.token' => \App\Http\Middleware\AuthorizeApiToken::class,
+            'driver' => \App\Http\Middleware\DriverMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

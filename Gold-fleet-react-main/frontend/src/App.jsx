@@ -10,8 +10,11 @@ import EmailVerificationPage from './pages/EmailVerificationPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Layout from './components/Layout';
+import DriverLayout from './components/DriverLayout';
+import ProtectedDriverRoute from './components/ProtectedDriverRoute';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
+import DriverDashboard from './pages/DriverDashboard';
 import MapDashboard from './pages/MapDashboard';
 import InfoDashboard from './pages/InfoDashboard';
 import Vehicles from './pages/Vehicles';
@@ -96,6 +99,7 @@ function AppRoutes() {
       
       {/* Dashboard */}
       <Route path="/main" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
+      <Route path="/driver" element={<ProtectedDriverRoute><DriverLayout><DriverDashboard /></DriverLayout></ProtectedDriverRoute>} />
       <Route path="/map" element={<ProtectedLayout><MapDashboard /></ProtectedLayout>} />
       <Route path="/info" element={<ProtectedLayout><InfoDashboard /></ProtectedLayout>} />
       

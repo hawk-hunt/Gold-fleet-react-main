@@ -6,7 +6,7 @@ import Header from '../components/Header'
 
 const AuthPage = () => {
   const navigate = useNavigate()
-  const { login, signup, token, isInitialized, loading: authLoading } = useAuth()
+  const { login, signup, token, isInitialized, loading: authLoading, user } = useAuth()
   const [isSignup, setIsSignup] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -66,9 +66,10 @@ const AuthPage = () => {
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (isInitialized && !authLoading && token) {
-      navigate('/main', { replace: true })
+      const redirectPath = user?.role === 'driver' ? '/driver' : '/main'
+      navigate(redirectPath, { replace: true })
     }
-  }, [token, isInitialized, authLoading, navigate])
+  }, [token, isInitialized, authLoading, navigate, user])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -89,7 +90,8 @@ const AuthPage = () => {
         return
       }
       
-      navigate('/main', { replace: true })
+      const redirectPath = result.user?.role === 'driver' ? '/driver' : '/main'
+      navigate(redirectPath, { replace: true })
     } catch (err) {
       setError(err.message)
     } finally {

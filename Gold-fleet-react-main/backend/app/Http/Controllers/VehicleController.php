@@ -16,9 +16,18 @@ class VehicleController extends Controller
     {
         try {
             $companyId = auth()->user()->company_id;
+            $query = Vehicle::where('company_id', $companyId);
 
-            $vehicles = Vehicle::where('company_id', $companyId)
-                ->with(['trips' => function($query) {
+            if (auth()->user()->role === 'driver') {
+                $driver = auth()->user()->driver;
+                if ($driver && $driver->vehicle_id) {
+                    $query->where('id', $driver->vehicle_id);
+                } else {
+                    return response()->json(['data' => []]);
+                }
+            }
+
+            $vehicles = $query->with(['trips' => function($query) {
                     $query->latest()->limit(1);
                 }])
                 ->get();

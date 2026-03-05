@@ -64,5 +64,10 @@ class User extends Authenticatable
         return $this->belongsTo(Company::class);
     }
 
+    public function driver()
+    {
+        return $this->hasOne(\App\Models\Driver::class);
+    }
+
     // Email verification removed: do not automatically send verification notifications
 }

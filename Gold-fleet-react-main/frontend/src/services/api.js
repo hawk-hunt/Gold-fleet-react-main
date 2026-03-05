@@ -155,6 +155,9 @@ export const api = {
   getSimulationStatus: () => apiCall(`${API_BASE_URL}/simulation/status`),
   updateSimulation: () => apiCall(`${API_BASE_URL}/simulation/update`, { method: 'POST' }),
 
+  // Vehicle Location
+  sendVehicleLocation: (data) => apiCall(`${API_BASE_URL}/vehicle-location`, { method: 'POST', body: JSON.stringify(data) }),
+
   // Notifications
   getNotifications: () => apiCall(`${API_BASE_URL}/notifications`),
   markNotificationAsRead: (id) => apiCall(`${API_BASE_URL}/notifications/${id}/read`, { method: 'PATCH' }),

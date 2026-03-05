@@ -12,7 +12,13 @@ class TripController extends Controller
      */
     public function index()
     {
-        $trips = Trip::with('vehicle', 'driver', 'driver.user')->get();
+        $query = Trip::with('vehicle', 'driver', 'driver.user');
+        
+        if (auth()->user()->role === 'driver') {
+            $query->where('driver_id', auth()->user()->driver->id ?? null);
+        }
+        
+        $trips = $query->get();
         return response()->json(['data' => $trips]);
     }
 

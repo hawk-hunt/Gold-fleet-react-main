@@ -56,4 +56,30 @@ class MapDashboardController extends Controller
 
         return response()->json($locations);
     }
+
+    public function storeVehicleLocation(Request $request)
+    {
+        $validated = $request->validate([
+            'vehicle_id' => 'required|integer',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'timestamp' => 'nullable|date',
+        ]);
+
+        $user = auth()->user();
+        $driver = $user->driver;
+
+        if (!$driver || $driver->vehicle_id != $validated['vehicle_id']) {
+            return response()->json(['error' => 'Unauthorized to update this vehicle'], 403);
+        }
+
+        VehicleLocation::create([
+            'vehicle_id' => $validated['vehicle_id'],
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'recorded_at' => $validated['timestamp'] ?? now(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }

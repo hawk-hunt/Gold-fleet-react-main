@@ -72,6 +72,7 @@ Route::middleware('authorize.api.token')->group(function () {
     Route::get('/dashboard/stats', [InfoDashboardController::class, 'index']);
     Route::get('/dashboard/info/chart-data', [InfoDashboardController::class, 'getChartData']);
     Route::get('/vehicle-locations', [MapDashboardController::class, 'getVehicleLocations']);
+    Route::post('/vehicle-location', [MapDashboardController::class, 'storeVehicleLocation'])->middleware('driver');
 
     // Chart data endpoints
     Route::prefix('charts')->group(function () {
@@ -102,6 +103,9 @@ Route::middleware('authorize.api.token')->group(function () {
     Route::apiResource('expenses', ExpenseController::class);
     Route::apiResource('fuel-fillups', FuelFillupController::class);
     Route::apiResource('reminders', ReminderController::class);
+
+    // Driver vehicle location endpoint
+    Route::middleware('driver')->post('/vehicle-location', [MapDashboardController::class, 'storeVehicleLocation']);
 
     // Profile and notifications
     Route::get('/profile', [ProfileController::class, 'edit']);

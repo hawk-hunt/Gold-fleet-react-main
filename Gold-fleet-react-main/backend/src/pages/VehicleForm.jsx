@@ -148,7 +148,7 @@ export default function VehicleForm() {
               onChange={handleChange}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-              placeholder="ABC-1234"
+              placeholder="XX-0000-00"
             />
           </div>
 

@@ -169,7 +169,7 @@ export default function DriverForm() {
                 value={form.license_number}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="DL-12345678"
+                placeholder="GHA-23-456789"
               />
             </div>
           </div>
@@ -202,47 +202,10 @@ export default function DriverForm() {
             </div>
           </div>
 
-          {/* Phone & License Number */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-              <input
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="(555) 123-4567"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">License Number *</label>
-              <input
-                type="text"
-                name="license_number"
-                value={form.license_number}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="DL-12345678"
-              />
-            </div>
-          </div>
+          {/* Removed duplicate phone and license number fields */}
 
-          {/* Vehicle & Address */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Vehicle</label>
-              <select
-                name="vehicle_id"
-                value={form.vehicle_id}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-              >
-                <option value="">None</option>
-              </select>
-            </div>
+          {/* Address */}
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
               <input

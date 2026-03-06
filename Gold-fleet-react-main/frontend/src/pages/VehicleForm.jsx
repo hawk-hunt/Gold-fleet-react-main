@@ -216,7 +216,7 @@ export default function VehicleForm() {
                   ? 'border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:ring-yellow-600'
               }`}
-              placeholder="ABC-1234"
+              placeholder="XX-0000-00"
             />
             {form.errors.license_plate && (
               <p className="mt-1 text-sm text-red-600">{form.errors.license_plate}</p>

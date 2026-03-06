@@ -155,32 +155,7 @@ export default function TripForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Start Mileage</label>
-              <input
-                type="number"
-                name="start_mileage"
-                value={formData.start_mileage}
-                onChange={handleChange}
-                step="0.01"
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">End Mileage</label>
-              <input
-                type="number"
-                name="end_mileage"
-                value={formData.end_mileage}
-                onChange={handleChange}
-                step="0.01"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
+          {/* Removed start mileage and end mileage fields */}
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Start Location</label>

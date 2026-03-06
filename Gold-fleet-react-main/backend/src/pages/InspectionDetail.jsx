@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function InspectionDetail() {
   const navigate = useNavigate();
@@ -16,11 +16,13 @@ export default function InspectionDetail() {
 
   const fetchInspectionData = async () => {
     try {
-      const inspectionData = await api.getInspection(id);
+      const inspectionResponse = await api.getInspection(id);
+      const inspectionData = inspectionResponse.data || inspectionResponse;
       setInspection(inspectionData);
-      if (inspectionData.vehicle_id) {
-        const vehicleData = await api.getVehicle(inspectionData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already included in inspection response via relationship
+      if (inspectionData.vehicle) {
+        setVehicle(inspectionData.vehicle);
       }
     } catch (err) {
       setError('Failed to load inspection details');

@@ -209,29 +209,93 @@ export default function MapDashboard() {
   
 
 
-  // Get actual device location
+  // Get actual device location with high precision
   const getDeviceLocation = useCallback(() => {
+    console.log('📍 Getting device location...');
     setLoadingLocation(true);
     setLocationError('');
 
     if (!navigator.geolocation) {
-      setLocationError('Geolocation not supported by your browser');
+      const msg = 'Geolocation not supported by your browser';
+      console.error('❌', msg);
+      setLocationError(msg);
       setLoadingLocation(false);
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
+    let watchId = null;
+    let bestAccuracy = Infinity;
+    let locationAttempts = 0;
+    const maxAttempts = 5;
+
+    // Use watchPosition for continuous, precise location updates
+    watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        setDeviceLocation({ lat: latitude, lng: longitude, accuracy });
-        setLoadingLocation(false);
+        const { latitude, longitude, accuracy, timestamp } = position.coords;
+        locationAttempts++;
+        
+        console.log(`📍 Location attempt ${locationAttempts}:`, {
+          lat: latitude.toFixed(7),
+          lng: longitude.toFixed(7),
+          accuracy: `±${Math.round(accuracy)}m`,
+        });
+        
+        // Update location if accuracy improves or it's the first reading
+        if (accuracy < bestAccuracy || locationAttempts === 1) {
+          bestAccuracy = accuracy;
+          const newLocation = {
+            lat: latitude, 
+            lng: longitude, 
+            accuracy: Math.round(accuracy),
+            timestamp: new Date(timestamp).toLocaleTimeString()
+          };
+          console.log('✅ Location updated:', newLocation);
+          setDeviceLocation(newLocation);
+          setLocationError('');
+          setLoadingLocation(false);
+        }
+
+        // Stop watching after getting good accuracy (< 20m) or max attempts
+        if (accuracy < 20 || locationAttempts >= maxAttempts) {
+          console.log('🛑 Stopping location watch - accuracy good or max attempts reached');
+          navigator.geolocation.clearWatch(watchId);
+        }
       },
       (err) => {
-        setLocationError(`Error: ${err.message}`);
+        let errorMsg = 'Unable to get location';
+        console.error('❌ Geolocation error code:', err.code, 'Message:', err.message);
+        
+        if (err.code === err.PERMISSION_DENIED) {
+          errorMsg = 'Location permission denied. Please enable location in browser settings.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          errorMsg = 'Location not available. Enable GPS and ensure you have clear sky view.';
+        } else if (err.code === err.TIMEOUT) {
+          errorMsg = 'Location timeout (30s). Move outdoors or try again.';
+        }
+        console.log('⚠️ Error message:', errorMsg);
+        setLocationError(errorMsg);
         setLoadingLocation(false);
+        if (watchId) navigator.geolocation.clearWatch(watchId);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { 
+        enableHighAccuracy: true,      // Use GPS for maximum precision
+        timeout: 30000,                // Allow up to 30 seconds for GPS lock
+        maximumAge: 0                  // Don't use cached position
+      }
     );
+
+    console.log('🔍 Started watching position, watchId:', watchId);
+
+    // Store watchId in ref to clear later if needed
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ Location timeout reached - stopping watch');
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    }, 35000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
   // Fetch live vehicle data
@@ -258,10 +322,9 @@ export default function MapDashboard() {
           heading: Math.floor(Math.random() * 360),
         }));
 
+        console.log('✅ Vehicles loaded from API:', transformedVehicles.length);
         setVehicles(transformedVehicles);
-        if (transformedVehicles.length > 0 && !selectedVehicle) {
-          setSelectedVehicle(transformedVehicles[0]);
-        }
+        // Don't auto-select vehicles - prioritize device location first
       } catch (apiError) {
         // Demo vehicles
         const demoVehicles = [
@@ -270,10 +333,9 @@ export default function MapDashboard() {
           { id: 3, name: 'Man Truck', plate_number: 'GF-003', model: 'Man Truck', status: 'idle', lat: 6.6945, lng: -0.1876, speed: 0, fuel_level: 45, odometer: 78000, driver_name: 'Kwesi Osei', last_location_update: new Date().toISOString(), heading: 0 },
           { id: 4, name: 'Scania R420', plate_number: 'GF-004', model: 'Scania R420', status: 'active', lat: 5.5520, lng: -0.1960, speed: 95, fuel_level: 60, odometer: 140000, driver_name: 'Yaw Mensah', last_location_update: new Date().toISOString(), heading: 270 },
         ];
+        console.log('📦 Using demo vehicles:', demoVehicles.length);
         setVehicles(demoVehicles);
-        if (!selectedVehicle) {
-          setSelectedVehicle(demoVehicles[0]);
-        }
+        // Don't auto-select demo vehicles - let device location show first
       }
     } catch (err) {
       setError('Failed to load vehicle data');
@@ -285,7 +347,15 @@ export default function MapDashboard() {
 
   useEffect(() => {
     fetchVehicleData();
-  }, []);
+    // Request device location on component mount
+    const timer = setTimeout(() => {
+      console.log('🗺️ Requesting device location on mount...');
+      if (navigator.geolocation) {
+        // This will be called after getDeviceLocation is accessible
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [fetchVehicleData]);
 
   // Auto-refresh
   useEffect(() => {
@@ -356,6 +426,14 @@ export default function MapDashboard() {
               {isLoading ? '⟳' : '⟳ Refresh'}
             </button>
             <button
+              onClick={() => getDeviceLocation()}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${loadingLocation ? 'bg-purple-400 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+              disabled={loadingLocation}
+              title="Get precise device location"
+            >
+              {loadingLocation ? '📍 Locating...' : '📍 My Location'}
+            </button>
+            <button
               onClick={() => setPanelOpen(!panelOpen)}
               className="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-900 transition-all text-sm font-medium"
               title={panelOpen ? 'Hide info panel' : 'Show info panel'}
@@ -383,17 +461,19 @@ export default function MapDashboard() {
           whenCreated={(map) => {
             mapRef.current = map;
             setMapObj(map);
+            console.log('🗺️ Map created and ready');
           }}
-          center={selectedVehicle ? [selectedVehicle.lat, selectedVehicle.lng] : deviceLocation ? [deviceLocation.lat, deviceLocation.lng] : defaultCenter}
-          zoom={selectedVehicle ? 15 : deviceLocation ? 14 : defaultZoom}
+          center={deviceLocation ? [deviceLocation.lat, deviceLocation.lng] : selectedVehicle ? [selectedVehicle.lat, selectedVehicle.lng] : defaultCenter}
+          zoom={deviceLocation ? 14 : selectedVehicle ? 15 : defaultZoom}
           style={{ height: '100%', width: '100%', display: 'block' }}
           className="map-fullscreen-wrapper"
           tap={false}
           scrollWheelZoom={true}
-          key={`${selectedVehicle?.id || deviceLocation?.lat || 'default'}`}
+          key={`${deviceLocation?.lat || selectedVehicle?.id || 'default'}`}
           whenReady={(mapInstance) => {
             try {
               mapInstance.target.invalidateSize(true);
+              console.log('🗺️ Map ready with size adjustment');
             } catch (e) {
               console.warn('Map invalidateSize error:', e);
             }
@@ -425,10 +505,21 @@ export default function MapDashboard() {
             <Marker position={[deviceLocation.lat, deviceLocation.lng]} icon={createDeviceIcon()}>
               <Popup>
                 <div className="text-sm">
-                  <p className="font-bold text-blue-600">📱 Your Device</p>
-                  <p className="text-xs text-gray-600 mt-1">Lat: {deviceLocation.lat?.toFixed(6)}</p>
-                  <p className="text-xs text-gray-600">Lng: {deviceLocation.lng?.toFixed(6)}</p>
-                  {deviceLocation.accuracy && <p className="text-xs text-gray-600">Accuracy: ±{Math.round(deviceLocation.accuracy)}m</p>}
+                  <p className="font-bold text-blue-600">📱 Your Device Location</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    <span className="font-mono">Lat: {deviceLocation.lat?.toFixed(7)}</span>
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    <span className="font-mono">Lng: {deviceLocation.lng?.toFixed(7)}</span>
+                  </p>
+                  {deviceLocation.accuracy && (
+                    <p className="text-xs text-green-600 font-semibold mt-2">
+                      ✓ Accuracy: ±{deviceLocation.accuracy}m
+                    </p>
+                  )}
+                  {deviceLocation.timestamp && (
+                    <p className="text-xs text-gray-500 mt-1">Updated: {deviceLocation.timestamp}</p>
+                  )}
                 </div>
               </Popup>
             </Marker>

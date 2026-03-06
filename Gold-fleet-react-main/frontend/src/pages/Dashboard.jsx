@@ -366,7 +366,7 @@ export default function Dashboard() {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               <StatCard
                 icon={<FaCar />}
                 title="Total Vehicles"
@@ -422,6 +422,32 @@ export default function Dashboard() {
                   </div>
                 )}
               </StatCard>
+
+              {/* Maintenance Workflow Card */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-purple-200 p-6 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 text-sm">Workflow</h3>
+                  <FaTools className="text-purple-600 text-lg" />
+                </div>
+                <button
+                  onClick={() => navigate('/inspections')}
+                  className="text-xs text-purple-700 hover:text-purple-900 font-medium mb-2 text-left transition-colors"
+                >
+                  → Inspections
+                </button>
+                <button
+                  onClick={() => navigate('/issues')}
+                  className="text-xs text-purple-700 hover:text-purple-900 font-medium mb-2 text-left transition-colors"
+                >
+                  → Issues
+                </button>
+                <button
+                  onClick={() => navigate('/services')}
+                  className="text-xs text-purple-700 hover:text-purple-900 font-medium text-left transition-colors"
+                >
+                  → Services
+                </button>
+              </div>
             </div>
 
             {/* Fleet Analytics Cards Grid - SQUARE LAYOUT */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function FuelFillupDetail() {
   const navigate = useNavigate();
@@ -16,11 +16,13 @@ export default function FuelFillupDetail() {
 
   const fetchFuelFillupData = async () => {
     try {
-      const fuelFillupData = await api.getFuelFillup(id);
+      const fuelFillupResponse = await api.getFuelFillup(id);
+      const fuelFillupData = fuelFillupResponse.data || fuelFillupResponse;
       setFuelFillup(fuelFillupData);
-      if (fuelFillupData.vehicle_id) {
-        const vehicleData = await api.getVehicle(fuelFillupData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already included in fuel fillup response via relationship
+      if (fuelFillupData.vehicle) {
+        setVehicle(fuelFillupData.vehicle);
       }
     } catch (err) {
       setError('Failed to load fuel fillup details');

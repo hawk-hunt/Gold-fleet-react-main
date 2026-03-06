@@ -1,7 +1,8 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('auth_token');
+  // Check sessionStorage first (AuthContext stores token there), then localStorage
+  const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
   return {
     'Authorization': token ? `Bearer ${token}` : '',
   };

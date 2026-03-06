@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function ServiceDetail() {
   const navigate = useNavigate();
@@ -16,13 +16,19 @@ export default function ServiceDetail() {
 
   const fetchServiceData = async () => {
     try {
-      const serviceData = await api.getService(id);
+      // Fetch service data - vehicle is already included via relationship
+      const serviceResponse = await api.getService(id);
+      const serviceData = serviceResponse.data || serviceResponse;
+      console.log('✅ Service Data received:', serviceData);
+      console.log('✅ Vehicle included:', serviceData.vehicle);
       setService(serviceData);
-      if (serviceData.vehicle_id) {
-        const vehicleData = await api.getVehicle(serviceData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already included in service response via relationship
+      if (serviceData.vehicle) {
+        setVehicle(serviceData.vehicle);
       }
     } catch (err) {
+      console.error('❌ Error fetching service:', err);
       setError('Failed to load service details');
     } finally {
       setLoading(false);
@@ -97,21 +103,21 @@ export default function ServiceDetail() {
           <div>
             <h3 className="text-sm font-medium text-gray-500">Vehicle</h3>
             <p className="text-lg text-gray-900">
-              {vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.license_plate})` : 'N/A'}
+              {vehicle ? `${vehicle.make || 'Unknown'} ${vehicle.model || 'Model'} (${vehicle.license_plate || vehicle.plate_number || 'No plate'})` : 'Loading vehicle...'}
             </p>
           </div>
 
           <div>
             <h3 className="text-sm font-medium text-gray-500">Service Type</h3>
             <p className="text-lg text-gray-900">
-              {service.service_type?.replace('_', ' ').toUpperCase()}
+              {service.service_type?.replace('_', ' ').toUpperCase() || 'Not specified'}
             </p>
           </div>
 
           <div>
             <h3 className="text-sm font-medium text-gray-500">Service Date</h3>
             <p className="text-lg text-gray-900">
-              {new Date(service.service_date).toLocaleDateString()}
+              {service.service_date ? new Date(service.service_date).toLocaleDateString() : 'Not specified'}
             </p>
           </div>
 
@@ -122,7 +128,7 @@ export default function ServiceDetail() {
 
           <div className="col-span-2">
             <h3 className="text-sm font-medium text-gray-500">Notes</h3>
-            <p className="text-lg text-gray-900">{service.notes || 'N/A'}</p>
+            <p className="text-lg text-gray-900">{service.description || 'No notes'}</p>
           </div>
         </div>
       </div>

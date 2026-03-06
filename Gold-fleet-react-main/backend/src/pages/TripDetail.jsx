@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function TripDetail() {
   const navigate = useNavigate();
@@ -17,15 +17,16 @@ export default function TripDetail() {
 
   const fetchTripData = async () => {
     try {
-      const tripData = await api.getTrip(id);
+      const tripResponse = await api.getTrip(id);
+      const tripData = tripResponse.data || tripResponse;
       setTrip(tripData);
-      if (tripData.vehicle_id) {
-        const vehicleData = await api.getVehicle(tripData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle and driver are already included in trip response via relationships
+      if (tripData.vehicle) {
+        setVehicle(tripData.vehicle);
       }
-      if (tripData.driver_id) {
-        const driverData = await api.getDriver(tripData.driver_id);
-        setDriver(driverData);
+      if (tripData.driver) {
+        setDriver(tripData.driver);
       }
     } catch (err) {
       setError('Failed to load trip details');

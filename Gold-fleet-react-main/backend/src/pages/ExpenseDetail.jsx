@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function ExpenseDetail() {
   const navigate = useNavigate();
@@ -16,11 +16,13 @@ export default function ExpenseDetail() {
 
   const fetchExpenseData = async () => {
     try {
-      const expenseData = await api.getExpense(id);
+      const expenseResponse = await api.getExpense(id);
+      const expenseData = expenseResponse.data || expenseResponse;
       setExpense(expenseData);
-      if (expenseData.vehicle_id) {
-        const vehicleData = await api.getVehicle(expenseData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already included in expense response via relationship
+      if (expenseData.vehicle) {
+        setVehicle(expenseData.vehicle);
       }
     } catch (err) {
       setError('Failed to load expense details');

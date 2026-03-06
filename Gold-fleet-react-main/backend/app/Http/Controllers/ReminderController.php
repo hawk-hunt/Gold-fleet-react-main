@@ -59,7 +59,7 @@ class ReminderController extends Controller
      */
     public function edit(Reminder $reminder)
     {
-        return response()->json($reminder->load('vehicle'));
+        return response()->json(['data' => $reminder->load('vehicle')]);
     }
 
     /**

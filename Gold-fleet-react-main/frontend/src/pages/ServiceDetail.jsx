@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 
 export default function ServiceDetail() {
@@ -17,13 +17,17 @@ export default function ServiceDetail() {
 
   const fetchServiceData = async () => {
     try {
-      const serviceData = await api.getService(id);
+      const response = await api.getService(id);
+      const serviceData = response.data || response;
+      console.log('✅ Service Detail Data:', serviceData);
       setService(serviceData);
-      if (serviceData.vehicle_id) {
-        const vehicleData = await api.getVehicle(serviceData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already in the response via relationship
+      if (serviceData.vehicle) {
+        setVehicle(serviceData.vehicle);
       }
     } catch (err) {
+      console.error('❌ Error:', err);
       setError('Failed to load service details');
     } finally {
       setLoading(false);

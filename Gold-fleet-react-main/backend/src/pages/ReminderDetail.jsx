@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function ReminderDetail() {
   const navigate = useNavigate();
@@ -16,11 +16,13 @@ export default function ReminderDetail() {
 
   const fetchReminderData = async () => {
     try {
-      const reminderData = await api.getReminder(id);
+      const reminderResponse = await api.getReminder(id);
+      const reminderData = reminderResponse.data || reminderResponse;
       setReminder(reminderData);
-      if (reminderData.vehicle_id) {
-        const vehicleData = await api.getVehicle(reminderData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already included in reminder response via relationship
+      if (reminderData.vehicle) {
+        setVehicle(reminderData.vehicle);
       }
     } catch (err) {
       setError('Failed to load reminder details');

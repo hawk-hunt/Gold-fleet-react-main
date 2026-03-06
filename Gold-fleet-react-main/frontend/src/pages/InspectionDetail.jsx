@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { FaArrowRight } from 'react-icons/fa';
 
 export default function InspectionDetail() {
   const navigate = useNavigate();
@@ -71,6 +72,15 @@ export default function InspectionDetail() {
           >
             Edit
           </button>
+          {inspection.result !== 'pass' && (
+            <button
+              onClick={() => navigate(`/issues/create?inspection_id=${id}`)}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium flex items-center gap-2"
+            >
+              Log Issue
+              <FaArrowRight size={16} />
+            </button>
+          )}
           <button
             onClick={handleDelete}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
@@ -79,6 +89,26 @@ export default function InspectionDetail() {
           </button>
         </div>
       </div>
+
+      {/* Workflow Steps Indicator */}
+      {inspection.result !== 'pass' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm font-medium text-blue-900 mb-2">Workflow Status</p>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm font-medium">
+              ✓ Inspection Complete
+            </span>
+            <FaArrowRight className="text-blue-400" size={16} />
+            <button
+              onClick={() => navigate(`/issues/create?inspection_id=${id}`)}
+              className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-3 py-1 rounded text-sm font-medium hover:bg-orange-200 transition"
+            >
+              Next: Log Issues
+              <FaArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start">

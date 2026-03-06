@@ -84,7 +84,7 @@ class FuelFillupController extends Controller
      */
     public function edit(FuelFillup $fuelFillup)
     {
-        return response()->json($fuelFillup->load('vehicle', 'driver', 'driver.user'));
+        return response()->json(['data' => $fuelFillup->load('vehicle', 'driver', 'driver.user')]);
     }
 
     /**

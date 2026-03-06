@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { FaArrowLeft } from 'react-icons/fa';
 
 export default function IssueForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const inspectionIdParam = searchParams.get('inspection_id');
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [vehicles, setVehicles] = useState([]);
+  const [inspections, setInspections] = useState([]);
   const [formData, setFormData] = useState({
     vehicle_id: '',
+    inspection_id: inspectionIdParam || '',
     title: '',
     description: '',
     status: 'open',
@@ -18,18 +24,22 @@ export default function IssueForm() {
   });
 
   useEffect(() => {
-    fetchVehicles();
+    fetchData();
     if (id) {
       fetchIssue();
     }
   }, [id]);
 
-  const fetchVehicles = async () => {
+  const fetchData = async () => {
     try {
-      const response = await api.getVehicles();
-      setVehicles(response.data || []);
+      const [vehiclesRes, inspectionsRes] = await Promise.all([
+        api.getVehicles(),
+        api.getInspections(),
+      ]);
+      setVehicles(vehiclesRes.data || []);
+      setInspections(inspectionsRes.data || []);
     } catch (err) {
-      setError('Failed to load vehicles');
+      setError('Failed to load data');
     }
   };
 
@@ -71,9 +81,19 @@ export default function IssueForm() {
   return (
     <div className="flex justify-center items-start min-h-screen">
       <div className="space-y-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {id ? 'Edit Issue' : 'Add New Issue'}
-        </h1>
+        <div className="flex items-center gap-4">
+          {inspectionIdParam && (
+            <button
+              onClick={() => navigate(`/inspections/${inspectionIdParam}`)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <FaArrowLeft className="text-gray-600" />
+            </button>
+          )}
+          <h1 className="text-3xl font-bold text-gray-900">
+            {id ? 'Edit Issue' : 'Add New Issue'}
+          </h1>
+        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -98,6 +118,24 @@ export default function IssueForm() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Related Inspection (Optional)</label>
+            <select
+              name="inspection_id"
+              value={formData.inspection_id}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select an inspection (optional)</option>
+              {inspections.map((inspection) => (
+                <option key={inspection.id} value={inspection.id}>
+                  {inspection.vehicle?.license_plate} - {new Date(inspection.inspection_date).toLocaleDateString()}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-sm text-gray-500">Link this issue to an inspection for workflow tracking</p>
           </div>
 
           <div>

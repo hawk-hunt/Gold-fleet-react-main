@@ -24,11 +24,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, sidebarCollapsed,
       ],
     },
     {
-      title: 'Maintenance',
+      title: 'Maintenance Workflow',
       items: [
-        { label: 'Services', path: '/services' },
         { label: 'Inspections', path: '/inspections' },
         { label: 'Issues', path: '/issues' },
+        { label: 'Services', path: '/services' },
       ],
     },
     {

@@ -11,8 +11,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Production-ready seeder with no initial data
-        // Users and data will be created through the application
+        // Comprehensive dummy data seeder for testing and optimization
+        $this->call([
+            ComprehensiveDummySeeder::class,
+        ]);
     }
 }
 

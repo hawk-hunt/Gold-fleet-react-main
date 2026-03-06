@@ -159,7 +159,7 @@ class VehicleController extends Controller
             abort(403);
         }
 
-        return response()->json($vehicle);
+        return response()->json(['data' => $vehicle]);
     }
 
     /**

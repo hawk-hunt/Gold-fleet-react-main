@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import { api } from '../services/api';
 
 export default function IssueDetail() {
   const navigate = useNavigate();
@@ -16,11 +16,13 @@ export default function IssueDetail() {
 
   const fetchIssueData = async () => {
     try {
-      const issueData = await api.getIssue(id);
+      const issueResponse = await api.getIssue(id);
+      const issueData = issueResponse.data || issueResponse;
       setIssue(issueData);
-      if (issueData.vehicle_id) {
-        const vehicleData = await api.getVehicle(issueData.vehicle_id);
-        setVehicle(vehicleData);
+      
+      // Vehicle is already included in issue response via relationship
+      if (issueData.vehicle) {
+        setVehicle(issueData.vehicle);
       }
     } catch (err) {
       setError('Failed to load issue details');

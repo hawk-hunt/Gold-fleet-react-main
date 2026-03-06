@@ -75,7 +75,7 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        return response()->json($expense->load('vehicle'));
+        return response()->json(['data' => $expense->load('vehicle')]);
     }
 
     /**

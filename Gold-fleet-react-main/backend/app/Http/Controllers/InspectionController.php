@@ -76,7 +76,7 @@ class InspectionController extends Controller
      */
     public function edit(Inspection $inspection)
     {
-        return response()->json($inspection->load('vehicle', 'driver', 'driver.user'));
+        return response()->json(['data' => $inspection->load('vehicle', 'driver', 'driver.user')]);
     }
 
     /**

@@ -136,7 +136,7 @@ class DriverController extends Controller
         $companyId = auth()->user()->company_id;
         $vehicles = Vehicle::where('company_id', $companyId)->get();
 
-        return response()->json(['driver' => $driver, 'vehicles' => $vehicles]);
+        return response()->json(['data' => $driver, 'vehicles' => $vehicles]);
     }
 
     /**

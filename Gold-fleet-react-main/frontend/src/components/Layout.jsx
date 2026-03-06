@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 import Header from './Header';
@@ -10,7 +11,20 @@ export default function Layout({ children }) {
   // track large screen breakpoint so we only offset content on lg+ screens
   const [isLarge, setIsLarge] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
   const location = useLocation();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const isMapPage = location.pathname === '/map';
+
+  // ONLY redirect drivers away from admin pages - allow admins and others to access /main freely
+  useEffect(() => {
+    // Only apply this check if user is authenticated and is a DRIVER
+    if (user && user.role === 'driver') {
+      const adminRoutes = ['/main', '/vehicles', '/services', '/inspections', '/issues', '/expenses', '/fuel-fillups', '/reminders', '/company-settings'];
+      if (adminRoutes.some(route => location.pathname.startsWith(route))) {
+        navigate('/driver', { replace: true });
+      }
+    }
+  }, [user, location.pathname, navigate]);
 
   useEffect(() => {
     const onResize = () => setIsLarge(window.innerWidth >= 1024);
@@ -51,7 +65,7 @@ export default function Layout({ children }) {
 
       {/* Main content area: only this scrolls */}
       <div
-        className={`flex-1 flex flex-col ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'}`}
+        className={`flex-1 flex flex-col ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto pb-16'}`}
         style={{
           marginLeft: isLarge ? sidebarWidth : 0,
           width: isLarge ? `calc(100% - ${sidebarWidth}px)` : '100%',
@@ -76,8 +90,7 @@ export default function Layout({ children }) {
                   {children}
                 </main>
               </div>
-              {/* spacer will push footer to bottom if content is short */}
-              <div className="flex-1" />
+              {/* spacer removed; footer is fixed so padding-bottom handles spacing */}
             </>
           )}
         </div>

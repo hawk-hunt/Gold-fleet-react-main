@@ -35,9 +35,15 @@ export default function ServiceForm() {
 
   const fetchService = async () => {
     try {
-      const service = await api.getService(id);
+      const response = await api.getService(id);
+      const service = response.data || response;
       if (service) {
-        setFormData(service);
+        // Map database 'description' field to form's 'notes' field
+        const formattedService = {
+          ...service,
+          notes: service.description || '',
+        };
+        setFormData(formattedService);
       }
     } catch (err) {
       setError('Failed to load service');

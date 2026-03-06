@@ -86,7 +86,7 @@ class TripController extends Controller
      */
     public function edit(Trip $trip)
     {
-        return response()->json($trip->load('vehicle', 'driver', 'driver.user'));
+        return response()->json(['data' => $trip->load('vehicle', 'driver', 'driver.user')]);
     }
 
     /**

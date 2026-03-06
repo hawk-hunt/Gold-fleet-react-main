@@ -60,7 +60,7 @@ class IssueController extends Controller
      */
     public function edit(Issue $issue)
     {
-        return response()->json($issue->load('vehicle'));
+        return response()->json(['data' => $issue->load('vehicle')]);
     }
 
     /**

@@ -12,20 +12,21 @@ import Header from '../components/Header';
  */
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { token, loading, isInitialized } = useAuth();
+  const { token, loading, isInitialized, user } = useAuth();
 
   // Log auth state for debugging
   useEffect(() => {
     console.log('[LandingPage] Auth state:', { token, loading, isInitialized });
   }, [token, loading, isInitialized]);
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to appropriate dashboard based on user role
   useEffect(() => {
     if (isInitialized && !loading && token) {
-      console.log('[LandingPage] User is authenticated, redirecting to dashboard...');
-      navigate('/main', { replace: true });
+      console.log('[LandingPage] User is authenticated, redirecting to appropriate dashboard...');
+      const redirectPath = user?.role === 'driver' ? '/driver' : '/main';
+      navigate(redirectPath, { replace: true });
     }
-  }, [token, loading, isInitialized, navigate]);
+  }, [token, loading, isInitialized, navigate, user]);
 
   // Show loading while auth is initializing
   if (loading || !isInitialized) {

@@ -18,7 +18,7 @@ const ProtectedDriverRoute = ({ children }) => {
   }
 
   if (user.role !== 'driver') {
-    return <Navigate to="/main" replace />;
+    return <Navigate to="/driver" replace />;
   }
 
   return children;

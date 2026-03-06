@@ -12,7 +12,11 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $services = Service::with('vehicle')->get();
+        $companyId = auth()->user()->company_id ?? 1;
+        $services = Service::where('company_id', $companyId)
+            ->with('vehicle')
+            ->orderBy('service_date', 'desc')
+            ->get();
         return response()->json(['data' => $services]);
     }
 
@@ -76,7 +80,7 @@ class ServiceController extends Controller
      */
     public function edit(Service $service)
     {
-        return response()->json($service->load('vehicle'));
+        return response()->json(['data' => $service->load('vehicle')]);
     }
 
     /**

@@ -1,10 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { FaPlay, FaStop, FaMapMarkerAlt, FaRoute, FaClock, FaCar } from 'react-icons/fa';
+
+// Utility function to calculate distance between two coordinates using Haversine formula
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in km
+};
+
+// Utility function to format duration
+const formatDuration = (startTime, endTime) => {
+  const start = new Date(startTime);
+  const end = endTime ? new Date(endTime) : new Date();
+  const diffMs = end - start;
+  const diffMins = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMins / 60);
+  const mins = diffMins % 60;
+  return `${hours}h ${mins}m`;
+};
 
 // Fix for marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -48,7 +72,30 @@ export default function DriverDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [watchId, setWatchId] = useState(null);
+  const [routeWaypoints, setRouteWaypoints] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState([40.7128, -74.0060]); // Default to NYC
+  const [tripDistance, setTripDistance] = useState(0);
+  const [tripDuration, setTripDuration] = useState('0h 0m');
   const mapRef = useRef(null);
+
+  // Update trip duration every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (currentTrip) {
+        const duration = formatDuration(currentTrip.created_at, currentTrip.updated_at);
+        setTripDuration(duration);
+      }
+    }, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, [currentTrip]);
+
+  // Calculate initial trip duration
+  useEffect(() => {
+    if (currentTrip) {
+      const duration = formatDuration(currentTrip.created_at, currentTrip.updated_at);
+      setTripDuration(duration);
+    }
+  }, [currentTrip]);
 
   // Fetch driver's vehicle and current trip
   useEffect(() => {
@@ -95,6 +142,22 @@ export default function DriverDashboard() {
       const id = navigator.geolocation.watchPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
+          const newLocation = [latitude, longitude];
+          
+          setCurrentLocation(newLocation);
+          
+          // Add waypoint to route
+          setRouteWaypoints(prev => {
+            const updated = [...prev, newLocation];
+            return updated;
+          });
+
+          // Calculate distance if we have multiple waypoints
+          if (routeWaypoints.length > 0) {
+            const lastPoint = routeWaypoints[routeWaypoints.length - 1];
+            const segmentDistance = calculateDistance(lastPoint[0], lastPoint[1], latitude, longitude);
+            setTripDistance(prev => prev + segmentDistance);
+          }
           
           try {
             await api.sendVehicleLocation({
@@ -117,6 +180,7 @@ export default function DriverDashboard() {
         }
       );
       setWatchId(id);
+      setRouteWaypoints([currentLocation]); // Initialize route with current position
     }
   };
 
@@ -125,6 +189,8 @@ export default function DriverDashboard() {
     if (watchId) {
       navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
+      setRouteWaypoints([]);
+      setTripDistance(0);
     }
   };
 
@@ -204,7 +270,7 @@ export default function DriverDashboard() {
               </h2>
               <div className="h-96 rounded-lg overflow-hidden">
                 <MapContainer
-                  center={[40.7128, -74.0060]} // Default to NYC, should center on vehicle
+                  center={currentLocation}
                   zoom={13}
                   style={{ height: '100%', width: '100%' }}
                   ref={mapRef}
@@ -213,13 +279,32 @@ export default function DriverDashboard() {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
+                  
+                  {/* Route Line */}
+                  {routeWaypoints.length > 1 && (
+                    <Polyline 
+                      positions={routeWaypoints} 
+                      color="blue" 
+                      weight={3}
+                      opacity={0.7}
+                    />
+                  )}
+                  
+                  {/* Vehicle Marker */}
                   {vehicle && (
-                    <Marker position={[40.7128, -74.0060]} icon={vehicleIcon}>
+                    <Marker position={currentLocation} icon={vehicleIcon}>
                       <Popup>
-                        <div>
+                        <div className="text-sm">
                           <h3 className="font-semibold">{vehicle.make} {vehicle.model}</h3>
-                          <p>License: {vehicle.license_plate}</p>
-                          <p>Status: {vehicle.status}</p>
+                          <p className="text-xs">License: {vehicle.license_plate}</p>
+                          <p className="text-xs">Status: {vehicle.status}</p>
+                          {currentTrip && (
+                            <>
+                              <p className="text-xs mt-2 font-semibold">Trip Stats:</p>
+                              <p className="text-xs">Distance: {tripDistance.toFixed(2)} km</p>
+                              <p className="text-xs">Duration: {tripDuration}</p>
+                            </>
+                          )}
                         </div>
                       </Popup>
                     </Marker>
@@ -256,6 +341,29 @@ export default function DriverDashboard() {
                   <div>
                     <p className="text-sm text-gray-600">Started</p>
                     <p className="font-medium">{new Date(currentTrip.created_at).toLocaleString()}</p>
+                  </div>
+                  
+                  {/* Trip Calculations */}
+                  <div className="border-t pt-3 space-y-3">
+                    <div className="flex justify-between items-center bg-blue-50 p-3 rounded">
+                      <p className="text-sm text-gray-600">Distance Traveled</p>
+                      <p className="font-bold text-blue-600">{tripDistance.toFixed(2)} km</p>
+                    </div>
+                    <div className="flex justify-between items-center bg-green-50 p-3 rounded">
+                      <p className="text-sm text-gray-600">Trip Duration</p>
+                      <p className="font-bold text-green-600">{tripDuration}</p>
+                    </div>
+                    {tripDistance > 0 && (
+                      <div className="flex justify-between items-center bg-orange-50 p-3 rounded">
+                        <p className="text-sm text-gray-600">Avg Speed</p>
+                        <p className="font-bold text-orange-600">
+                          {tripDuration && currentTrip ? 
+                            (tripDistance / ((new Date() - new Date(currentTrip.created_at)) / 3600000)).toFixed(2) 
+                            : '0.00'
+                          } km/h
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

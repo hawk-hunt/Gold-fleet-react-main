@@ -15,11 +15,13 @@ export default function Services() {
     setLoading(true);
     setError('');
     try {
-      const data = await api.getServices();
-      setServices(data.data || []);
+      const response = await api.getServices();
+      const servicesList = response.data || [];
+      console.log('✅ Services loaded:', servicesList);
+      setServices(servicesList);
     } catch (err) {
       setError('Failed to load services: ' + err.message);
-      console.error(err);
+      console.error('❌ Load services error:', err);
     } finally {
       setLoading(false);
     }
@@ -77,10 +79,10 @@ export default function Services() {
             <tbody className="divide-y divide-gray-200">
               {services.map((service) => (
                 <tr key={service.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{service.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{service.vehicle?.license_plate || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{service.service_type?.replace('_', ' ').toUpperCase() || 'Service'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{service.vehicle?.license_plate || service.vehicle?.plate_number || 'No vehicle'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{service.service_date || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">${service.cost || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">${(service.cost || 0).toFixed(2)}</td>
                   <td className="px-6 py-4 text-sm space-x-2">
                     <Link
                       to={`/services/${service.id}`}

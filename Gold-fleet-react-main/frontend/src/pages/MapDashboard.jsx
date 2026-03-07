@@ -642,26 +642,7 @@ export default function MapDashboard() {
                         </div>
                       )}
 
-                      {selectedVehicle.fuel_level !== undefined && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                          <p className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                            <FaGasPump className="text-green-600" /> Fuel
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                            <div className="bg-green-500 h-2 rounded-full" style={{ width: `${selectedVehicle.fuel_level}%` }} />
-                          </div>
-                          <p className="text-xs text-green-700 mt-1">{selectedVehicle.fuel_level}%</p>
-                        </div>
-                      )}
-
-                      {selectedVehicle.odometer !== undefined && (
-                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-2">
-                          <p className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                            <FaRoute className="text-indigo-600" /> Odometer
-                          </p>
-                          <p className="text-sm font-bold text-indigo-700 mt-1">{selectedVehicle.odometer} km</p>
-                        </div>
-                      )}
+                      {/* Fuel and Odometer info removed for driver UI simplification */}
 
                       {selectedVehicle.driver_name && (
                         <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">

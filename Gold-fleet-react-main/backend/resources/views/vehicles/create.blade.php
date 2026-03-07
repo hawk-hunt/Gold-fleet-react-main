@@ -54,7 +54,7 @@
                 <!-- License Plate -->
                 <div>
                     <label for="license_plate" class="block text-sm font-medium text-gray-700">Plate Number <span class="text-red-500">*</span></label>
-                    <input type="text" name="license_plate" id="license_plate" value="{{ old('license_plate') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <input type="text" name="license_plate" id="license_plate" value="{{ old('license_plate') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required placeholder="XX-0000-00">
                     @error('license_plate')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror

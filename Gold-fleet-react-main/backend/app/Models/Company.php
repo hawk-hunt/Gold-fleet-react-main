@@ -87,4 +87,9 @@ class Company extends Model
     {
         return $this->hasMany(Subscription::class);
     }
+
+    public function paymentSimulations(): HasMany
+    {
+        return $this->hasMany(PaymentSimulation::class);
+    }
 }

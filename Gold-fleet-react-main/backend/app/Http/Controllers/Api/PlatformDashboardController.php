@@ -20,94 +20,102 @@ class PlatformDashboardController extends Controller
      */
     public function getStats()
     {
-        $user = Auth::user();
-        
-        if (!$user || $user->role !== 'platform_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        try {
+            $user = Auth::user();
+            
+            if (!$user || $user->role !== 'platform_admin') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            // Get all companies (tenant count)
+            $totalCompanies = Company::count();
+            $activeCompanies = Company::where('subscription_status', 'active')->count();
+
+            // Get vehicle stats across all companies
+            $totalVehicles = Vehicle::count();
+            $activeVehicles = Vehicle::where('status', 'active')->count();
+
+            // Get trip stats
+            $tripsToday = Trip::whereDate('created_at', Carbon::today())->count();
+            $completedTrips = Trip::where('status', 'completed')->whereDate('updated_at', Carbon::today())->count();
+
+            // Get subscription stats
+            $activeSubscriptions = Company::where('subscription_status', 'active')->count();
+            
+            // Calculate monthly revenue (estimate based on subscription plans)
+            $basicCount = Company::where('subscription_plan', 'basic')->where('subscription_status', 'active')->count();
+            $proCount = Company::where('subscription_plan', 'pro')->where('subscription_status', 'active')->count();
+            $enterpriseCount = Company::where('subscription_plan', 'enterprise')->where('subscription_status', 'active')->count();
+            
+            // Pricing: basic=$99, pro=$299, enterprise=$999
+            $monthlyRevenue = ($basicCount * 99) + ($proCount * 299) + ($enterpriseCount * 999);
+
+            // Calculate total revenue
+            $totalRevenue = $monthlyRevenue * 6; // Assume 6 months average
+
+            // Calculate subscription renewals (for now, hardcoded as we don't have renewal dates)
+            $overdueRenewals = 0;
+            $dueSoonRenewals = 0;
+
+            // Build chart data - monthly company growth
+            $monthlyData = [];
+            $now = Carbon::now();
+            
+            for ($i = 5; $i >= 0; $i--) {
+                $month = $now->copy()->subMonths($i);
+                $monthName = $month->format('M');
+                
+                $companiesCount = Company::where('created_at', '<=', $month->endOfMonth())
+                    ->count();
+                
+                // Calculate revenue for this month
+                $basicCount = Company::where('created_at', '<=', $month->endOfMonth())
+                    ->where('subscription_plan', 'basic')
+                    ->where('subscription_status', 'active')
+                    ->count();
+                $proCount = Company::where('created_at', '<=', $month->endOfMonth())
+                    ->where('subscription_plan', 'pro')
+                    ->where('subscription_status', 'active')
+                    ->count();
+                $enterpriseCount = Company::where('created_at', '<=', $month->endOfMonth())
+                    ->where('subscription_plan', 'enterprise')
+                    ->where('subscription_status', 'active')
+                    ->count();
+                
+                $monthRevenue = ($basicCount * 99) + ($proCount * 299) + ($enterpriseCount * 999);
+                
+                $monthlyData[] = [
+                    'month' => $monthName,
+                    'companies' => $companiesCount,
+                    'revenue' => (int)$monthRevenue
+                ];
+            }
+
+            return response()->json([
+                'stats' => [
+                    'totalCompanies' => $totalCompanies,
+                    'activeCompanies' => $activeCompanies,
+                    'totalVehicles' => $totalVehicles,
+                    'activeVehicles' => $activeVehicles,
+                    'tripsToday' => $tripsToday,
+                    'completedTrips' => $completedTrips,
+                    'activeSubscriptions' => $activeSubscriptions,
+                    'monthlyRevenue' => (int)$monthlyRevenue,
+                    'totalRevenue' => (int)$totalRevenue,
+                    'overdueRenewals' => $overdueRenewals,
+                    'dueSoonRenewals' => $dueSoonRenewals,
+                ],
+                'charts' => [
+                    'growth' => $monthlyData
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Dashboard stats error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to load dashboard statistics',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        // Get all companies (tenant count)
-        $totalCompanies = Company::count();
-        $activeCompanies = Company::where('subscription_status', 'active')->count();
-
-        // Get vehicle stats across all companies
-        $totalVehicles = Vehicle::count();
-        $activeVehicles = Vehicle::where('status', 'active')->count();
-
-        // Get trip stats
-        $tripsToday = Trip::whereDate('created_at', Carbon::today())->count();
-        $completedTrips = Trip::where('status', 'completed')->whereDate('updated_at', Carbon::today())->count();
-
-        // Get subscription stats
-        $activeSubscriptions = Company::where('subscription_status', 'active')->count();
-        
-        // Calculate monthly revenue (estimate based on subscription plans)
-        $basicCount = Company::where('subscription_plan', 'basic')->where('subscription_status', 'active')->count();
-        $proCount = Company::where('subscription_plan', 'pro')->where('subscription_status', 'active')->count();
-        $enterpriseCount = Company::where('subscription_plan', 'enterprise')->where('subscription_status', 'active')->count();
-        
-        // Pricing: basic=$99, pro=$299, enterprise=$999
-        $monthlyRevenue = ($basicCount * 99) + ($proCount * 299) + ($enterpriseCount * 999);
-
-        // Calculate total revenue
-        $totalRevenue = $monthlyRevenue * 6; // Assume 6 months average
-
-        // Calculate subscription renewals (for now, hardcoded as we don't have renewal dates)
-        $overdueRenewals = 0;
-        $dueSoonRenewals = 0;
-
-        // Build chart data - monthly company growth
-        $monthlyData = [];
-        $now = Carbon::now();
-        
-        for ($i = 5; $i >= 0; $i--) {
-            $month = $now->copy()->subMonths($i);
-            $monthName = $month->format('M');
-            
-            $companiesCount = Company::where('created_at', '<=', $month->endOfMonth())
-                ->count();
-            
-            // Calculate revenue for this month
-            $basicCount = Company::where('created_at', '<=', $month->endOfMonth())
-                ->where('subscription_plan', 'basic')
-                ->where('subscription_status', 'active')
-                ->count();
-            $proCount = Company::where('created_at', '<=', $month->endOfMonth())
-                ->where('subscription_plan', 'pro')
-                ->where('subscription_status', 'active')
-                ->count();
-            $enterpriseCount = Company::where('created_at', '<=', $month->endOfMonth())
-                ->where('subscription_plan', 'enterprise')
-                ->where('subscription_status', 'active')
-                ->count();
-            
-            $monthRevenue = ($basicCount * 99) + ($proCount * 299) + ($enterpriseCount * 999);
-            
-            $monthlyData[] = [
-                'month' => $monthName,
-                'companies' => $companiesCount,
-                'revenue' => (int)$monthRevenue
-            ];
-        }
-
-        return response()->json([
-            'stats' => [
-                'totalCompanies' => $totalCompanies,
-                'activeCompanies' => $activeCompanies,
-                'totalVehicles' => $totalVehicles,
-                'activeVehicles' => $activeVehicles,
-                'tripsToday' => $tripsToday,
-                'completedTrips' => $completedTrips,
-                'activeSubscriptions' => $activeSubscriptions,
-                'monthlyRevenue' => '$' . number_format($monthlyRevenue, 0),
-                'totalRevenue' => '$' . number_format($totalRevenue, 0),
-                'overdueRenewals' => $overdueRenewals,
-                'dueSoonRenewals' => $dueSoonRenewals,
-            ],
-            'charts' => [
-                'growth' => $monthlyData
-            ]
-        ]);
     }
 
     /**

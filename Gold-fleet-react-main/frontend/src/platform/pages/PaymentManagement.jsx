@@ -33,25 +33,13 @@ export default function PaymentManagement() {
     setError('');
     try {
       // Fetch revenue stats
-      const revenueData = await fetch('/api/platform/payments-stats/revenue', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('api_token')}`,
-        },
-      }).then(r => r.json());
+      const revenueData = await platformApi.getRevenueStats();
 
       // Fetch all payments
-      const paymentsData = await fetch(`/api/platform/payments?per_page=50`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('api_token')}`,
-        },
-      }).then(r => r.json());
+      const paymentsData = await platformApi.getAllPayments(1, 50);
 
       // Fetch companies summary
-      const companiesData = await fetch('/api/platform/payments-stats/companies-summary', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('api_token')}`,
-        },
-      }).then(r => r.json());
+      const companiesData = await platformApi.getCompaniesSummary();
 
       if (revenueData.success) {
         setStats(revenueData.data);
@@ -64,7 +52,7 @@ export default function PaymentManagement() {
       }
     } catch (err) {
       console.error('Error fetching payment data:', err);
-      setError('Failed to load payment data. Please try again.');
+      setError(err.message || 'Failed to load payment data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,15 +60,7 @@ export default function PaymentManagement() {
 
   const handleVerifyPayment = async (paymentId) => {
     try {
-      const response = await fetch(`/api/platform/payments/${paymentId}/verify`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('api_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
+      const data = await platformApi.verifyPayment(paymentId);
       if (data.success) {
         // Refresh payments list
         fetchPaymentData();
@@ -89,7 +69,7 @@ export default function PaymentManagement() {
       }
     } catch (err) {
       console.error('Error verifying payment:', err);
-      setError('Failed to verify payment');
+      setError(err.message || 'Failed to verify payment');
     }
   };
 

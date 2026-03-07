@@ -93,10 +93,20 @@ const platformApi = {
    * Dashboard Stats
    */
   getDashboardStats: async () => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
     const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
       headers: platformApi.getAuthHeader(),
     });
-    if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch dashboard stats (${response.status})`);
+    }
     return response.json();
   },
 
@@ -352,6 +362,143 @@ const platformApi = {
       headers: platformApi.getAuthHeader(),
     });
     if (!response.ok) throw new Error('Failed to resume subscription');
+    return response.json();
+  },
+
+  // ===== Payment Management Methods =====
+
+  /**
+   * Get all payments with pagination and filtering
+   */
+  getAllPayments: async (page = 1, limit = 50, filters = {}) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    let url = `${API_BASE_URL}/payments?page=${page}&per_page=${limit}`;
+    
+    // Add filters to URL
+    if (filters.status) url += `&status=${filters.status}`;
+    if (filters.company_id) url += `&company_id=${filters.company_id}`;
+    if (filters.from_date) url += `&from_date=${filters.from_date}`;
+    if (filters.to_date) url += `&to_date=${filters.to_date}`;
+
+    const response = await fetch(url, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch payments (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Get single payment details
+   */
+  getPaymentDetails: async (paymentId) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch payment details (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Verify a payment
+   */
+  verifyPayment: async (paymentId) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}/verify`, {
+      method: 'POST',
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to verify payment (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Get platform revenue statistics
+   */
+  getRevenueStats: async () => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/payments-stats/revenue`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch revenue stats (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Get company payment statistics
+   */
+  getCompanyPaymentStats: async (companyId) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/payments-stats/company/${companyId}`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch company stats (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Get all companies payment summary
+   */
+  getCompaniesSummary: async () => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/payments-stats/companies-summary`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch companies summary (${response.status})`);
+    }
     return response.json();
   },
 };

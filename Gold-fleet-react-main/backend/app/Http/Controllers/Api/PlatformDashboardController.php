@@ -135,6 +135,69 @@ class PlatformDashboardController extends Controller
     }
 
     /**
+     * Delete Company
+     * Cascade delete all related data
+     */
+    public function deleteCompany($id)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->role !== 'platform_admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $company = Company::findOrFail($id);
+            
+            // Get company name before deletion
+            $companyName = $company->name;
+            
+            // Delete all related data in proper order to respect foreign keys
+            // 1. Delete all trips related to vehicles
+            Trip::whereIn('vehicle_id', $company->vehicles()->pluck('id'))->delete();
+            
+            // 2. Delete all vehicle-related data
+            $company->vehicles()->delete();
+            
+            // 3. Delete all drivers
+            $company->drivers()->delete();
+            
+            // 4. Delete all users in the company
+            User::where('company_id', $company->id)->delete();
+            
+            // 5. Delete subscriptions
+            $company->subscriptions()->delete();
+            
+            // 6. Delete payment simulations
+            \App\Models\PaymentSimulation::where('company_id', $company->id)->delete();
+            
+            // 7. Delete all other company records
+            // Services, Inspections, Issues, Expenses, Fuel Fillups, Reminders, etc.
+            \App\Models\Service::where('company_id', $company->id)->delete();
+            \App\Models\Inspection::where('company_id', $company->id)->delete();
+            \App\Models\Issue::where('company_id', $company->id)->delete();
+            \App\Models\Expense::where('company_id', $company->id)->delete();
+            \App\Models\FuelFillup::where('company_id', $company->id)->delete();
+            \App\Models\Reminder::where('company_id', $company->id)->delete();
+            
+            // 8. Finally delete the company itself
+            $company->delete();
+            
+            return response()->json([
+                'message' => "Company '{$companyName}' and all its data have been successfully deleted",
+                'deleted_company' => $companyName,
+                'timestamp' => now()
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Company not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error deleting company: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get Analytics
      */
     public function getAnalytics()

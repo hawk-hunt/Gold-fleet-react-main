@@ -119,6 +119,18 @@ const platformApi = {
     return response.json();
   },
 
+  deleteCompany: async (companyId) => {
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+      method: 'DELETE',
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete company');
+    }
+    return response.json();
+  },
+
   /**
    * Vehicles
    */
@@ -249,6 +261,97 @@ const platformApi = {
       body: JSON.stringify(settings),
     });
     if (!response.ok) throw new Error('Failed to update settings');
+    return response.json();
+  },
+
+  /**
+   * Subscription Management (Platform Admin)
+   */
+  getSubscriptionManagement: async (page = 1, limit = 10) => {
+    const response = await fetch(`${API_BASE_URL}/subscription-management?page=${page}&limit=${limit}`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch subscriptions');
+    return response.json();
+  },
+
+  getSubscriptionWithSimulations: async (subscriptionId) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/subscription-management/${subscriptionId}/with-simulations`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch subscription details (${response.status})`);
+    }
+    return response.json();
+  },
+
+  getAllSubscriptionsWithSimulations: async (page = 1, limit = 10) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/subscription-management/with-simulations?page=${page}&limit=${limit}`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      throw new Error(`Failed to fetch subscriptions (${response.status})`);
+    }
+    return response.json();
+  },
+
+  getSubscriptionsByStatus: async (status, page = 1, limit = 10) => {
+    const response = await fetch(`${API_BASE_URL}/subscription-management/status/${status}?page=${page}&limit=${limit}`, {
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) throw new Error(`Failed to fetch ${status} subscriptions`);
+    return response.json();
+  },
+
+  activateSubscription: async (subscriptionId) => {
+    const response = await fetch(`${API_BASE_URL}/subscription-management/${subscriptionId}/activate`, {
+      method: 'POST',
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) throw new Error('Failed to activate subscription');
+    return response.json();
+  },
+
+  deactivateSubscription: async (subscriptionId) => {
+    const response = await fetch(`${API_BASE_URL}/subscription-management/${subscriptionId}/deactivate`, {
+      method: 'POST',
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) throw new Error('Failed to deactivate subscription');
+    return response.json();
+  },
+
+  suspendSubscription: async (subscriptionId) => {
+    const response = await fetch(`${API_BASE_URL}/subscription-management/${subscriptionId}/suspend`, {
+      method: 'POST',
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) throw new Error('Failed to suspend subscription');
+    return response.json();
+  },
+
+  resumeSubscription: async (subscriptionId) => {
+    const response = await fetch(`${API_BASE_URL}/subscription-management/${subscriptionId}/resume`, {
+      method: 'POST',
+      headers: platformApi.getAuthHeader(),
+    });
+    if (!response.ok) throw new Error('Failed to resume subscription');
     return response.json();
   },
 };

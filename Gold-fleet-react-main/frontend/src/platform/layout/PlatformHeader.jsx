@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBars, FaSearch, FaBell, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import platformApi from '../services/platformApi';
 
 /**
  * Platform Header

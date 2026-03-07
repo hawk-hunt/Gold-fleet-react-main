@@ -172,13 +172,23 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (!response.ok) {
+        // Handle validation errors
+        if (data.errors) {
+          const errorMessages = Object.entries(data.errors)
+            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+            .join(' | ')
+          throw new Error(errorMessages)
+        }
         throw new Error(data.message || 'Signup failed')
       }
 
-      // Do NOT auto-login on signup. Return server response so the UI
-      // can redirect the user to login and show verification instructions.
-      // If the backend includes a token, ignore it here to prevent
-      // automatic authenticated redirects.
+      // Store token from registration so user can continue with subscription setup
+      if (data.token) {
+        setToken(data.token)
+        setUser(data.user || null)
+        sessionStorage.setItem('auth_token', data.token)
+      }
+
       return data
     } catch (error) {
       // Ensure failed signup doesn't leave any auth state

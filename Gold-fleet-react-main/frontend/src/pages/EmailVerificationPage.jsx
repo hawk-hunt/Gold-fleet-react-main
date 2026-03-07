@@ -47,7 +47,7 @@ const EmailVerificationPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-amber-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="w-full bg-gradient-to-br from-yellow-50 to-amber-50 py-32 px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col items-center justify-start">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">

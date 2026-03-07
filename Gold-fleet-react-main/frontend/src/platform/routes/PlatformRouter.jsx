@@ -10,6 +10,7 @@ import PlatformCompanies from '../pages/PlatformCompanies';
 import PlatformSubscriptions from '../pages/PlatformSubscriptions';
 import PlatformMessages from '../pages/PlatformMessages';
 import PlatformSettings from '../pages/PlatformSettings';
+import PaymentManagement from '../pages/PaymentManagement';
 
 /**
  * Platform Router
@@ -35,6 +36,7 @@ export default function PlatformRouter() {
                 <Route path="analytics" element={<PlatformAnalytics />} />
                 <Route path="companies" element={<PlatformCompanies />} />
                 <Route path="subscriptions" element={<PlatformSubscriptions />} />
+                <Route path="payments" element={<PaymentManagement />} />
                 <Route path="messages" element={<PlatformMessages />} />
                 <Route path="settings" element={<PlatformSettings />} />
 

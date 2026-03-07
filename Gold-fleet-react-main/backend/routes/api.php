@@ -25,12 +25,18 @@ use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\Api\ChartController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\MapClickController;
+use App\Http\Controllers\Api\SubscriptionManagementController;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\PaymentSimulationController;
+use App\Http\Controllers\PlatformPaymentController;
 
 // API routes for frontend consumption. These return JSON and are prefixed with /api by the framework.
 
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/cancel-signup', [AuthController::class, 'cancelSignup']);
 
 // Public contact endpoint for inbound messages
 Route::post('/messages', [ContactController::class, 'store']);
@@ -52,15 +58,39 @@ Route::prefix('platform')->group(function () {
         // Dashboard endpoints
         Route::get('/dashboard/stats', [PlatformDashboardController::class, 'getStats']);
         Route::get('/companies', [PlatformDashboardController::class, 'getCompanies']);
+        Route::delete('/companies/{id}', [PlatformDashboardController::class, 'deleteCompany']);
         Route::get('/analytics', [PlatformDashboardController::class, 'getAnalytics']);
         Route::get('/subscriptions', [PlatformDashboardController::class, 'getSubscriptions']);
         Route::get('/messages', [PlatformDashboardController::class, 'getMessages']);
         Route::get('/settings', [PlatformDashboardController::class, 'getSettings']);
         Route::post('/settings', [PlatformDashboardController::class, 'updateSettings']);
+        
+        // Subscription Management endpoints
+        Route::get('/subscription-management', [SubscriptionManagementController::class, 'index']);
+        Route::get('/subscription-management/with-simulations', [SubscriptionManagementController::class, 'getAllWithSimulations']);
+        Route::get('/subscription-management/status/{status}', [SubscriptionManagementController::class, 'getByStatus']);
+        Route::get('/subscription-management/{id}', [SubscriptionManagementController::class, 'show']);
+        Route::get('/subscription-management/{id}/with-simulations', [SubscriptionManagementController::class, 'getWithSimulations']);
+        Route::post('/subscription-management/{id}/activate', [SubscriptionManagementController::class, 'activate']);
+        Route::post('/subscription-management/{id}/deactivate', [SubscriptionManagementController::class, 'deactivate']);
+        Route::post('/subscription-management/{id}/suspend', [SubscriptionManagementController::class, 'suspend']);
+        Route::post('/subscription-management/{id}/resume', [SubscriptionManagementController::class, 'resume']);
+
+        // Payment Management endpoints for super admin
+        Route::get('/payments', [PlatformPaymentController::class, 'index']);
+        Route::get('/payments/{id}', [PlatformPaymentController::class, 'show']);
+        Route::post('/payments/{id}/verify', [PlatformPaymentController::class, 'verifyPayment']);
+        Route::get('/payments-stats/revenue', [PlatformPaymentController::class, 'revenueStats']);
+        Route::get('/payments-stats/company/{companyId}', [PlatformPaymentController::class, 'companyStats']);
+        Route::get('/payments-stats/companies-summary', [PlatformPaymentController::class, 'companiesSummary']);
     });
 });
 
 // Email verification removed - verification endpoints are disabled for API-based flow
+
+// Public plans endpoint - for signup flow
+Route::get('/plans', [PlanController::class, 'index']);
+Route::get('/plans/{id}', [PlanController::class, 'show']);
 
 // Protected routes (require valid api_token)
 Route::middleware('authorize.api.token')->group(function () {
@@ -103,6 +133,21 @@ Route::middleware('authorize.api.token')->group(function () {
     Route::apiResource('expenses', ExpenseController::class);
     Route::apiResource('fuel-fillups', FuelFillupController::class);
     Route::apiResource('reminders', ReminderController::class);
+
+    // Plans and Subscriptions
+    Route::apiResource('subscriptions', SubscriptionController::class);
+    Route::get('/subscriptions/current', [SubscriptionController::class, 'getCurrentSubscription']);
+    Route::post('/plans', [PlanController::class, 'store'])->middleware('role:admin');
+    Route::put('/plans/{id}', [PlanController::class, 'update'])->middleware('role:admin');
+    Route::delete('/plans/{id}', [PlanController::class, 'destroy'])->middleware('role:admin');
+
+    // Payment Simulations
+    Route::apiResource('payment-simulations', PaymentSimulationController::class);
+    Route::get('/payment-simulations/subscription/{subscriptionId}', [PaymentSimulationController::class, 'getBySubscription']);
+    Route::post('/payment-simulations/{id}/process', [PaymentSimulationController::class, 'processPayment']);
+
+    // Company's own payment history
+    Route::get('/payments/my', [PlatformPaymentController::class, 'myPayments']);
 
     // Driver vehicle location endpoint
     Route::middleware('driver')->post('/vehicle-location', [MapDashboardController::class, 'storeVehicleLocation']);

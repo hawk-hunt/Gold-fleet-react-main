@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained();
+            $table->foreignId('plan_id')->constrained();
+            $table->dateTime('started_at');
+            $table->dateTime('trial_ends_at')->nullable();
+            $table->dateTime('expires_at')->nullable();
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }

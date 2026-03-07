@@ -25,6 +25,7 @@ class Company extends Model
         'subscription_plan',
         'subscription_status',
         'status',
+        'is_active',
     ];
 
     public function users(): HasMany
@@ -80,5 +81,10 @@ class Company extends Model
     public function reminders(): HasMany
     {
         return $this->hasMany(Reminder::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
     }
 }

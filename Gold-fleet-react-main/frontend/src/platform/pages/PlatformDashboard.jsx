@@ -427,6 +427,23 @@ export default function PlatformDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Payment Management Quick Link */}
+        <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl shadow-lg border border-yellow-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Payment Management</h2>
+              <p className="text-gray-600 mt-1">Track all company payments, earnings breakdown, and subscription details</p>
+              <p className="text-sm text-gray-500 mt-2">View revenue statistics, company payment history, and payment verification status</p>
+            </div>
+            <a
+              href="/platform/payments"
+              className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors text-sm whitespace-nowrap ml-4"
+            >
+              Go to Payments →
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

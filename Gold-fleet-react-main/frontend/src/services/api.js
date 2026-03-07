@@ -185,6 +185,30 @@ export const api = {
   getProfile: () => apiCall(`${API_BASE_URL}/profile`),
   updateProfile: (data) => apiCall(`${API_BASE_URL}/profile`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteProfile: () => apiCall(`${API_BASE_URL}/profile`, { method: 'DELETE' }),
+
+  // Plans
+  getPlans: () => apiCall(`${API_BASE_URL}/plans`),
+  getPlan: (id) => apiCall(`${API_BASE_URL}/plans/${id}`),
+  createPlan: (data) => apiCall(`${API_BASE_URL}/plans`, { method: 'POST', body: JSON.stringify(data) }),
+  updatePlan: (id, data) => apiCall(`${API_BASE_URL}/plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePlan: (id) => apiCall(`${API_BASE_URL}/plans/${id}`, { method: 'DELETE' }),
+
+  // Subscriptions
+  getSubscriptions: () => apiCall(`${API_BASE_URL}/subscriptions`),
+  getSubscription: (id) => apiCall(`${API_BASE_URL}/subscriptions/${id}`),
+  createSubscription: (data) => apiCall(`${API_BASE_URL}/subscriptions`, { method: 'POST', body: JSON.stringify(data) }),
+  updateSubscription: (id, data) => apiCall(`${API_BASE_URL}/subscriptions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSubscription: (id) => apiCall(`${API_BASE_URL}/subscriptions/${id}`, { method: 'DELETE' }),
+  getCurrentSubscription: () => apiCall(`${API_BASE_URL}/subscriptions/current`),
+
+  // Payment Simulations
+  getPaymentSimulations: () => apiCall(`${API_BASE_URL}/payment-simulations`),
+  getPaymentSimulation: (id) => apiCall(`${API_BASE_URL}/payment-simulations/${id}`),
+  createPaymentSimulation: (data) => apiCall(`${API_BASE_URL}/payment-simulations`, { method: 'POST', body: JSON.stringify(data) }),
+  updatePaymentSimulation: (id, data) => apiCall(`${API_BASE_URL}/payment-simulations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePaymentSimulation: (id) => apiCall(`${API_BASE_URL}/payment-simulations/${id}`, { method: 'DELETE' }),
+  getPaymentSimulationsBySubscription: (subscriptionId) => apiCall(`${API_BASE_URL}/payment-simulations/subscription/${subscriptionId}`),
+  processPaymentSimulation: (id, data) => apiCall(`${API_BASE_URL}/payment-simulations/${id}/process`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export default api;

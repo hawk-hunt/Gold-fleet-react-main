@@ -65,22 +65,22 @@ export default function Reminders() {
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Title</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Vehicle</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Due Date</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Title</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Vehicle</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Due Date</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Status</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {reminders.map((reminder) => (
                 <tr key={reminder.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{reminder.title}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{reminder.vehicle?.license_plate || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{reminder.due_date || '-'}</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-5 text-base text-gray-900">{reminder.title}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{reminder.vehicle?.license_plate || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{reminder.due_date || '-'}</td>
+                  <td className="px-6 py-5 text-base">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       reminder.is_completed
                         ? 'bg-green-100 text-green-800'
@@ -89,22 +89,22 @@ export default function Reminders() {
                       {reminder.is_completed ? 'Completed' : 'Pending'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base space-x-3">
                     <Link
                       to={`/reminders/${reminder.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-700 hover:text-blue-900"
                     >
                       View
                     </Link>
                     <Link
                       to={`/reminders/${reminder.id}/edit`}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-700 hover:text-yellow-900"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(reminder.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-700 hover:text-red-900"
                     >
                       Delete
                     </button>

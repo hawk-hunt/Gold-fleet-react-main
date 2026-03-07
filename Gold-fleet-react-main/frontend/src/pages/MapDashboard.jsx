@@ -303,8 +303,8 @@ export default function MapDashboard() {
     try {
       setError('');
       try {
-        const response = await api.get('/api/vehicles');
-        const data = response.data || [];
+        const response = await api.getVehicles();
+        const data = Array.isArray(response) ? response : response?.data || [];
         
         const transformedVehicles = data.map(v => ({
           id: v.id,

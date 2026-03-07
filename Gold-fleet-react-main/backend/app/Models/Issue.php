@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Issue extends Model
@@ -20,6 +21,9 @@ class Issue extends Model
         'status',
         'priority',
         'reported_date',
+        'photo_path',
+        'resolution_notes',
+        'assigned_mechanic_id',
     ];
 
     public function company(): BelongsTo
@@ -35,5 +39,10 @@ class Issue extends Model
     public function driver(): BelongsTo
     {
         return $this->belongsTo(Driver::class)->nullable();
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(IssueAttachment::class);
     }
 }

@@ -65,22 +65,22 @@ export default function Inspections() {
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Vehicle</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Driver</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Result</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Vehicle</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Driver</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Date</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Result</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {inspections.map((inspection) => (
                 <tr key={inspection.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{inspection.vehicle?.make} {inspection.vehicle?.model} ({inspection.vehicle?.license_plate || '-'})</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{inspection.driver?.user?.name || inspection.driver?.name || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{inspection.inspection_date ? new Date(inspection.inspection_date).toLocaleDateString() : '-'}</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-5 text-base text-gray-900">{inspection.vehicle?.make} {inspection.vehicle?.model} ({inspection.vehicle?.license_plate || '-'})</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{inspection.driver?.user?.name || inspection.driver?.name || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{inspection.inspection_date ? new Date(inspection.inspection_date).toLocaleDateString() : '-'}</td>
+                  <td className="px-6 py-5 text-base">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       inspection.result === 'pass'
                         ? 'bg-green-100 text-green-800'
@@ -91,22 +91,22 @@ export default function Inspections() {
                       {inspection.result?.replace('_', ' ') || 'Pending'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base space-x-3">
                     <Link
                       to={`/inspections/${inspection.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-700 hover:text-blue-900"
                     >
                       View
                     </Link>
                     <Link
                       to={`/inspections/${inspection.id}/edit`}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-700 hover:text-yellow-900"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(inspection.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-700 hover:text-red-900"
                     >
                       Delete
                     </button>

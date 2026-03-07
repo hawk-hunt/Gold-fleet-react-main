@@ -53,7 +53,7 @@ export default function DataTable({
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-100">
       {/* Desktop table */}
       <table className="hidden md:table w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-yellow-600 border-b border-gray-200">
           <tr>
             {selectable && (
               <th className="px-6 py-3 w-12">
@@ -63,7 +63,7 @@ export default function DataTable({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider"
               >
                 {col.label}
               </th>
@@ -91,7 +91,7 @@ export default function DataTable({
                 </td>
               )}
               {columns.map((col) => (
-                <td key={col.key} className="px-6 py-3 text-sm text-gray-900">
+                <td key={col.key} className="px-6 py-4 text-base text-gray-900">
                   {col.render ? col.render(row[col.key], row) : row[col.key]}
                 </td>
               ))}
@@ -114,12 +114,12 @@ export default function DataTable({
           >
             {columns.map((col) => (
               <div key={col.key} className="flex justify-between items-start">
-                <span className="text-sm font-medium text-gray-600">{col.label}</span>
-                <span className="text-sm text-gray-900 text-right">
+                <span className="text-base text-gray-700">{col.label}</span>
+                <span className="text-base text-gray-900 text-right">
                   {col.render ? col.render(row[col.key], row) : row[col.key]}
                 </span>
               </div>
-            ))}
+            ))}}
           </div>
         ))}
       </div>

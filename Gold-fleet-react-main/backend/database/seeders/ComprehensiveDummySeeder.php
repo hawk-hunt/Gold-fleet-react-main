@@ -81,6 +81,7 @@ class ComprehensiveDummySeeder extends Seeder
                     'status' => $index % 4 === 0 ? 'maintenance' : 'active',
                     'fuel_capacity' => rand(40, 250),
                     'fuel_type' => $data['fuel_type'],
+                    'mileage' => rand(15000, 200000) + rand(0, 999) / 100,
                     'notes' => 'Fleet vehicle ' . ($index + 1),
                 ]
             );

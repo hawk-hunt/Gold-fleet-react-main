@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaDollarSign } from 'react-icons/fa';
 import { api } from '../services/api';
+import { ModernFormLayout, ModernTextInput, ModernSelectInput, FormFieldGroup } from '../components/ModernFormLayout';
 
 export default function ExpenseForm() {
   const navigate = useNavigate();
@@ -36,7 +38,14 @@ export default function ExpenseForm() {
     try {
       const expense = await api.getExpense(id);
       if (expense) {
-        setFormData(expense);
+        const expenseData = expense.data || expense;
+        setFormData({
+          vehicle_id: expenseData.vehicle_id ?? '',
+          category: expenseData.category ?? 'fuel',
+          amount: expenseData.amount ?? '',
+          expense_date: expenseData.expense_date ?? new Date().toISOString().split('T')[0],
+          notes: expenseData.notes ?? '',
+        });
       }
     } catch (err) {
       setError('Failed to load expense');
@@ -67,116 +76,88 @@ export default function ExpenseForm() {
     }
   };
 
+  const categoryOptions = [
+    { value: '', label: 'Select category' },
+    { value: 'fuel', label: 'Fuel' },
+    { value: 'maintenance', label: 'Maintenance' },
+    { value: 'repair', label: 'Repair' },
+    { value: 'insurance', label: 'Insurance' },
+    { value: 'tolls', label: 'Tolls' },
+    { value: 'parking', label: 'Parking' },
+    { value: 'registration', label: 'Registration' },
+    { value: 'inspection', label: 'Inspection' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  const leftBlock = (
+    <FormFieldGroup>
+      <ModernSelectInput
+        label="Vehicle"
+        name="vehicle_id"
+        value={formData.vehicle_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a vehicle' },
+          ...vehicles.map((v) => ({
+            value: v.id,
+            label: `${v.make} ${v.model} (${v.license_plate})`
+          }))
+        ]}
+        required
+      />
+      <ModernSelectInput
+        label="Category"
+        name="category"
+        value={formData.category ?? ''}
+        onChange={handleChange}
+        options={categoryOptions}
+        required
+      />
+      <ModernTextInput
+        label="Amount"
+        name="amount"
+        type="number"
+        value={formData.amount ?? ''}
+        onChange={handleChange}
+        step="0.01"
+        required
+      />
+      <ModernTextInput
+        label="Expense Date"
+        name="expense_date"
+        type="date"
+        value={formData.expense_date ?? ''}
+        onChange={handleChange}
+        required
+      />
+    </FormFieldGroup>
+  );
+
+  const rightBlock = (
+    <FormFieldGroup>
+      <ModernTextInput
+        label="Notes"
+        name="notes"
+        type="textarea"
+        value={formData.notes ?? ''}
+        onChange={handleChange}
+        placeholder="Additional notes about this expense..."
+      />
+    </FormFieldGroup>
+  );
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
-      <div className="space-y-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {id ? 'Edit Expense' : 'Add New Expense'}
-        </h1>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Vehicle</label>
-            <select
-              name="vehicle_id"
-              value={formData.vehicle_id}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a vehicle</option>
-              {vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.make} {vehicle.model} ({vehicle.license_plate})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select category</option>
-              <option value="fuel">Fuel</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="repair">Repair</option>
-              <option value="insurance">Insurance</option>
-              <option value="tolls">Tolls</option>
-              <option value="parking">Parking</option>
-              <option value="registration">Registration</option>
-              <option value="inspection">Inspection</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Amount</label>
-              <input
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                step="0.01"
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Expense Date</label>
-              <input
-                type="date"
-                name="expense_date"
-                value={formData.expense_date}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows="4"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:bg-gray-400"
-            >
-              {loading ? 'Saving...' : 'Save Expense'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/expenses')}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModernFormLayout
+      title={id ? 'Edit Expense' : 'Add New Expense'}
+      subtitle="Track vehicle expenses and costs"
+      icon={FaDollarSign}
+      isEditing={!!id}
+      isLoading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      backUrl="/expenses"
+      leftBlock={leftBlock}
+      rightBlock={rightBlock}
+    />
   );
 }

@@ -67,38 +67,38 @@ export default function Services() {
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Vehicle</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Cost</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Name</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Vehicle</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Date</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Cost</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {services.map((service) => (
                 <tr key={service.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{service.service_type?.replace('_', ' ').toUpperCase() || 'Service'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{service.vehicle?.license_plate || service.vehicle?.plate_number || 'No vehicle'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{service.service_date || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">${(service.cost || 0).toFixed(2)}</td>
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base text-gray-900">{service.service_type?.replace('_', ' ').toUpperCase() || 'Service'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{service.vehicle?.license_plate || service.vehicle?.plate_number || 'No vehicle'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{service.service_date || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-900">${(service.cost || 0).toFixed(2)}</td>
+                  <td className="px-6 py-5 text-base space-x-3">
                     <Link
                       to={`/services/${service.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-700 hover:text-blue-900"
                     >
                       View
                     </Link>
                     <Link
                       to={`/services/${service.id}/edit`}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-700 hover:text-yellow-900"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(service.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-700 hover:text-red-900"
                     >
                       Delete
                     </button>

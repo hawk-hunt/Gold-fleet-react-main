@@ -23,6 +23,7 @@ class Vehicle extends Model
         'status',
         'fuel_capacity',
         'fuel_type',
+        'mileage',
         'image',
         'notes',
     ];
@@ -30,6 +31,7 @@ class Vehicle extends Model
     protected $casts = [
         'year' => 'integer',
         'fuel_capacity' => 'decimal:2',
+        'mileage' => 'decimal:2',
         'type' => 'string',
     ];
 

@@ -107,15 +107,27 @@ export const api = {
   // Inspections
   getInspections: () => apiCall(`${API_BASE_URL}/inspections`),
   getInspection: (id) => apiCall(`${API_BASE_URL}/inspections/${id}`),
-  createInspection: (data) => apiCall(`${API_BASE_URL}/inspections`, { method: 'POST', body: JSON.stringify(data) }),
-  updateInspection: (id, data) => apiCall(`${API_BASE_URL}/inspections/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  createInspection: (data) => apiCall(`${API_BASE_URL}/inspections`, { 
+    method: 'POST', 
+    body: data instanceof FormData ? data : JSON.stringify(data) 
+  }),
+  updateInspection: (id, data) => apiCall(`${API_BASE_URL}/inspections/${id}`, { 
+    method: 'PUT', 
+    body: data instanceof FormData ? data : JSON.stringify(data) 
+  }),
   deleteInspection: (id) => apiCall(`${API_BASE_URL}/inspections/${id}`, { method: 'DELETE' }),
 
   // Issues
   getIssues: () => apiCall(`${API_BASE_URL}/issues`),
   getIssue: (id) => apiCall(`${API_BASE_URL}/issues/${id}`),
-  createIssue: (data) => apiCall(`${API_BASE_URL}/issues`, { method: 'POST', body: JSON.stringify(data) }),
-  updateIssue: (id, data) => apiCall(`${API_BASE_URL}/issues/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  createIssue: (data) => apiCall(`${API_BASE_URL}/issues`, { 
+    method: 'POST', 
+    body: data instanceof FormData ? data : JSON.stringify(data) 
+  }),
+  updateIssue: (id, data) => apiCall(`${API_BASE_URL}/issues/${id}`, { 
+    method: 'PUT', 
+    body: data instanceof FormData ? data : JSON.stringify(data) 
+  }),
   deleteIssue: (id) => apiCall(`${API_BASE_URL}/issues/${id}`, { method: 'DELETE' }),
 
   // Expenses
@@ -143,6 +155,12 @@ export const api = {
   getDashboardStats: () => apiCall(`${API_BASE_URL}/dashboard`),
   getVehicleLocations: () => apiCall(`${API_BASE_URL}/vehicle-locations`),
   getChartData: () => apiCall(`${API_BASE_URL}/dashboard/info/chart-data`),
+
+  // Chart Data Endpoints
+  getChartRepairPriorityClass: () => apiCall(`${API_BASE_URL}/charts/repair-priority-class`),
+  getChartTimeToResolve: () => apiCall(`${API_BASE_URL}/charts/time-to-resolve`),
+  getChartFuelCosts: () => apiCall(`${API_BASE_URL}/charts/fuel-costs`),
+  getChartServiceCosts: () => apiCall(`${API_BASE_URL}/charts/service-costs`),
 
   // Phone Tracker
   updateTrackerLocation: (data) => apiCall(`${API_BASE_URL}/tracker/update-location`, { method: 'POST', body: JSON.stringify(data) }),

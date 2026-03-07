@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaUser } from 'react-icons/fa';
 import { api } from '../services/api';
 import { useFormValidation } from '../hooks/useFormValidation';
 import { compressImage } from '../utils/imageCompression';
+import { ModernFormLayout, ModernTextInput, ModernSelectInput, ModernFileInput, FormFieldGroup } from '../components/ModernFormLayout';
 
 export default function DriverForm() {
   const { id } = useParams();
@@ -19,7 +21,7 @@ export default function DriverForm() {
       email: '',
       phone: '',
       license_number: '',
-      license_expiry: '',
+      license_expiry: new Date().toISOString().split('T')[0],
       status: 'active',
       vehicle_id: '',
       address: '',
@@ -66,10 +68,15 @@ export default function DriverForm() {
       const data = await api.getDriver(id);
       const driver = data.data || data;
       
-      // Set form fields
+      // Set form fields with null->empty string conversion
       Object.keys(driver).forEach((key) => {
         if (form.values.hasOwnProperty(key)) {
-          form.setFieldValue(key, driver[key]);
+          let value = driver[key] ?? '';
+          // Ensure status is valid
+          if (key === 'status' && !['active', 'suspended'].includes(value)) {
+            value = 'active';
+          }
+          form.setFieldValue(key, value);
         }
       });
       
@@ -128,9 +135,14 @@ export default function DriverForm() {
     try {
       const formData = new FormData();
       
-      // Add all form fields
+      // Add all form fields, ensuring status is valid
       Object.keys(form.values).forEach((key) => {
-        formData.append(key, form.values[key]);
+        let value = form.values[key];
+        // Ensure status is valid
+        if (key === 'status' && !['active', 'suspended'].includes(value)) {
+          value = 'active';
+        }
+        formData.append(key, value ?? '');
       });
 
       // Add image if selected
@@ -166,195 +178,110 @@ export default function DriverForm() {
     );
   }
 
+  const leftBlock = (
+    <FormFieldGroup>
+      <ModernTextInput
+        label="Name"
+        name="name"
+        type="text"
+        value={form.values.name ?? ''}
+        onChange={form.handleChange}
+        placeholder="John Doe"
+        required
+      />
+      <ModernTextInput
+        label="Email"
+        name="email"
+        type="email"
+        value={form.values.email ?? ''}
+        onChange={form.handleChange}
+        placeholder="john@example.com"
+        required
+      />
+      <ModernTextInput
+        label="Phone"
+        name="phone"
+        type="tel"
+        value={form.values.phone ?? ''}
+        onChange={form.handleChange}
+        placeholder="(555) 123-4567"
+        required
+      />
+      <ModernTextInput
+        label="License Number"
+        name="license_number"
+        type="text"
+        value={form.values.license_number ?? ''}
+        onChange={form.handleChange}
+        placeholder="DL-12345678"
+        required
+      />
+    </FormFieldGroup>
+  );
+
+  const rightBlock = (
+    <FormFieldGroup>
+      <ModernFileInput
+        label="Driver Photo"
+        onChange={handleImageChange}
+        preview={preview}
+        helperText="Any image format (PNG, JPG, GIF, WebP, SVG, BMP, etc.) up to 50MB"
+      />
+      <ModernTextInput
+        label="License Expiry"
+        name="license_expiry"
+        type="date"
+        value={form.values.license_expiry ?? ''}
+        onChange={form.handleChange}
+        required
+      />
+      <ModernSelectInput
+        label="Status"
+        name="status"
+        value={form.values.status ?? 'active'}
+        onChange={form.handleChange}
+        options={[
+          { value: 'active', label: 'Active' },
+          { value: 'suspended', label: 'Suspended' }
+        ]}
+        required
+      />
+      <ModernSelectInput
+        label="Assigned Vehicle"
+        name="vehicle_id"
+        value={form.values.vehicle_id ?? ''}
+        onChange={form.handleChange}
+        options={[
+          { value: '', label: 'None' },
+          ...vehicles.map((v) => ({
+            value: v.id,
+            label: `${v.make} ${v.model} - ${v.plate_number}`
+          }))
+        ]}
+      />
+      <ModernTextInput
+        label="Address"
+        name="address"
+        type="text"
+        value={form.values.address ?? ''}
+        onChange={form.handleChange}
+        placeholder="123 Main St"
+      />
+    </FormFieldGroup>
+  );
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
-      <div className="space-y-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900">{id ? 'Edit Driver' : 'Add New Driver'}</h1>
-
-        {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
-          {/* Image Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Driver Photo</label>
-            <div className="flex gap-4">
-              {preview && (
-                <img src={preview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-gray-300" />
-              )}
-              <div className="flex-1">
-                <input
-                  type="file"
-                  onChange={handleImageChange}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-yellow-600 file:text-white hover:file:bg-yellow-700"
-                />
-                <p className="mt-2 text-xs text-gray-500">Any image format (PNG, JPG, GIF, WebP, SVG, BMP, etc.) up to 50MB</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Name & Email */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={form.values.name}
-                onChange={form.handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="John Doe"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-              <input
-                type="email"
-                name="email"
-                value={form.values.email}
-                onChange={form.handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="john@example.com"
-              />
-            </div>
-          </div>
-
-          {/* Phone & License */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-              <input
-                name="phone"
-                value={form.values.phone}
-                onChange={form.handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="(555) 123-4567"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">License Number</label>
-              <input
-                type="text"
-                name="license_number"
-                value={form.values.license_number}
-                onChange={form.handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="DL-12345678"
-              />
-            </div>
-          </div>
-
-          {/* License Expiry & Status */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">License Expiry *</label>
-              <input
-                type="date"
-                name="license_expiry"
-                value={form.values.license_expiry}
-                onChange={form.handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
-              <select
-                name="status"
-                value={form.values.status}
-                onChange={form.handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-              >
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Phone & License Number */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-              <input
-                type="tel"
-                name="phone"
-                value={form.values.phone}
-                onChange={form.handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="(555) 123-4567"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">License Number *</label>
-              <input
-                type="text"
-                name="license_number"
-                value={form.values.license_number}
-                onChange={form.handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="DL-12345678"
-              />
-            </div>
-          </div>
-
-          {/* Vehicle & Address */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Vehicle</label>
-              <select
-                name="vehicle_id"
-                value={form.values.vehicle_id}
-                onChange={form.handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-              >
-                <option value="">None</option>
-                {vehicles.map((vehicle) => (
-                  <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.make} {vehicle.model} - {vehicle.plate_number}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-              <input
-                type="text"
-                name="address"
-                value={form.values.address}
-                onChange={form.handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                placeholder="123 Main St"
-              />
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
-            >
-              {loading ? 'Saving...' : 'Save Driver'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/drivers')}
-              className="px-6 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModernFormLayout
+      title={id ? 'Edit Driver' : 'Add New Driver'}
+      subtitle="Manage driver information and details"
+      icon={FaUser}
+      isEditing={!!id}
+      isLoading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      backUrl="/drivers"
+      leftBlock={leftBlock}
+      rightBlock={rightBlock}
+    />
   );
 }

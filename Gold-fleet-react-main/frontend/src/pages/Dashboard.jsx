@@ -62,9 +62,19 @@ export default function Dashboard() {
   // Analytics Data States
   const [maintenanceLogs, setMaintenanceLogs] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [issues, setIssues] = useState([]);
+  const [services, setServices] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [fuelFillups, setFuelFillups] = useState([]);
+  const [trips, setTrips] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [serviceComplianceData, setServiceComplianceData] = useState(null);
   const [timeToResolveData, setTimeToResolveData] = useState([]);
   const [priorityTrendsData, setPriorityTrendsData] = useState([]);
+  const [repairPriorityChartData, setRepairPriorityChartData] = useState(null);
+  const [timeToResolveChartData, setTimeToResolveChartData] = useState(null);
+  const [fuelCostsChartData, setFuelCostsChartData] = useState(null);
+  const [serviceCostsChartData, setServiceCostsChartData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   const toggleCard = (cardName) => {
@@ -76,10 +86,20 @@ export default function Dashboard() {
 
   // ============= ANALYTICS HELPER FUNCTIONS =============
   const processMaintenanceData = useCallback((logs) => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Initialize all months with empty data
+    const monthlyData = {};
+    const priorityData = {};
+    monthNames.forEach(month => {
+      monthlyData[month] = { resolved: 0, daysToResolve: 0, count: 0 };
+      priorityData[month] = { emergency: 0, scheduled: 0, non_scheduled: 0 };
+    });
+
     if (!logs || logs.length === 0) {
-      setServiceComplianceData({ dueServices: 0, completedServices: 0 });
-      setTimeToResolveData([]);
-      setPriorityTrendsData([]);
+      setServiceComplianceData({ dueServices: 0, completedServices: 0, percentage: 0 });
+      setTimeToResolveData(monthNames.map(month => ({ month, avgDays: 0, resolvedCount: 0 })));
+      setPriorityTrendsData(monthNames.map(month => ({ month, emergency: 0, scheduled: 0, non_scheduled: 0 })));
       return;
     }
 
@@ -97,48 +117,42 @@ export default function Dashboard() {
     });
 
     // Group by Month for Time to Resolve
-    const monthlyData = {};
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
     logs.forEach(log => {
-      const date = new Date(log.created_at || new Date());
+      // Use service_date or created_at or current date
+      const dateStr = log.service_date || log.created_at || new Date().toISOString();
+      const date = new Date(dateStr);
       const month = monthNames[date.getMonth()];
       
-      if (!monthlyData[month]) {
-        monthlyData[month] = { resolved: 0, daysToResolve: 0, count: 0 };
+      if (monthlyData[month]) {
+        if (log.status === 'completed' && log.completed_at) {
+          const startDate = new Date(dateStr);
+          const endDate = new Date(log.completed_at);
+          const daysToResolve = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+          monthlyData[month].daysToResolve += daysToResolve;
+          monthlyData[month].resolved++;
+        }
+        monthlyData[month].count++;
       }
-      
-      if (log.status === 'completed' && log.completed_at) {
-        const startDate = new Date(log.created_at);
-        const endDate = new Date(log.completed_at);
-        const daysToResolve = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-        monthlyData[month].daysToResolve += daysToResolve;
-        monthlyData[month].resolved++;
-      }
-      monthlyData[month].count++;
     });
 
-    const timeResolveChartData = Object.entries(monthlyData).map(([month, data]) => ({
+    const timeResolveChartData = monthNames.map(month => ({
       month,
-      avgDays: data.resolved > 0 ? Math.round(data.daysToResolve / data.resolved) : 0,
-      resolvedCount: data.resolved
+      avgDays: monthlyData[month].resolved > 0 ? Math.round(monthlyData[month].daysToResolve / monthlyData[month].resolved) : 0,
+      resolvedCount: monthlyData[month].resolved
     }));
     
     setTimeToResolveData(timeResolveChartData);
 
     // Group by Priority for Trends
-    const priorityData = {};
-    monthNames.forEach(month => {
-      priorityData[month] = { emergency: 0, scheduled: 0, non_scheduled: 0 };
-    });
-
     logs.forEach(log => {
-      const date = new Date(log.created_at || new Date());
+      const dateStr = log.service_date || log.created_at || new Date().toISOString();
+      const date = new Date(dateStr);
       const month = monthNames[date.getMonth()];
       const priority = log.priority_class || 'scheduled';
       
       if (priorityData[month]) {
-        priorityData[month][priority.toLowerCase()] = (priorityData[month][priority.toLowerCase()] || 0) + 1;
+        const key = priority.toLowerCase().replace(/ /g, '_');
+        priorityData[month][key] = (priorityData[month][key] || 0) + 1;
       }
     });
 
@@ -153,17 +167,58 @@ export default function Dashboard() {
   const fetchAnalyticsData = useCallback(async () => {
     try {
       setAnalyticsLoading(true);
-      const [logsRes, vehiclesRes] = await Promise.all([
-        api.get('/api/maintenance_logs').catch(() => ({ data: [] })),
-        api.get('/api/vehicles').catch(() => ({ data: [] }))
+      const [
+        servicesRes,
+        vehiclesRes,
+        issuesRes,
+        expensesRes,
+        fuelRes,
+        tripsRes,
+        driversRes,
+        repairPriorityRes,
+        timeToResolveRes,
+        fuelCostsRes,
+        serviceCostsRes
+      ] = await Promise.all([
+        api.getServices().catch(() => []),
+        api.getVehicles().catch(() => []),
+        api.getIssues().catch(() => []),
+        api.getExpenses().catch(() => []),
+        api.getFuelFillups().catch(() => []),
+        api.getTrips().catch(() => []),
+        api.getDrivers().catch(() => []),
+        api.getChartRepairPriorityClass().catch(() => null),
+        api.getChartTimeToResolve().catch(() => null),
+        api.getChartFuelCosts().catch(() => null),
+        api.getChartServiceCosts().catch(() => null)
       ]);
       
-      const logs = logsRes?.data || [];
-      const vehiclesData = vehiclesRes?.data || [];
+      // Extract data from responses that may have 'data' wrapper
+      const servicesArray = Array.isArray(servicesRes) ? servicesRes : (servicesRes?.data || []);
+      const vehiclesData = Array.isArray(vehiclesRes) ? vehiclesRes : (vehiclesRes?.data || []);
+      const issuesData = Array.isArray(issuesRes) ? issuesRes : (issuesRes?.data || []);
+      const expensesData = Array.isArray(expensesRes) ? expensesRes : (expensesRes?.data || []);
+      const fuelData = Array.isArray(fuelRes) ? fuelRes : (fuelRes?.data || []);
+      const tripsData = Array.isArray(tripsRes) ? tripsRes : (tripsRes?.data || []);
+      const driversData = Array.isArray(driversRes) ? driversRes : (driversRes?.data || []);
       
-      setMaintenanceLogs(logs);
       setVehicles(vehiclesData);
-      processMaintenanceData(logs);
+      setIssues(issuesData);
+      setExpenses(expensesData);
+      setFuelFillups(fuelData);
+      setTrips(tripsData);
+      setDrivers(driversData);
+      setServices(servicesArray);
+      setMaintenanceLogs(servicesArray);
+      
+      // Set chart data from API
+      if (repairPriorityRes) setRepairPriorityChartData(repairPriorityRes);
+      if (timeToResolveRes) setTimeToResolveChartData(timeToResolveRes);
+      if (fuelCostsRes) setFuelCostsChartData(fuelCostsRes);
+      if (serviceCostsRes) setServiceCostsChartData(serviceCostsRes);
+      
+      // Process services for local charts - pass array directly
+      processMaintenanceData(servicesArray);
     } catch (err) {
       console.error('Error fetching analytics data:', err);
     } finally {
@@ -188,7 +243,9 @@ export default function Dashboard() {
   const refreshAllDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const statsResponse = await api.getDashboardStats();
+      const [statsResponse] = await Promise.all([
+        api.getDashboardStats()
+      ]);
       setStats(statsResponse);
 
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -565,7 +622,7 @@ export default function Dashboard() {
                           />
                           <Area type="monotone" dataKey="emergency" stackId="1" fill="#ff6b6b" stroke="#ff6b6b" />
                           <Area type="monotone" dataKey="scheduled" stackId="1" fill="#CFAF4B" stroke="#CFAF4B" />
-                          <Area type="monotone" dataKey="non_scheduled" stackId="1" fill="#CFAF4B" stroke="#CFAF4B" />
+                          <Area type="monotone" dataKey="non_scheduled" stackId="1" fill="#28a465" stroke="#28a465" />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
@@ -595,19 +652,16 @@ export default function Dashboard() {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                          <FaCheckCircle className="text-gray-900" />
-                          <span className="text-gray-700 text-sm">Maintenance tasks</span>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                          <FaTools className="text-gray-900" />
-                          <span className="text-gray-700 text-sm">Schedule services</span>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                          <FaSync className="text-gray-900" />
-                          <span className="text-gray-700 text-sm">Monitor fleet</span>
-                        </div>
+                      <div className="flex-1 p-6 text-center flex flex-col justify-end items-center">
+                        <button
+                          onClick={() => navigate('/vehicles')}
+                          className="w-full px-4 py-2 text-white rounded-lg font-medium transition-colors"
+                          style={{ backgroundColor: '#CFAF4B' }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#b89938'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#CFAF4B'}
+                        >
+                          Add Vehicle
+                        </button>
                       </div>
                     )}
                   </div>
@@ -621,11 +675,11 @@ export default function Dashboard() {
                     <div className="space-y-4 flex-1 flex flex-col justify-center">
                       <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="text-gray-600">Total Vehicles</span>
-                        <span className="font-bold text-xl text-gray-900">{vehicles.length}</span>
+                        <span className="font-bold text-xl text-gray-900">{stats?.total_vehicles || vehicles.length}</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="text-gray-600">Active</span>
-                        <span className="font-bold text-xl text-gray-900">{vehicles.filter(v => v.status === 'active').length}</span>
+                        <span className="font-bold text-xl text-gray-900">{stats?.active_vehicles || vehicles.filter(v => v.status === 'active').length}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Maintenance Due</span>
@@ -732,7 +786,7 @@ export default function Dashboard() {
                     <div className="space-y-4 flex-1 flex flex-col justify-center">
                       <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="text-gray-600">Open Issues</span>
-                        <span className="font-bold text-xl text-red-600">{stats?.recentIssues?.length || 0}</span>
+                        <span className="font-bold text-xl text-red-600">{issues.filter(i => i.status !== 'resolved').length || stats?.recentIssues?.length || 0}</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="text-gray-600">Overdue</span>
@@ -740,7 +794,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Resolution Rate</span>
-                        <span className="font-bold text-xl text-green-600">{maintenanceLogs.length > 0 ? Math.round((maintenanceLogs.filter(l => l.status === 'completed').length / maintenanceLogs.length) * 100) : 0}%</span>
+                        <span className="font-bold text-xl text-green-600">{issues.length > 0 ? Math.round((issues.filter(i => i.status === 'resolved').length / issues.length) * 100) : 0}%</span>
                       </div>
                     </div>
                   </div>
@@ -760,15 +814,15 @@ export default function Dashboard() {
                 <div className="space-y-4 flex-1 flex flex-col justify-center">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">Total Trips</span>
-                    <span className="font-bold text-xl text-gray-900">{stats?.total_trips || 0}</span>
+                    <span className="font-bold text-xl text-gray-900">{stats?.total_trips || trips.length}</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">Completed</span>
-                    <span className="font-bold text-xl text-green-600">{stats?.completed_trips || 0}</span>
+                    <span className="font-bold text-xl text-green-600">{stats?.completed_trips || trips.filter(t => t.status === 'completed').length}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Pending</span>
-                    <span className="font-bold text-xl text-blue-600">{(stats?.total_trips || 0) - (stats?.completed_trips || 0)}</span>
+                    <span className="font-bold text-xl text-blue-600">{(stats?.total_trips || trips.length) - (stats?.completed_trips || trips.filter(t => t.status === 'completed').length)}</span>
                   </div>
                 </div>
                 <button
@@ -791,15 +845,18 @@ export default function Dashboard() {
                 <div className="space-y-4 flex-1 flex flex-col justify-center">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">Total Fuel Cost</span>
-                    <span className="font-bold text-xl text-gray-900">{formatCurrency(stats?.monthlyFuelCosts ? Object.values(stats.monthlyFuelCosts).reduce((a,b)=>a+Number(b||0),0) : 0)}</span>
+                    <span className="font-bold text-xl text-gray-900">{formatCurrency(
+                      (stats?.monthly_fuel_costs ? Object.values(stats.monthly_fuel_costs).reduce((a,b)=>a+Number(b||0),0) : 0) +
+                      (fuelFillups.reduce((sum, f) => sum + (Number(f.cost) || 0), 0))
+                    )}</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">This Month</span>
-                    <span className="font-bold text-xl text-orange-600">{formatCurrency(stats?.monthlyFuelCosts?.[new Date().getMonth() + 1] || 0)}</span>
+                    <span className="font-bold text-xl text-orange-600">{formatCurrency(stats?.monthly_fuel_costs?.[new Date().getMonth() + 1] || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Avg per Vehicle</span>
-                    <span className="font-bold text-xl text-gray-900">{formatCurrency(stats?.totalVehicles > 0 ? (stats?.monthlyFuelCosts ? Object.values(stats.monthlyFuelCosts).reduce((a,b)=>a+Number(b||0),0) : 0) / stats?.totalVehicles : 0)}</span>
+                    <span className="font-bold text-xl text-gray-900">{formatCurrency(stats?.total_vehicles > 0 ? (stats?.monthly_fuel_costs ? Object.values(stats.monthly_fuel_costs).reduce((a,b)=>a+Number(b||0),0) : 0) / stats?.total_vehicles : 0)}</span>
                   </div>
                 </div>
                 <button
@@ -822,15 +879,18 @@ export default function Dashboard() {
                 <div className="space-y-4 flex-1 flex flex-col justify-center">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">Total Expenses</span>
-                    <span className="font-bold text-xl text-gray-900">{formatCurrency(stats?.monthlyExpenses ? Object.values(stats.monthlyExpenses).reduce((a,b)=>a+Number(b||0),0) : 0)}</span>
+                    <span className="font-bold text-xl text-gray-900">{formatCurrency(
+                      (stats?.monthly_expenses ? Object.values(stats.monthly_expenses).reduce((a,b)=>a+Number(b||0),0) : 0) + 
+                      (expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0))
+                    )}</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">This Month</span>
-                    <span className="font-bold text-xl text-red-600">{formatCurrency(stats?.monthlyExpenses?.[new Date().getMonth() + 1] || 0)}</span>
+                    <span className="font-bold text-xl text-red-600">{formatCurrency(stats?.monthly_expenses?.[new Date().getMonth() + 1] || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Avg per Trip</span>
-                    <span className="font-bold text-xl text-gray-900">{formatCurrency(stats?.totalTrips > 0 ? (stats?.monthlyExpenses ? Object.values(stats.monthlyExpenses).reduce((a,b)=>a+Number(b||0),0) : 0) / stats?.totalTrips : 0)}</span>
+                    <span className="font-bold text-xl text-gray-900">{formatCurrency(stats?.total_trips > 0 ? (stats?.monthly_expenses ? Object.values(stats.monthly_expenses).reduce((a,b)=>a+Number(b||0),0) : 0) / stats?.total_trips : 0)}</span>
                   </div>
                 </div>
                 <button
@@ -853,15 +913,15 @@ export default function Dashboard() {
                 <div className="space-y-4 flex-1 flex flex-col justify-center">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">Total Drivers</span>
-                    <span className="font-bold text-xl text-gray-900">{stats?.totalDrivers || 0}</span>
+                    <span className="font-bold text-xl text-gray-900">{stats?.total_drivers || drivers.length}</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-gray-600">On Duty</span>
-                    <span className="font-bold text-xl text-green-600">{stats?.activeDrivers || 0}</span>
+                    <span className="font-bold text-xl text-green-600">{stats?.active_drivers || drivers.filter(d => d.status === 'active').length}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Off Duty</span>
-                    <span className="font-bold text-xl text-gray-600">{(stats?.totalDrivers || 0) - (stats?.activeDrivers || 0)}</span>
+                    <span className="font-bold text-xl text-gray-600">{(stats?.total_drivers || drivers.length) - (stats?.active_drivers || drivers.filter(d => d.status === 'active').length)}</span>
                   </div>
                 </div>
                 <button
@@ -887,7 +947,7 @@ export default function Dashboard() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="space-y-4 text-center">
                     <div>
-                      <div className="text-5xl font-bold text-red-600">{stats?.recentIssues?.length || 0}</div>
+                      <div className="text-5xl font-bold text-red-600">{issues.filter(i => i.status !== 'resolved').length || stats?.recentIssues?.length || 0}</div>
                       <div className="text-sm text-gray-600 mt-2 font-medium">Open Issues</div>
                     </div>
                     <div className="h-px bg-gray-200"></div>
@@ -908,7 +968,7 @@ export default function Dashboard() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="space-y-4 text-center">
                     <div>
-                      <div className="text-5xl font-bold text-blue-600">{stats?.upcomingServices?.length || 0}</div>
+                      <div className="text-5xl font-bold text-blue-600">{services.filter(s => s.status === 'pending' || s.status === 'scheduled').length || stats?.upcomingServices?.length || 0}</div>
                       <div className="text-sm text-gray-600 mt-2 font-medium">Upcoming</div>
                     </div>
                     <div className="h-px bg-gray-200"></div>
@@ -929,12 +989,12 @@ export default function Dashboard() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="space-y-4 text-center">
                     <div>
-                      <div className="text-5xl font-bold text-green-600">{stats?.activeVehicles || 0}</div>
+                      <div className="text-5xl font-bold text-green-600">{stats?.active_vehicles || vehicles.filter(v => v.status === 'active').length || 0}</div>
                       <div className="text-sm text-gray-600 mt-2 font-medium">Active</div>
                     </div>
                     <div className="h-px bg-gray-200"></div>
                     <div>
-                      <div className="text-3xl font-bold text-gray-500">{(stats?.totalVehicles || 0) - (stats?.activeVehicles || 0)}</div>
+                      <div className="text-3xl font-bold text-gray-500">{(stats?.total_vehicles || vehicles.length || 0) - (stats?.active_vehicles || vehicles.filter(v => v.status === 'active').length || 0)}</div>
                       <div className="text-sm text-gray-600 mt-1 font-medium">Inactive</div>
                     </div>
                   </div>
@@ -950,12 +1010,12 @@ export default function Dashboard() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="space-y-4 text-center">
                     <div>
-                      <div className="text-5xl font-bold text-green-600">{stats?.activeDrivers || 0}</div>
+                      <div className="text-5xl font-bold text-green-600">{stats?.active_drivers || drivers.filter(d => d.status === 'active').length || 0}</div>
                       <div className="text-sm text-gray-600 mt-2 font-medium">On Duty</div>
                     </div>
                     <div className="h-px bg-gray-200"></div>
                     <div>
-                      <div className="text-3xl font-bold text-purple-600">{(stats?.totalDrivers || 0) - (stats?.activeDrivers || 0)}</div>
+                      <div className="text-3xl font-bold text-purple-600">{(stats?.total_drivers || drivers.length || 0) - (stats?.active_drivers || drivers.filter(d => d.status === 'active').length || 0)}</div>
                       <div className="text-sm text-gray-600 mt-1 font-medium">Off Duty</div>
                     </div>
                   </div>
@@ -992,12 +1052,12 @@ export default function Dashboard() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="space-y-4 text-center">
                     <div>
-                      <div className="text-5xl font-bold text-indigo-600">{stats?.totalTrips || 0}</div>
+                      <div className="text-5xl font-bold text-indigo-600">{stats?.total_trips || trips.length || 0}</div>
                       <div className="text-sm text-gray-600 mt-2 font-medium">Total Trips</div>
                     </div>
                     <div className="h-px bg-gray-200"></div>
                     <div>
-                      <div className="text-3xl font-bold text-green-600">{stats?.completedTrips || 0}</div>
+                      <div className="text-3xl font-bold text-green-600">{stats?.completed_trips || trips.filter(t => t.status === 'completed').length || 0}</div>
                       <div className="text-sm text-gray-600 mt-1 font-medium">Completed</div>
                     </div>
                   </div>
@@ -1036,19 +1096,19 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-700 font-medium">Active Vehicles</span>
-                    <span className="font-bold text-lg text-green-600">{stats?.activeVehicles || 0}/{stats?.totalVehicles || 0}</span>
+                    <span className="font-bold text-lg text-green-600">{stats?.active_vehicles || 0}/{stats?.total_vehicles || 0}</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-700 font-medium">On Duty Drivers</span>
-                    <span className="font-bold text-lg text-green-600">{stats?.activeDrivers || 0}/{stats?.totalDrivers || 0}</span>
+                    <span className="font-bold text-lg text-green-600">{stats?.active_drivers || 0}/{stats?.total_drivers || 0}</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-700 font-medium">Fleet Health</span>
-                    <span className="font-bold text-lg text-gray-900">{Math.round((stats?.activeVehicles / stats?.totalVehicles) * 100) || 0}%</span>
+                    <span className="font-bold text-lg text-gray-900">{Math.round(((stats?.active_vehicles || 0) / (stats?.total_vehicles || 1)) * 100) || 0}%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-700 font-medium">Completed Trips</span>
-                    <span className="font-bold text-lg text-gray-900">{stats?.completedTrips || 0}</span>
+                    <span className="font-bold text-lg text-gray-900">{stats?.completed_trips || 0}</span>
                   </div>
                 </div>
               </div>

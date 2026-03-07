@@ -68,7 +68,7 @@ const ListPage = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{title}</h1>
         {createUrl && (
           <Link
             to={createUrl}
@@ -96,17 +96,17 @@ const ListPage = ({
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
                 {columns.map((col, idx) => (
                   <th
                     key={idx}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-900"
+                    className="px-6 py-3 text-left text-sm font-semibold text-white"
                   >
                     {col.label}
                   </th>
                 ))}
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -119,17 +119,17 @@ const ListPage = ({
                     return (
                       <td
                         key={idx}
-                        className="px-6 py-4 text-sm text-gray-600"
+                        className="px-6 py-5 text-base text-gray-900"
                       >
                         {value ?? '-'}
                       </td>
                     );
                   })}
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base space-x-3">
                     {viewUrl && (
                       <Link
                         to={viewUrl(item[keyField])}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-700 hover:text-blue-900"
                       >
                         View
                       </Link>
@@ -137,7 +137,7 @@ const ListPage = ({
                     {editUrl && (
                       <Link
                         to={editUrl(item[keyField])}
-                        className="text-yellow-600 hover:text-yellow-900"
+                        className="text-yellow-700 hover:text-yellow-900"
                       >
                         Edit
                       </Link>
@@ -145,7 +145,7 @@ const ListPage = ({
                     {deleteItem && (
                       <button
                         onClick={() => handleDelete(item[keyField])}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-700 hover:text-red-900"
                       >
                         Delete
                       </button>

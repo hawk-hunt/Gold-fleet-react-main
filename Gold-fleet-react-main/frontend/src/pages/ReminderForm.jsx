@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaBell } from 'react-icons/fa';
 import { api } from '../services/api';
+import { ModernFormLayout, ModernTextInput, ModernSelectInput, FormFieldGroup } from '../components/ModernFormLayout';
 
 export default function ReminderForm() {
   const navigate = useNavigate();
@@ -37,7 +39,15 @@ export default function ReminderForm() {
     try {
       const reminder = await api.getReminder(id);
       if (reminder) {
-        setFormData(reminder);
+        const reminderData = reminder.data || reminder;
+        setFormData({
+          vehicle_id: reminderData.vehicle_id ?? '',
+          title: reminderData.title ?? '',
+          description: reminderData.description ?? '',
+          due_date: reminderData.due_date ?? new Date().toISOString().split('T')[0],
+          priority: reminderData.priority ?? 'medium',
+          status: reminderData.status ?? 'pending',
+        });
       }
     } catch (err) {
       setError('Failed to load reminder');
@@ -68,123 +78,90 @@ export default function ReminderForm() {
     }
   };
 
+  const leftBlock = (
+    <FormFieldGroup>
+      <ModernSelectInput
+        label="Vehicle"
+        name="vehicle_id"
+        value={formData.vehicle_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a vehicle' },
+          ...vehicles.map((v) => ({
+            value: v.id,
+            label: `${v.make} ${v.model} (${v.license_plate})`
+          }))
+        ]}
+        required
+      />
+      <ModernTextInput
+        label="Title"
+        name="title"
+        type="text"
+        value={formData.title ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernTextInput
+        label="Description"
+        name="description"
+        type="textarea"
+        value={formData.description ?? ''}
+        onChange={handleChange}
+        placeholder="Enter reminder details..."
+      />
+    </FormFieldGroup>
+  );
+
+  const rightBlock = (
+    <FormFieldGroup>
+      <ModernTextInput
+        label="Due Date"
+        name="due_date"
+        type="date"
+        value={formData.due_date ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernSelectInput
+        label="Priority"
+        name="priority"
+        value={formData.priority ?? 'medium'}
+        onChange={handleChange}
+        options={[
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+          { value: 'urgent', label: 'Urgent' }
+        ]}
+      />
+      <ModernSelectInput
+        label="Status"
+        name="status"
+        value={formData.status ?? 'pending'}
+        onChange={handleChange}
+        options={[
+          { value: 'pending', label: 'Pending' },
+          { value: 'in_progress', label: 'In Progress' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'overdue', label: 'Overdue' }
+        ]}
+      />
+    </FormFieldGroup>
+  );
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
-      <div className="space-y-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {id ? 'Edit Reminder' : 'Add New Reminder'}
-        </h1>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Vehicle</label>
-            <select
-              name="vehicle_id"
-              value={formData.vehicle_id}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a vehicle</option>
-              {vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.make} {vehicle.model} ({vehicle.license_plate})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Due Date</label>
-              <input
-                type="date"
-                name="due_date"
-                value={formData.due_date}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Priority</label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="pending">Pending</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="overdue">Overdue</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:bg-gray-400"
-            >
-              {loading ? 'Saving...' : 'Save Reminder'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/reminders')}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModernFormLayout
+      title={id ? 'Edit Reminder' : 'Add New Reminder'}
+      subtitle="Create and manage vehicle reminders"
+      icon={FaBell}
+      isEditing={!!id}
+      isLoading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      backUrl="/reminders"
+      leftBlock={leftBlock}
+      rightBlock={rightBlock}
+    />
   );
 }

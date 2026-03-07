@@ -66,24 +66,24 @@ export default function Vehicles() {
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">License Plate</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Make/Model</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Year</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Mileage</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">License Plate</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Make/Model</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Year</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Mileage</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Status</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {vehicles.map((vehicle) => (
                 <tr key={vehicle.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{vehicle.license_plate}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{vehicle.make} {vehicle.model}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{vehicle.year}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{vehicle.mileage?.toLocaleString() || '-'} mi</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-5 text-base text-gray-900">{vehicle.license_plate}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{vehicle.make} {vehicle.model}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{vehicle.year}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{vehicle.mileage?.toLocaleString() || '-'} mi</td>
+                  <td className="px-6 py-5 text-base">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       vehicle.status === 'active'
                         ? 'bg-green-100 text-green-800'
@@ -94,22 +94,22 @@ export default function Vehicles() {
                       {vehicle.status || 'Active'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base space-x-3">
                     <Link
                       to={`/vehicles/${vehicle.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-700 hover:text-blue-900"
                     >
                       View
                     </Link>
                     <Link
                       to={`/vehicles/${vehicle.id}/edit`}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-700 hover:text-yellow-900"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(vehicle.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-700 hover:text-red-900"
                     >
                       Delete
                     </button>

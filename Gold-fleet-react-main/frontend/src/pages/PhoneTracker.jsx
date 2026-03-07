@@ -260,13 +260,13 @@ export default function PhoneTracker() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">📜 Location History (Last 10)</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 border border-gray-200 rounded-lg">
+              <thead className="bg-yellow-600 border border-gray-200 rounded-lg">
                 <tr>
-                  <th className="px-4 py-2 text-left font-semibold text-gray-700">Time</th>
-                  <th className="px-4 py-2 text-left font-semibold text-gray-700">Latitude</th>
-                  <th className="px-4 py-2 text-left font-semibold text-gray-700">Longitude</th>
-                  <th className="px-4 py-2 text-left font-semibold text-gray-700">Speed (km/h)</th>
-                  <th className="px-4 py-2 text-left font-semibold text-gray-700">Accuracy (m)</th>
+                  <th className="px-4 py-2 text-left font-semibold text-white">Time</th>
+                  <th className="px-4 py-2 text-left font-semibold text-white">Latitude</th>
+                  <th className="px-4 py-2 text-left font-semibold text-white">Longitude</th>
+                  <th className="px-4 py-2 text-left font-semibold text-white">Speed (km/h)</th>
+                  <th className="px-4 py-2 text-left font-semibold text-white">Accuracy (m)</th>
                 </tr>
               </thead>
               <tbody>

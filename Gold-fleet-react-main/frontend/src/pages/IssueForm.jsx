@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import { api } from '../services/api';
-import { FaArrowLeft } from 'react-icons/fa';
+import { ModernFormLayout, ModernTextInput, ModernSelectInput, FormFieldGroup } from '../components/ModernFormLayout';
 
 export default function IssueForm() {
   const navigate = useNavigate();
@@ -47,7 +48,16 @@ export default function IssueForm() {
     try {
       const issue = await api.getIssue(id);
       if (issue) {
-        setFormData(issue);
+        const issueData = issue.data || issue;
+        setFormData({
+          vehicle_id: issueData.vehicle_id ?? '',
+          inspection_id: issueData.inspection_id ?? '',
+          title: issueData.title ?? '',
+          description: issueData.description ?? '',
+          status: issueData.status ?? 'open',
+          priority: issueData.priority ?? 'medium',
+          reported_date: issueData.reported_date ?? new Date().toISOString().split('T')[0],
+        });
       }
     } catch (err) {
       setError('Failed to load issue');
@@ -78,152 +88,103 @@ export default function IssueForm() {
     }
   };
 
+  const leftBlock = (
+    <FormFieldGroup>
+      <ModernSelectInput
+        label="Vehicle"
+        name="vehicle_id"
+        value={formData.vehicle_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a vehicle' },
+          ...vehicles.map((v) => ({
+            value: v.id,
+            label: `${v.make} ${v.model} (${v.license_plate})`
+          }))
+        ]}
+        required
+      />
+      <ModernSelectInput
+        label="Related Inspection (Optional)"
+        name="inspection_id"
+        value={formData.inspection_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select an inspection (optional)' },
+          ...inspections.map((insp) => ({
+            value: insp.id,
+            label: `${insp.vehicle?.license_plate} - ${new Date(insp.inspection_date).toLocaleDateString()}`
+          }))
+        ]}
+      />
+      <ModernTextInput
+        label="Title"
+        name="title"
+        type="text"
+        value={formData.title ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernTextInput
+        label="Description"
+        name="description"
+        type="textarea"
+        value={formData.description ?? ''}
+        onChange={handleChange}
+        required
+      />
+    </FormFieldGroup>
+  );
+
+  const rightBlock = (
+    <FormFieldGroup>
+      <ModernSelectInput
+        label="Priority"
+        name="priority"
+        value={formData.priority ?? 'medium'}
+        onChange={handleChange}
+        options={[
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+          { value: 'critical', label: 'Critical' }
+        ]}
+      />
+      <ModernSelectInput
+        label="Status"
+        name="status"
+        value={formData.status ?? 'open'}
+        onChange={handleChange}
+        options={[
+          { value: 'open', label: 'Open' },
+          { value: 'in_progress', label: 'In Progress' },
+          { value: 'resolved', label: 'Resolved' },
+          { value: 'closed', label: 'Closed' }
+        ]}
+      />
+      <ModernTextInput
+        label="Reported Date"
+        name="reported_date"
+        type="date"
+        value={formData.reported_date ?? ''}
+        onChange={handleChange}
+        required
+      />
+    </FormFieldGroup>
+  );
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
-      <div className="space-y-6 w-full max-w-2xl">
-        <div className="flex items-center gap-4">
-          {inspectionIdParam && (
-            <button
-              onClick={() => navigate(`/inspections/${inspectionIdParam}`)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
-            >
-              <FaArrowLeft className="text-gray-600" />
-            </button>
-          )}
-          <h1 className="text-3xl font-bold text-gray-900">
-            {id ? 'Edit Issue' : 'Add New Issue'}
-          </h1>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Vehicle</label>
-            <select
-              name="vehicle_id"
-              value={formData.vehicle_id}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a vehicle</option>
-              {vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.make} {vehicle.model} ({vehicle.license_plate})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Related Inspection (Optional)</label>
-            <select
-              name="inspection_id"
-              value={formData.inspection_id}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select an inspection (optional)</option>
-              {inspections.map((inspection) => (
-                <option key={inspection.id} value={inspection.id}>
-                  {inspection.vehicle?.license_plate} - {new Date(inspection.inspection_date).toLocaleDateString()}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-sm text-gray-500">Link this issue to an inspection for workflow tracking</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              rows="4"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Priority</label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-                <option value="closed">Closed</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Reported Date</label>
-            <input
-              type="date"
-              name="reported_date"
-              value={formData.reported_date}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:bg-gray-400"
-            >
-              {loading ? 'Saving...' : 'Save Issue'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/issues')}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModernFormLayout
+      title={id ? 'Edit Issue' : 'Add New Issue'}
+      subtitle="Report and manage vehicle issues"
+      icon={FaExclamationTriangle}
+      isEditing={!!id}
+      isLoading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      backUrl="/issues"
+      leftBlock={leftBlock}
+      rightBlock={rightBlock}
+    />
   );
 }

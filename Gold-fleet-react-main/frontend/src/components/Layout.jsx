@@ -28,7 +28,9 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     const onResize = () => setIsLarge(window.innerWidth >= 1024);
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', onResize, { passive: true });
+    // Call on mount to ensure correct initial state
+    onResize();
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
@@ -40,17 +42,18 @@ export default function Layout({ children }) {
   const effectiveSidebarOpen = isMapPage ? false : sidebarOpen;
   const effectiveSidebarCollapsed = isMapPage ? true : sidebarCollapsed;
 
-  // computed sidebar width in px that should affect layout (0 when closed on small screens)
-  const sidebarWidth = isLarge && effectiveSidebarOpen ? (effectiveSidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED) : 0;
+  // Header shifts on LARGE SCREENS ONLY
+  // Content area shifts on LARGE SCREENS ONLY
+  const layoutShiftWidth = isLarge ? (effectiveSidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED) : 0;
 
   return (
-    <div className="min-h-screen w-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-x-hidden">
+    <div className="min-h-screen w-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-x-hidden" style={{ overflowX: 'hidden' }}>
       {/* Global Header - fixed at top */}
       <Header
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isLarge={isLarge}
-        sidebarWidth={sidebarWidth}
+        sidebarWidth={layoutShiftWidth}
       />
 
       {/* Sidebar - fixed position on all screens */}
@@ -60,20 +63,25 @@ export default function Layout({ children }) {
         sidebarCollapsed={effectiveSidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
         isLarge={isLarge}
-        sidebarWidth={sidebarWidth}
+        sidebarWidth={layoutShiftWidth}
       />
 
       {/* Main content area: only this scrolls */}
       <div
         className={`flex-1 flex flex-col ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto pb-16'}`}
         style={{
-          marginLeft: isLarge ? sidebarWidth : 0,
-          width: isLarge ? `calc(100% - ${sidebarWidth}px)` : '100%',
+          marginLeft: isLarge ? `${layoutShiftWidth}px` : '0px',
+          width: isLarge ? `calc(100% - ${layoutShiftWidth}px)` : '100%',
           height: isMapPage ? `calc(100vh - 64px)` : 'auto',
           minHeight: isMapPage ? `calc(100vh - 64px)` : 'auto',
           maxHeight: isMapPage ? `calc(100vh - 64px)` : 'auto',
-          paddingTop: isMapPage ? 0 : '64px',
-          transition: 'margin-left 300ms cubic-bezier(.2,.8,.2,1), width 300ms cubic-bezier(.2,.8,.2,1)'
+          paddingTop: isMapPage ? '0px' : '64px',
+          transition: isLarge ? 'margin-left 300ms cubic-bezier(.2,.8,.2,1), width 300ms cubic-bezier(.2,.8,.2,1)' : 'none',
+          boxSizing: 'border-box',
+          willChange: 'margin-left, width',
+          position: 'relative',
+          zIndex: 1,
+          overflowX: 'hidden'
         }}
       >
         {/* Content wrapper */}

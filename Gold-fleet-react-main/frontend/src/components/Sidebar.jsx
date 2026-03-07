@@ -107,7 +107,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, sidebarCollapsed,
       {/* Backdrop for small screens when the sidebar is open */}
       <div
         onClick={() => setSidebarOpen(false)}
-        className={`lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`lg:hidden fixed inset-0 bg-black/50 z-30 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       />
 
       <aside
@@ -116,8 +116,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, sidebarCollapsed,
         }`}
         style={{ 
           height: 'calc(100vh - 64px)',
-          width: sidebarCollapsed ? 80 : 260, 
-          transition: 'transform 300ms ease, width 300ms ease' 
+          width: sidebarCollapsed ? '80px' : '260px',
+          transition: 'transform 300ms ease, width 300ms ease',
+          willChange: 'width'
         }}
       >
       {/* Sidebar header: user info and collapse toggle - always visible on desktop */}
@@ -156,11 +157,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, sidebarCollapsed,
 
       {/* Mobile header with only collapse button */}
       {!isLarge && sidebarOpen && (
-        <div className="flex items-center justify-between h-16 px-4 border-b border-white/10 bg-gradient-to-r from-gray-800 to-gray-900">
-          <span className="font-semibold text-white">Navigation</span>
+        <div className="flex items-center justify-between h-16 px-3 border-b border-white/10 bg-gradient-to-r from-gray-800 to-gray-900 flex-shrink-0">
+          <span className="font-semibold text-white truncate text-sm flex-1">Navigation</span>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg"
+            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg flex-shrink-0 ml-2"
             aria-label="Close sidebar"
           >
             ✕

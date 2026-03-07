@@ -65,38 +65,38 @@ export default function Expenses() {
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Amount</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Category</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Amount</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Date</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Description</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {expenses.map((expense) => (
                 <tr key={expense.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{expense.category || '-'}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">${expense.amount || '0.00'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{expense.expense_date || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 truncate">{expense.description || '-'}</td>
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base text-gray-900">{expense.category || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-900">${expense.amount || '0.00'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{expense.expense_date || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800 truncate">{expense.description || '-'}</td>
+                  <td className="px-6 py-5 text-base space-x-3">
                     <Link
                       to={`/expenses/${expense.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-700 hover:text-blue-900"
                     >
                       View
                     </Link>
                     <Link
                       to={`/expenses/${expense.id}/edit`}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-700 hover:text-yellow-900"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(expense.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-700 hover:text-red-900"
                     >
                       Delete
                     </button>

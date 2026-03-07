@@ -165,13 +165,13 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
   // Dashboard header - for authenticated users
   return (
     <div 
-      className="fixed top-0 left-0 bg-white shadow-sm border-b border-gray-200 h-16"
+      className="fixed top-0 left-0 bg-white shadow-sm border-b border-gray-200 h-16 z-30"
       style={{
-        marginLeft: sidebarWidth,
+        marginLeft: `${sidebarWidth}px`,
         width: `calc(100% - ${sidebarWidth}px)`,
-        right: 0,
-        zIndex: 60,
-        transition: 'margin-left 300ms cubic-bezier(.2,.8,.2,1), width 300ms cubic-bezier(.2,.8,.2,1)'
+        transition: 'margin-left 300ms cubic-bezier(.2,.8,.2,1), width 300ms cubic-bezier(.2,.8,.2,1)',
+        boxSizing: 'border-box',
+        willChange: 'margin-left, width'
       }}
     >
       <div className="flex items-center h-full px-4 lg:px-6 max-w-full w-full">

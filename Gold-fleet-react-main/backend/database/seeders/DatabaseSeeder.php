@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         // Comprehensive dummy data seeder for testing and optimization
         $this->call([
             ComprehensiveDummySeeder::class,
+            // DriverLoginSeeder::class,  // Uncomment to run driver login seeder
         ]);
     }
 }

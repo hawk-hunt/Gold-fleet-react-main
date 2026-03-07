@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaRoad } from 'react-icons/fa';
 import { api } from '../services/api';
+import { ModernFormLayout, ModernTextInput, ModernSelectInput, FormFieldGroup } from '../components/ModernFormLayout';
 
 export default function TripForm() {
   const navigate = useNavigate();
@@ -47,7 +49,21 @@ export default function TripForm() {
     try {
       const trip = await api.getTrip(id);
       if (trip) {
-        setFormData(trip);
+        const tripData = trip.data || trip;
+        const safeData = {
+          vehicle_id: tripData.vehicle_id ?? '',
+          driver_id: tripData.driver_id ?? '',
+          start_location: tripData.start_location ?? '',
+          end_location: tripData.end_location ?? '',
+          start_time: tripData.start_time ?? new Date().toISOString().slice(0, 16),
+          end_time: tripData.end_time ?? '',
+          start_mileage: tripData.start_mileage ?? '',
+          end_mileage: tripData.end_mileage ?? '',
+          distance: tripData.distance ?? '',
+          trip_date: tripData.trip_date ?? new Date().toISOString().split('T')[0],
+          status: tripData.status ?? 'planned',
+        };
+        setFormData(safeData);
       }
     } catch (err) {
       setError('Failed to load trip');
@@ -78,193 +94,132 @@ export default function TripForm() {
     }
   };
 
+  const leftBlock = (
+    <FormFieldGroup>
+      <ModernSelectInput
+        label="Vehicle"
+        name="vehicle_id"
+        value={formData.vehicle_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a vehicle' },
+          ...vehicles.map((v) => ({
+            value: v.id,
+            label: `${v.make} ${v.model} (${v.license_plate})`
+          }))
+        ]}
+        required
+      />
+      <ModernSelectInput
+        label="Driver"
+        name="driver_id"
+        value={formData.driver_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a driver' },
+          ...drivers.map((d) => ({
+            value: d.id,
+            label: d.user?.name || d.name || 'Unknown Driver'
+          }))
+        ]}
+        required
+      />
+      <ModernTextInput
+        label="Start Time"
+        name="start_time"
+        type="datetime-local"
+        value={formData.start_time ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernTextInput
+        label="End Time"
+        name="end_time"
+        type="datetime-local"
+        value={formData.end_time ?? ''}
+        onChange={handleChange}
+      />
+      <ModernTextInput
+        label="Trip Date"
+        name="trip_date"
+        type="date"
+        value={formData.trip_date ?? ''}
+        onChange={handleChange}
+        required
+      />
+    </FormFieldGroup>
+  );
+
+  const rightBlock = (
+    <FormFieldGroup>
+      <ModernTextInput
+        label="Start Location"
+        name="start_location"
+        type="text"
+        value={formData.start_location ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernTextInput
+        label="End Location"
+        name="end_location"
+        type="text"
+        value={formData.end_location ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernTextInput
+        label="Start Mileage"
+        name="start_mileage"
+        type="number"
+        value={formData.start_mileage ?? ''}
+        onChange={handleChange}
+        step="0.01"
+        required
+      />
+      <ModernTextInput
+        label="End Mileage"
+        name="end_mileage"
+        type="number"
+        value={formData.end_mileage ?? ''}
+        onChange={handleChange}
+        step="0.01"
+      />
+      <ModernTextInput
+        label="Distance (km)"
+        name="distance"
+        type="number"
+        value={formData.distance ?? ''}
+        onChange={handleChange}
+        step="0.01"
+      />
+      <ModernSelectInput
+        label="Status"
+        name="status"
+        value={formData.status ?? 'planned'}
+        onChange={handleChange}
+        options={[
+          { value: 'planned', label: 'Planned' },
+          { value: 'in_progress', label: 'In Progress' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'cancelled', label: 'Cancelled' }
+        ]}
+      />
+    </FormFieldGroup>
+  );
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
-      <div className="space-y-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {id ? 'Edit Trip' : 'Add New Trip'}
-        </h1>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Vehicle</label>
-              <select
-                name="vehicle_id"
-                value={formData.vehicle_id}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a vehicle</option>
-                {vehicles.map((vehicle) => (
-                  <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.make} {vehicle.model} ({vehicle.license_plate})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Driver</label>
-              <select
-                name="driver_id"
-                value={formData.driver_id}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a driver</option>
-                {drivers.map((driver) => (
-                  <option key={driver.id} value={driver.id}>
-                    {driver.user?.name || driver.name || 'Unknown Driver'}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Start Time</label>
-              <input
-                type="datetime-local"
-                name="start_time"
-                value={formData.start_time}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">End Time</label>
-              <input
-                type="datetime-local"
-                name="end_time"
-                value={formData.end_time}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Start Mileage</label>
-              <input
-                type="number"
-                name="start_mileage"
-                value={formData.start_mileage}
-                onChange={handleChange}
-                step="0.01"
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">End Mileage</label>
-              <input
-                type="number"
-                name="end_mileage"
-                value={formData.end_mileage}
-                onChange={handleChange}
-                step="0.01"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Start Location</label>
-            <input
-              type="text"
-              name="start_location"
-              value={formData.start_location}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">End Location</label>
-            <input
-              type="text"
-              name="end_location"
-              value={formData.end_location}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Distance (km)</label>
-              <input
-                type="number"
-                name="distance"
-                value={formData.distance}
-                onChange={handleChange}
-                step="0.01"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Trip Date</label>
-              <input
-                type="date"
-                name="trip_date"
-                value={formData.trip_date}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="planned">Planned</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:bg-gray-400"
-            >
-              {loading ? 'Saving...' : 'Save Trip'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/trips')}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModernFormLayout
+      title={id ? 'Edit Trip' : 'Add New Trip'}
+      subtitle="Manage trip information and details"
+      icon={FaRoad}
+      isEditing={!!id}
+      isLoading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      backUrl="/trips"
+      leftBlock={leftBlock}
+      rightBlock={rightBlock}
+    />
   );
 }

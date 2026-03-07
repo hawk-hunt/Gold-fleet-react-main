@@ -65,38 +65,38 @@ export default function FuelFillups() {
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-yellow-600 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Vehicle</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Gallons</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Cost</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Vehicle</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Date</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Gallons</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Cost</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {fillups.map((fillup) => (
                 <tr key={fillup.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{fillup.vehicle?.license_plate || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{fillup.fillup_date || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{fillup.gallons || '-'} gal</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">${fillup.cost || '-'}</td>
-                  <td className="px-6 py-4 text-sm space-x-2">
+                  <td className="px-6 py-5 text-base text-gray-900">{fillup.vehicle?.license_plate || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{fillup.fillup_date || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">{fillup.gallons || '-'} gal</td>
+                  <td className="px-6 py-5 text-base text-gray-900">${fillup.cost || '-'}</td>
+                  <td className="px-6 py-5 text-base space-x-3">
                     <Link
                       to={`/fuel-fillups/${fillup.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-700 hover:text-blue-900"
                     >
                       View
                     </Link>
                     <Link
                       to={`/fuel-fillups/${fillup.id}/edit`}
-                      className="text-yellow-600 hover:text-yellow-900"
+                      className="text-yellow-700 hover:text-yellow-900"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(fillup.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-700 hover:text-red-900"
                     >
                       Delete
                     </button>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaGasPump } from 'react-icons/fa';
 import { api } from '../services/api';
+import { ModernFormLayout, ModernTextInput, ModernSelectInput, FormFieldGroup } from '../components/ModernFormLayout';
 
 export default function FuelFillupForm() {
   const navigate = useNavigate();
@@ -44,12 +46,12 @@ export default function FuelFillupForm() {
       const fuelFillup = response.data || response;
       if (fuelFillup) {
         setFormData({
-          vehicle_id: fuelFillup.vehicle_id || '',
-          driver_id: fuelFillup.driver_id || '',
-          gallons: fuelFillup.gallons || '',
-          cost: fuelFillup.cost || '',
-          fillup_date: fuelFillup.fillup_date || new Date().toISOString().split('T')[0],
-          odometer_reading: fuelFillup.odometer_reading || '',
+          vehicle_id: fuelFillup.vehicle_id ?? '',
+          driver_id: fuelFillup.driver_id ?? '',
+          gallons: fuelFillup.gallons ?? '',
+          cost: fuelFillup.cost ?? '',
+          fillup_date: fuelFillup.fillup_date ?? new Date().toISOString().split('T')[0],
+          odometer_reading: fuelFillup.odometer_reading ?? '',
         });
       }
     } catch (err) {
@@ -81,130 +83,90 @@ export default function FuelFillupForm() {
     }
   };
 
+  const leftBlock = (
+    <FormFieldGroup>
+      <ModernSelectInput
+        label="Vehicle"
+        name="vehicle_id"
+        value={formData.vehicle_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a vehicle' },
+          ...vehicles.map((v) => ({
+            value: v.id,
+            label: `${v.make} ${v.model} (${v.license_plate})`
+          }))
+        ]}
+        required
+      />
+      <ModernSelectInput
+        label="Driver"
+        name="driver_id"
+        value={formData.driver_id ?? ''}
+        onChange={handleChange}
+        options={[
+          { value: '', label: 'Select a driver' },
+          ...drivers.map((d) => ({
+            value: d.id,
+            label: d.user?.name || d.name || 'Unknown Driver'
+          }))
+        ]}
+        required
+      />
+      <ModernTextInput
+        label="Gallons"
+        name="gallons"
+        type="number"
+        value={formData.gallons ?? ''}
+        onChange={handleChange}
+        step="0.01"
+        required
+      />
+      <ModernTextInput
+        label="Cost"
+        name="cost"
+        type="number"
+        value={formData.cost ?? ''}
+        onChange={handleChange}
+        step="0.01"
+        required
+      />
+    </FormFieldGroup>
+  );
+
+  const rightBlock = (
+    <FormFieldGroup>
+      <ModernTextInput
+        label="Fillup Date"
+        name="fillup_date"
+        type="date"
+        value={formData.fillup_date ?? ''}
+        onChange={handleChange}
+        required
+      />
+      <ModernTextInput
+        label="Odometer Reading (km)"
+        name="odometer_reading"
+        type="number"
+        value={formData.odometer_reading ?? ''}
+        onChange={handleChange}
+        required
+      />
+    </FormFieldGroup>
+  );
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
-      <div className="space-y-6 w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {id ? 'Edit Fuel Fillup' : 'Add New Fuel Fillup'}
-        </h1>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Vehicle</label>
-              <select
-                name="vehicle_id"
-                value={formData.vehicle_id}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a vehicle</option>
-                {vehicles.map((vehicle) => (
-                  <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.make} {vehicle.model} ({vehicle.license_plate})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Driver</label>
-              <select
-                name="driver_id"
-                value={formData.driver_id}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a driver</option>
-                {drivers.map((driver) => (
-                  <option key={driver.id} value={driver.id}>
-                    {driver.user?.name || driver.name || 'Unknown Driver'}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Gallons</label>
-              <input
-                type="number"
-                name="gallons"
-                value={formData.gallons}
-                onChange={handleChange}
-                step="0.01"
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Cost</label>
-              <input
-                type="number"
-                name="cost"
-                value={formData.cost}
-                onChange={handleChange}
-                step="0.01"
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Fillup Date</label>
-              <input
-                type="date"
-                name="fillup_date"
-                value={formData.fillup_date}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Odometer Reading (km)</label>
-              <input
-                type="number"
-                name="odometer_reading"
-                value={formData.odometer_reading}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:bg-gray-400"
-            >
-              {loading ? 'Saving...' : 'Save Fuel Fillup'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/fuel-fillups')}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModernFormLayout
+      title={id ? 'Edit Fuel Fillup' : 'Add New Fuel Fillup'}
+      subtitle="Record fuel fillup information"
+      icon={FaGasPump}
+      isEditing={!!id}
+      isLoading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      backUrl="/fuel-fillups"
+      leftBlock={leftBlock}
+      rightBlock={rightBlock}
+    />
   );
 }

@@ -168,9 +168,9 @@ function NoVehiclesMessage() {
 export default function FleetMap({ vehicles = [] }) {
   const [mapKey, setMapKey] = useState(0);
 
-  // Default center (world view)
-  const defaultCenter = [20, 0];
-  const defaultZoom = 2;
+  // Default center (Ghana)
+  const defaultCenter = [5.6037, -0.1870];
+  const defaultZoom = 7;
 
   // Calculate center from vehicles or use default
   const mapCenter = vehicles.length > 0

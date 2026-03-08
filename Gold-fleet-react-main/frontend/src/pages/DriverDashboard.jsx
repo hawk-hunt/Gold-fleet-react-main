@@ -75,7 +75,7 @@ export default function DriverDashboard() {
   const [error, setError] = useState(null);
   const [watchId, setWatchId] = useState(null);
   const [routeWaypoints, setRouteWaypoints] = useState([]);
-  const [currentLocation, setCurrentLocation] = useState([40.7128, -74.0060]); // Default to NYC
+  const [currentLocation, setCurrentLocation] = useState([5.6037, -0.1870]); // Default to Ghana
   const [tripDistance, setTripDistance] = useState(0);
   const [tripDuration, setTripDuration] = useState('0h 0m');
   const [showInspection, setShowInspection] = useState(false);

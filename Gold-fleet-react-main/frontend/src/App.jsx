@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
+import DriverSignup from './pages/DriverSignup';
+import DriverSetup from './pages/DriverSetup';
 import FeaturesPage from './pages/FeaturesPage';
 import SolutionsPage from './pages/SolutionsPage';
 import ResourcesPage from './pages/ResourcesPage';
@@ -92,6 +94,8 @@ function AppRoutes() {
       <Route path="/login" element={<AuthPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/signup" element={<AuthPage />} />
+      <Route path="/driver-signup" element={<DriverSignup />} />
+      <Route path="/driver-setup/:setupToken" element={<DriverSetup />} />
       <Route path="/email/verify" element={<EmailVerificationPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

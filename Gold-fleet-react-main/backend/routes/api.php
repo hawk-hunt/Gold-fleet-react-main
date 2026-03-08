@@ -36,6 +36,8 @@ use App\Http\Controllers\PlatformPaymentController;
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/driver-register', [AuthController::class, 'driverRegister']);
+Route::post('/driver-activate', [AuthController::class, 'driverActivate']);
 Route::post('/cancel-signup', [AuthController::class, 'cancelSignup']);
 
 // Public contact endpoint for inbound messages

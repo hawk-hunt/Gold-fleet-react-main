@@ -51,11 +51,11 @@ class DriverController extends Controller
                 'address' => 'nullable|string',
             ]);
 
-            // Create user
+            // Create user with no password initially
             $user = \App\Models\User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => bcrypt('password'), // default password
+                'password' => null, // No password yet - driver sets it during setup
                 'company_id' => auth()->user()->company_id,
                 'role' => 'driver',
             ]);
@@ -73,9 +73,14 @@ class DriverController extends Controller
                 }
             }
 
+            // Generate unique setup token
+            $setupToken = \Illuminate\Support\Str::random(32);
+
             $driver = Driver::create([
                 'company_id' => auth()->user()->company_id,
                 'user_id' => $user->id,
+                'setup_token' => $setupToken,
+                'account_activated' => false,
                 'vehicle_id' => $validated['vehicle_id'] ?? null,
                 'license_number' => $validated['license_number'],
                 'license_expiry' => $validated['license_expiry'],
@@ -85,8 +90,15 @@ class DriverController extends Controller
                 'address' => $validated['address'],
             ]);
 
-            // Ensure API returns full image URL via accessor `image_url`
-            return response()->json(['success' => true, 'driver' => $driver], 201);
+            // Return setup link for admin to share with driver
+            $setupLink = config('app.frontend_url') . '/driver-setup/' . $setupToken;
+
+            return response()->json([
+                'success' => true,
+                'driver' => $driver,
+                'setup_link' => $setupLink,
+                'message' => 'Driver created. Share this link with the driver: ' . $setupLink,
+            ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,

@@ -18,14 +18,30 @@ class ImageService
      */
     public static function processImage(UploadedFile $imageFile, $storagePath = 'uploads', $options = [])
     {
-        $maxWidth = $options['maxWidth'] ?? 1200;
-        $maxHeight = $options['maxHeight'] ?? 1200;
-        $quality = $options['quality'] ?? 80;
-
         try {
             $filePath = $imageFile->getRealPath();
-            $fileName = time() . '_' . uniqid() . '.jpg';
+            $fileName = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
             $storagePath = $storagePath . '/' . $fileName;
+
+            // Check if GD library is available
+            if (!extension_loaded('gd')) {
+                // Fallback: Store image without processing
+                $imageContent = file_get_contents($filePath);
+                Storage::disk('public')->put($storagePath, $imageContent);
+                
+                Log::info('[ImageService] Image stored without GD processing (GD library not available)', [
+                    'original_name' => $imageFile->getClientOriginalName(),
+                    'original_size' => $imageFile->getSize(),
+                    'stored_path' => $storagePath,
+                ]);
+                
+                return $storagePath;
+            }
+
+            // GD is available - proceed with compression
+            $maxWidth = $options['maxWidth'] ?? 1200;
+            $maxHeight = $options['maxHeight'] ?? 1200;
+            $quality = $options['quality'] ?? 80;
 
             // Get image info
             $imageInfo = getimagesize($filePath);

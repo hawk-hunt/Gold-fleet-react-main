@@ -78,12 +78,16 @@ class AuthController extends Controller
         // Use database transaction to ensure atomicity
         try {
             $result = DB::transaction(function () use ($validated) {
+                // Generate unique access code for drivers to join
+                $accessCode = strtoupper(\Illuminate\Support\Str::random(8));
+                
                 // Create company
                 $company = Company::create([
                     'name' => $validated['company_name'],
                     'email' => $validated['company_email'],
                     'phone' => $validated['company_phone'] ?? null,
                     'address' => $validated['company_address'] ?? null,
+                    'access_code' => $accessCode,
                 ]);
 
                 // Create user without api_token (only after email verification)
@@ -116,6 +120,7 @@ class AuthController extends Controller
                     'id' => $result['company']->id,
                     'name' => $result['company']->name,
                     'email' => $result['company']->email,
+                    'access_code' => $result['company']->access_code,
                 ],
             ], 201);
         } catch (\Exception $e) {
@@ -199,5 +204,156 @@ class AuthController extends Controller
                 'email_verified' => $user->hasVerifiedEmail(),
             ],
         ]);
+    }
+
+    /**
+     * Handle driver registration with company code.
+     */
+    public function driverRegister(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+                'password' => ['required', 'confirmed', 'min:8'],
+                'company_code' => ['required', 'string'],
+                'phone' => ['nullable', 'string', 'max:20'],
+                'license_number' => ['nullable', 'string', 'max:255'],
+                'license_expiry' => ['nullable', 'date'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        try {
+            // Find company by access code
+            $company = Company::where('access_code', $validated['company_code'])->first();
+            
+            if (!$company) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid company code. Please contact your administrator.',
+                ], 404);
+            }
+
+            $result = DB::transaction(function () use ($validated, $company) {
+                // Create user with driver role
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'role' => 'driver',
+                    'company_id' => $company->id,
+                ]);
+
+                // Create api token
+                $token = \Illuminate\Support\Str::random(80);
+                $user->update(['api_token' => $token]);
+
+                // Create driver record
+                $driver = \App\Models\Driver::create([
+                    'company_id' => $company->id,
+                    'user_id' => $user->id,
+                    'phone' => $validated['phone'] ?? null,
+                    'license_number' => $validated['license_number'] ?? null,
+                    'license_expiry' => $validated['license_expiry'] ?? null,
+                    'status' => 'active',
+                ]);
+
+                return compact('user', 'driver', 'token', 'company');
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver registration successful.',
+                'token' => $result['token'],
+                'user' => [
+                    'id' => $result['user']->id,
+                    'name' => $result['user']->name,
+                    'email' => $result['user']->email,
+                    'role' => 'driver',
+                    'company_id' => $result['company']->id,
+                ],
+                'company' => [
+                    'id' => $result['company']->id,
+                    'name' => $result['company']->name,
+                ],
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Driver registration failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Activate driver account with setup token.
+     */
+    public function driverActivate(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'setup_token' => ['required', 'string'],
+                'password' => ['required', 'confirmed', 'min:8'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        try {
+            // Find driver by setup token
+            $driver = \App\Models\Driver::where('setup_token', $validated['setup_token'])
+                ->where('account_activated', false)
+                ->first();
+
+            if (!$driver) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or expired setup link.',
+                ], 404);
+            }
+
+            // Update user password and generate token
+            $user = $driver->user;
+            $apiToken = \Illuminate\Support\Str::random(80);
+            
+            $user->update([
+                'password' => Hash::make($validated['password']),
+                'api_token' => $apiToken,
+            ]);
+
+            // Mark account as activated and clear setup token
+            $driver->update([
+                'account_activated' => true,
+                'setup_token' => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Account activated successfully. You can now log in.',
+                'token' => $apiToken,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => 'driver',
+                    'company_id' => $user->company_id,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account activation failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

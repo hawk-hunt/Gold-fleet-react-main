@@ -14,6 +14,8 @@ export default function DriverForm() {
   const [preview, setPreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [vehicles, setVehicles] = useState([]);
+  const [setupLink, setSetupLink] = useState('');
+  const [showLinkModal, setShowLinkModal] = useState(false);
 
   const form = useFormValidation(
     {
@@ -155,13 +157,20 @@ export default function DriverForm() {
         console.log('[DriverForm] Updating driver ID:', id);
         formData.append('_method', 'PUT');
         await api.updateDriver(id, formData);
+        navigate('/drivers');
       } else {
         console.log('[DriverForm] Creating new driver');
-        await api.createDriver(formData);
+        const response = await api.createDriver(formData);
+        const data = response.data || response;
+        
+        // Show setup link modal
+        if (data.setup_link) {
+          setSetupLink(data.setup_link);
+          setShowLinkModal(true);
+        } else {
+          navigate('/drivers');
+        }
       }
-
-      console.log('[DriverForm] Save successful, navigating to /drivers');
-      navigate('/drivers');
     } catch (err) {
       console.error('[DriverForm] Save error:', err);
       setError(err.message || 'Failed to save driver');
@@ -269,6 +278,70 @@ export default function DriverForm() {
       />
     </FormFieldGroup>
   );
+
+  // Modal to display setup link
+  if (showLinkModal) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Driver Created Successfully!</h2>
+            <p className="text-gray-600 mb-4">Share this link with the driver to complete their account setup.</p>
+          </div>
+
+          <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-gray-600 mb-2 font-semibold">Setup Link:</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={setupLink}
+                className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-sm font-mono"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(setupLink);
+                  alert('Setup link copied to clipboard!');
+                }}
+                className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors font-medium"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <p className="text-sm text-gray-700">
+              <strong>How to share:</strong> Send this link to the driver via email, SMS, or chat. They'll use it to set their own password and activate their account.
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(setupLink);
+                navigate('/drivers');
+              }}
+              className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
+            >
+              Copy & Close
+            </button>
+            <button
+              onClick={() => navigate('/drivers')}
+              className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ModernFormLayout

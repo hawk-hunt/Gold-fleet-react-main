@@ -26,6 +26,7 @@ class Company extends Model
         'subscription_status',
         'status',
         'is_active',
+        'access_code',
     ];
 
     public function users(): HasMany

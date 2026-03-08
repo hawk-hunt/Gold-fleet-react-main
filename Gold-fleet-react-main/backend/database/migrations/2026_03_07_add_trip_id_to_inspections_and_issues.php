@@ -26,12 +26,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inspections', function (Blueprint $table) {
-            $table->dropForeignKeyIfExists(['trip_id']);
+            $table->dropForeignKey(['trip_id']);
             $table->dropColumn('trip_id');
         });
 
         Schema::table('issues', function (Blueprint $table) {
-            $table->dropForeignKeyIfExists(['trip_id']);
+            $table->dropForeignKey(['trip_id']);
             $table->dropColumn('trip_id');
         });
     }

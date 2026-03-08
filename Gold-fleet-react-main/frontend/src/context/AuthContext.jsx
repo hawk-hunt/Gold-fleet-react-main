@@ -4,6 +4,7 @@ const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const [company, setCompany] = useState(null)
   const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
           console.log('[Auth] ✓ No token - user must login')
           setToken(null)
           setUser(null)
+          setCompany(null)
           setLoading(false)
           setIsInitialized(true)
           return
@@ -35,6 +37,7 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.removeItem('auth_token')
         setToken(null)
         setUser(null)
+        setCompany(null)
       } finally {
         setLoading(false)
         setIsInitialized(true)
@@ -62,6 +65,7 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json()
         console.log('[Auth] ✓ Token is valid! User data:', data)
         setUser(data.user || data)
+        setCompany(data.company || null)
         setToken(authToken)
       } else {
         // Token is invalid, clear it
@@ -71,12 +75,14 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.removeItem('auth_token')
         setToken(null)
         setUser(null)
+        setCompany(null)
       }
     } catch (error) {
       console.error('[Auth] ✗ Token validation error:', error.message)
       sessionStorage.removeItem('auth_token')
       setToken(null)
       setUser(null)
+      setCompany(null)
     }
   }
 
@@ -91,18 +97,21 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json()
         setUser(data.user || data)
+        setCompany(data.company || null)
         setToken(authToken)
       } else {
         // Token is invalid, clear it
         sessionStorage.removeItem('auth_token')
         setToken(null)
         setUser(null)
+        setCompany(null)
       }
     } catch (error) {
       console.error('Failed to fetch user:', error)
       sessionStorage.removeItem('auth_token')
       setToken(null)
       setUser(null)
+      setCompany(null)
     } finally {
       setLoading(false)
     }
@@ -135,6 +144,7 @@ export const AuthProvider = ({ children }) => {
       if (data.token) {
         setToken(data.token)
         setUser(data.user || null)
+        setCompany(data.company || null)
         sessionStorage.setItem('auth_token', data.token)
       } else {
         throw new Error('No token received from server')
@@ -145,6 +155,7 @@ export const AuthProvider = ({ children }) => {
       // Ensure failed login doesn't leave any auth state
       setToken(null)
       setUser(null)
+      setCompany(null)
       sessionStorage.removeItem('auth_token')
       throw error
     } finally {
@@ -186,6 +197,7 @@ export const AuthProvider = ({ children }) => {
       if (data.token) {
         setToken(data.token)
         setUser(data.user || null)
+        setCompany(data.company || null)
         sessionStorage.setItem('auth_token', data.token)
       }
 
@@ -194,6 +206,7 @@ export const AuthProvider = ({ children }) => {
       // Ensure failed signup doesn't leave any auth state
       setToken(null)
       setUser(null)
+      setCompany(null)
       sessionStorage.removeItem('auth_token')
       throw error
     } finally {
@@ -218,12 +231,51 @@ export const AuthProvider = ({ children }) => {
       // Always clear auth state regardless of logout API success
       setToken(null)
       setUser(null)
+      setCompany(null)
       sessionStorage.removeItem('auth_token')
     }
   }
 
+  /**
+   * Refresh user and company data from the API.
+   * This is useful after approval/rejection to get the latest status.
+   */
+  const refreshAuth = async () => {
+    try {
+      const currentToken = token || sessionStorage.getItem('auth_token')
+      if (!currentToken) {
+        console.warn('[Auth] No token available for refresh')
+        return false
+      }
+
+      console.log('[Auth] Refreshing auth state with API...')
+      const response = await fetch('http://localhost:8000/api/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('[Auth] ✓ Auth refreshed successfully! New company status:', data.company?.company_status)
+        setUser(data.user || data)
+        setCompany(data.company || null)
+        return true
+      } else {
+        console.warn('[Auth] ⚠ Auth refresh failed with status', response.status)
+        return false
+      }
+    } catch (error) {
+      console.error('[Auth] ✗ Auth refresh error:', error.message)
+      return false
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, isInitialized }}>
+    <AuthContext.Provider value={{ user, company, token, loading, login, signup, logout, refreshAuth, isInitialized }}>
       {children}
     </AuthContext.Provider>
   )

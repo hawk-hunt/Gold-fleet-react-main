@@ -47,8 +47,16 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'company_id' => $user->company_id,
+                'account_status' => $user->account_status,
                 'email_verified' => $user->hasVerifiedEmail(),
             ],
+            'company' => $user->company ? [
+                'id' => $user->company->id,
+                'name' => $user->company->name,
+                'account_status' => $user->company->account_status,
+                'company_status' => $user->company->company_status,
+                'subscription_status' => $user->company->subscription_status,
+            ] : null,
         ]);
     }
 
@@ -81,22 +89,26 @@ class AuthController extends Controller
                 // Generate unique access code for drivers to join
                 $accessCode = strtoupper(\Illuminate\Support\Str::random(8));
                 
-                // Create company
+                // Create company with initial statuses
                 $company = Company::create([
                     'name' => $validated['company_name'],
                     'email' => $validated['company_email'],
                     'phone' => $validated['company_phone'] ?? null,
                     'address' => $validated['company_address'] ?? null,
                     'access_code' => $accessCode,
+                    'account_status' => 'verified',        // Automatically verified on registration
+                    'company_status' => 'pending',          // Waiting for admin approval after payment
+                    'subscription_status' => 'none',        // No active subscription yet
                 ]);
 
-                // Create user without api_token (only after email verification)
+                // Create user with verified account status
                 $user = User::create([
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'password' => Hash::make($validated['password']),
                     'role' => 'admin',
                     'company_id' => $company->id,
+                    'account_status' => 'verified',        // Automatically verified on registration
                 ]);
 
                 // Create api token so user can use the API immediately
@@ -114,6 +126,7 @@ class AuthController extends Controller
                     'id' => $result['user']->id,
                     'name' => $result['user']->name,
                     'email' => $result['user']->email,
+                    'account_status' => $result['user']->account_status,
                     'email_verified' => (bool) $result['user']->email_verified_at,
                 ],
                 'company' => [
@@ -121,6 +134,9 @@ class AuthController extends Controller
                     'name' => $result['company']->name,
                     'email' => $result['company']->email,
                     'access_code' => $result['company']->access_code,
+                    'account_status' => $result['company']->account_status,
+                    'company_status' => $result['company']->company_status,
+                    'subscription_status' => $result['company']->subscription_status,
                 ],
             ], 201);
         } catch (\Exception $e) {
@@ -201,8 +217,16 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'company_id' => $user->company_id,
+                'account_status' => $user->account_status,
                 'email_verified' => $user->hasVerifiedEmail(),
             ],
+            'company' => $user->company ? [
+                'id' => $user->company->id,
+                'name' => $user->company->name,
+                'account_status' => $user->company->account_status,
+                'company_status' => $user->company->company_status,
+                'subscription_status' => $user->company->subscription_status,
+            ] : null,
         ]);
     }
 

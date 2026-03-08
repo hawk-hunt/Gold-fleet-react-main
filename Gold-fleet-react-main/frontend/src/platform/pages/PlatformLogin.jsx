@@ -47,19 +47,19 @@ export default function PlatformLogin() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo Card */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/20 border-2 border-yellow-500 mb-4">
-            <span className="text-2xl font-bold text-yellow-400">PO</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 border-2 border-yellow-600 mb-4">
+            <span className="text-2xl font-bold text-yellow-600">PO</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Gold Fleet</h1>
           <p className="text-slate-400">Platform Owner Portal</p>
         </div>
 
         {/* Login Form Card */}
-        <div className="bg-gradient-to-b from-slate-800 to-slate-900 border border-yellow-500/20 rounded-lg shadow-2xl p-8">
+        <div className="bg-gradient-to-b from-slate-800 to-slate-900 border border-yellow-600 rounded-lg shadow-2xl p-8">
           <h2 className="text-2xl font-bold text-white mb-6">Platform Login</h2>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            <div className="mb-4 p-4 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
               {error}
             </div>
           )}
@@ -77,7 +77,7 @@ export default function PlatformLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="platform@gold-fleet.com"
-                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
               />
             </div>
 
@@ -93,7 +93,7 @@ export default function PlatformLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
               />
             </div>
 
@@ -101,7 +101,7 @@ export default function PlatformLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-slate-900 font-bold rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Logging in...' : 'Login to Platform'}
             </button>
@@ -118,7 +118,7 @@ export default function PlatformLogin() {
           <div className="mt-6 text-center">
             <p className="text-slate-400 text-sm">
               Don't have an account?{' '}
-              <Link to="/platform/signup" className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors">
+              <Link to="/platform/signup" className="text-gray-400 hover:text-gray-300 font-medium transition-colors">
                 Sign up
               </Link>
             </p>
@@ -160,3 +160,4 @@ export default function PlatformLogin() {
     </div>
   );
 }
+

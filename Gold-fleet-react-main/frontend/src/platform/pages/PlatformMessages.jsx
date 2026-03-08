@@ -97,27 +97,27 @@ export default function PlatformMessages() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl border border-yellow-200 p-6 shadow-lg">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FaEnvelope className="text-yellow-600" />
+            <FaEnvelope className="text-yellow-700" />
             Messages
           </h1>
           <p className="text-gray-600 mt-2">
             Communication with tenant companies {unreadCount > 0 && `(${unreadCount} unread)`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 mt-4 md:mt-0">
           <button
             onClick={fetchMessages}
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-50 border border-yellow-300 text-yellow-700 font-semibold rounded-lg hover:bg-yellow-100 hover:shadow-md active:scale-95 transition-all duration-200"
           >
             <FaSync className="text-sm" />
             Refresh
           </button>
           <button
             onClick={() => setShowCompose(!showCompose)}
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg active:scale-95 transition-all duration-200"
           >
             <FaPlus /> Compose
           </button>
@@ -125,17 +125,17 @@ export default function PlatformMessages() {
       </div>
 
       {error && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+        <div className="p-4 bg-gray-50 border border-yellow-200 rounded-lg text-gray-800 text-sm">
           Using demo data. {error}
         </div>
       )}
 
       {/* Compose Form */}
       {showCompose && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4 shadow-lg">
+        <div className="bg-white border border-yellow-200 rounded-lg p-6 space-y-4 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-900">Send Message</h3>
           <div className="grid grid-cols-1 gap-4">
-            <select className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500">
+            <select className="px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all">
               <option>Select Company...</option>
               <option>ABC Logistics</option>
               <option>Fast Delivery Co</option>
@@ -144,20 +144,20 @@ export default function PlatformMessages() {
             <input
               type="text"
               placeholder="Subject"
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
+              className="px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all"
             />
             <textarea
               placeholder="Message body..."
               rows="4"
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-none"
+              className="px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 resize-none transition-all"
             />
-            <div className="flex gap-2">
-              <button className="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors">
+            <div className="flex gap-3">
+              <button className="flex-1 px-4 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg active:scale-95 transition-all duration-200">
                 Send
               </button>
               <button
                 onClick={() => setShowCompose(false)}
-                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-gray-100 border border-gray-300 text-yellow-700 font-semibold rounded-lg hover:bg-gray-200 active:scale-95 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -174,7 +174,7 @@ export default function PlatformMessages() {
           placeholder="Search messages..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-colors"
+          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all"
         />
       </div>
 
@@ -185,17 +185,17 @@ export default function PlatformMessages() {
             key={msg.id}
             className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
               msg.read
-                ? 'bg-white border-gray-200 hover:border-gray-300'
-                : 'bg-yellow-50 border-yellow-200 hover:border-yellow-300'
+                ? 'bg-white border-yellow-200 hover:border-gray-300'
+                : 'bg-gray-50 border-yellow-200 hover:border-gray-300'
             }`}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h4 className={`font-semibold ${msg.read ? 'text-gray-700' : 'text-gray-900'}`}>
+                  <h4 className={`font-semibold ${msg.read ? 'text-yellow-700' : 'text-gray-900'}`}>
                     {msg.from}
                   </h4>
-                  {!msg.read && <span className="w-2 h-2 bg-yellow-600 rounded-full flex-shrink-0" />}
+                  {!msg.read && <span className="w-2 h-2 bg-gray-700 rounded-full flex-shrink-0" />}
                 </div>
                 <p className="text-gray-600 text-sm mt-1">
                   <span className="font-medium">To:</span> {msg.to}
@@ -213,7 +213,7 @@ export default function PlatformMessages() {
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border border-yellow-200">
         <p className="text-gray-600">
           Showing {filteredMessages.length} of {messages.length} messages
         </p>
@@ -221,13 +221,13 @@ export default function PlatformMessages() {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 bg-gray-100 text-yellow-700 rounded-lg disabled:opacity-50 hover:bg-gray-200 transition-colors"
           >
             Previous
           </button>
           <button
             onClick={() => setPage(page + 1)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 bg-gray-100 text-yellow-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Next
           </button>
@@ -237,3 +237,4 @@ export default function PlatformMessages() {
     </div>
   );
 }
+

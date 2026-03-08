@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FaBuilding, FaSpinner, FaPlus, FaSearch, FaChevronRight, FaSync, FaTrash, FaEye, FaExclamationTriangle } from 'react-icons/fa';
+import { FaBuilding, FaSpinner, FaPlus, FaSearch, FaChevronRight, FaSync, FaTrash, FaEye, FaExclamationTriangle, FaArrowRight, FaCheckCircle, FaClock, FaCheck, FaTimes } from 'react-icons/fa';
 import platformApi from '../services/platformApi';
 
 /**
@@ -14,7 +14,10 @@ export default function PlatformCompanies() {
   const [page, setPage] = useState(1);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [actioning, setActioning] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   const fetchCompanies = useCallback(async () => {
@@ -33,10 +36,68 @@ export default function PlatformCompanies() {
 
   useEffect(() => {
     fetchCompanies();
+    
+    // Auto-refresh companies every 30 seconds for real-time updates
+    const refreshInterval = setInterval(() => {
+      fetchCompanies();
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
   }, [fetchCompanies]);
 
   const handleViewCompany = (company) => {
     setSelectedCompany(company);
+  };
+
+  const handleApproveCompany = async (company = null) => {
+    const targetCompany = company || selectedCompany;
+    if (!targetCompany) return;
+
+    setActioning(true);
+    try {
+      const result = await platformApi.approveCompany(targetCompany.id);
+      setSuccessMessage(result.message || `Company '${targetCompany.name}' has been approved`);
+      setSelectedCompany(null);
+      
+      // Refresh the list
+      setTimeout(() => {
+        fetchCompanies();
+        setSuccessMessage('');
+      }, 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setActioning(false);
+    }
+  };
+
+  const handleDeclineCompanyInitiate = (company) => {
+    setSelectedCompany(company);
+    setShowDeclineModal(true);
+  };
+
+  const handleDeclineCompany = async () => {
+    if (!selectedCompany) return;
+
+    setActioning(true);
+    try {
+      const result = await platformApi.declineCompany(selectedCompany.id, declineReason);
+      setSuccessMessage(result.message || `Company '${selectedCompany.name}' has been declined`);
+      setShowDeclineModal(false);
+      setDeclineReason('');
+      setSelectedCompany(null);
+      
+      // Refresh the list
+      setTimeout(() => {
+        fetchCompanies();
+        setSuccessMessage('');
+      }, 2000);
+    } catch (err) {
+      setError(err.message);
+      setShowDeclineModal(false);
+    } finally {
+      setActioning(false);
+    }
   };
 
   const handleDeleteCompany = async () => {
@@ -62,18 +123,53 @@ export default function PlatformCompanies() {
     }
   };
 
-  const defaultCompanies = [
-    {
-      id: 1,
-      name: 'ABC Logistics',
-      email: 'contact@abc-logistics.com',
-      status: 'active',
-      vehicles: 15,
-      drivers: 8,
-      subscription: 'Pro',
-      joinDate: '2024-01-15',
-    },
-  ];
+  const getStatusColor = (status) => {
+    switch(status?.toLowerCase()) {
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'pending approval':
+      case 'pending_approval':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'declined':
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      case 'registered':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getSubscriptionColor = (status) => {
+    switch(status?.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'none':
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800';
+      case 'expired':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentColor = (status) => {
+    switch(status?.toLowerCase()) {
+      case 'verified':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'refunded':
+        return 'bg-blue-100 text-blue-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      case 'none':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const filteredCompanies = companies.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,53 +192,58 @@ export default function PlatformCompanies() {
       <div className="max-w-7xl mx-auto px-4 space-y-8">
         {/* Success Message */}
         {successMessage && (
-          <div className="p-4 bg-green-50 border border-green-300 text-green-800 rounded-lg flex items-center gap-3">
-            <FaSync className="animate-spin" />
-            {successMessage}
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+            <div className="flex items-center gap-3">
+              <FaCheckCircle className="text-lg text-green-700" />
+              <span className="font-medium">{successMessage}</span>
+            </div>
           </div>
         )}
 
         {/* Error Message */}
         {error && !successMessage && (
-          <div className="p-4 bg-red-50 border border-red-300 text-red-800 rounded-lg">
-            {error}
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+            <div className="flex items-center gap-3">
+              <FaExclamationTriangle className="text-lg text-red-700" />
+              <span className="font-medium">{error}</span>
+            </div>
           </div>
         )}
 
       {/* Search Bar */}
       <div className="relative">
-        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
         <input
           type="text"
           placeholder="Search companies by name or email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-colors"
+          className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
         />
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FaBuilding className="text-yellow-600" />
-            Tenant Companies
-          </h1>
-          <p className="text-gray-600 mt-2">Manage all companies on your platform ({companies.length} total)</p>
+        <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <FaBuilding className="text-gray-700" />
+              Tenant Companies
+            </h1>
+            <p className="text-gray-600 mt-2">Manage all companies on your platform ({companies.length} total)</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={fetchCompanies}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-gray-400 hover:bg-gray-50 hover:shadow-md active:scale-95 transition-all duration-200"
+              title="Refresh the list"
+            >
+              <FaSync className="text-sm" />
+              Refresh
+            </button>
+            <button className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:bg-gray-800 active:scale-95 transition-all duration-200">
+              <FaPlus className="text-sm" /> Add Company
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={fetchCompanies}
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
-          >
-            <FaSync className="text-sm" />
-            Refresh
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors">
-            <FaPlus /> Add Company
-          </button>
-        </div>
-      </div>
 
       {/* Responsive Grid for Mobile, Table for Desktop */}
       <div className="space-y-4 lg:space-y-0">
@@ -155,48 +256,71 @@ export default function PlatformCompanies() {
                   <h3 className="font-semibold text-gray-900">{company.name}</h3>
                   <p className="text-sm text-gray-600">{company.email}</p>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    company.status === 'active'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}
-                >
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(company.status)}`}>
                   {company.status}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2 py-3 border-t border-gray-200">
                 <div>
-                  <p className="text-xs text-gray-600">Vehicles</p>
-                  <p className="font-semibold text-gray-900">{company.vehicles || 0}</p>
+                  <p className="text-xs text-gray-600">Co. Status</p>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getStatusColor(company.company_status)}`}>
+                    {company.company_status}
+                  </span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Drivers</p>
-                  <p className="font-semibold text-gray-900">{company.drivers || 0}</p>
+                  <p className="text-xs text-gray-600">Subscription</p>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getSubscriptionColor(company.subscription_status)}`}>
+                    {company.subscription_status}
+                  </span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Plan</p>
-                  <span className="inline-block px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-700">
-                    {company.subscription || 'N/A'}
+                  <p className="text-xs text-gray-600">Payment</p>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getPaymentColor(company.payment_status)}`}>
+                    {company.payment_status}
                   </span>
                 </div>
               </div>
               <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
-                <button 
-                  onClick={() => handleViewCompany(company)}
-                  className="flex-1 py-2 text-yellow-600 hover:text-yellow-700 font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <FaEye className="w-4 h-4" /> View
-                </button>
-                <button 
-                  onClick={() => {
-                    setSelectedCompany(company);
-                    setShowDeleteConfirm(true);
-                  }}
-                  className="flex-1 py-2 text-red-600 hover:text-red-700 font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <FaTrash className="w-4 h-4" /> Delete
-                </button>
+                {/* Approve/Decline Buttons */}
+                {company.company_status !== 'approved' && company.company_status !== 'declined' && (
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleApproveCompany(company)}
+                      disabled={actioning}
+                      className="flex-1 py-2 bg-green-100 text-green-700 rounded-lg border border-green-300 hover:bg-green-200 hover:shadow-md disabled:opacity-50 active:scale-95 transition-all duration-200 flex items-center justify-center"
+                      title="Approve Company"
+                    >
+                      {actioning ? <FaSpinner className="animate-spin text-lg" /> : <FaCheck className="text-lg" />}
+                    </button>
+                    <button 
+                      onClick={() => handleDeclineCompanyInitiate(company)}
+                      className="flex-1 py-2 bg-red-100 text-red-700 rounded-lg border border-red-300 hover:bg-red-200 hover:shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center"
+                      title="Decline Company"
+                    >
+                      <FaTimes className="text-lg" />
+                    </button>
+                  </div>
+                )}
+                {/* View/Delete Buttons */}
+                <div className="flex gap-2 flex-1">
+                  <button 
+                    onClick={() => handleViewCompany(company)}
+                    className="flex-1 py-2 bg-blue-100 text-blue-700 rounded-lg border border-blue-300 hover:bg-blue-200 hover:shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center"
+                    title="View Details"
+                  >
+                    <FaEye className="text-lg" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setSelectedCompany(company);
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center"
+                    title="Delete Company"
+                  >
+                    <FaTrash className="text-lg" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -210,17 +334,19 @@ export default function PlatformCompanies() {
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Company Name</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Status</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Subscription</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Payment</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Plan</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Vehicles</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Drivers</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Plan</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCompanies.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="9" className="px-6 py-8 text-center text-gray-500">
                       No companies found
                     </td>
                   </tr>
@@ -229,43 +355,73 @@ export default function PlatformCompanies() {
                     <tr key={company.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 text-gray-900 font-medium">{company.name}</td>
                       <td className="px-6 py-4 text-gray-600">{company.email}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            company.status === 'active'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-blue-100 text-blue-700'
-                          }`}
-                        >
-                          {company.status === 'active' ? 'Active' : 'Trial'}
+                      <td className="px-6 py-4 text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(company.company_status)}`}>
+                          {company.company_status ? company.company_status.replace('_', ' ') : 'registered'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getSubscriptionColor(company.subscription_status)}`}>
+                          {company.subscription_status ? company.subscription_status.charAt(0).toUpperCase() + company.subscription_status.slice(1) : 'none'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentColor(company.payment_status)}`}>
+                          {company.payment_status ? company.payment_status.charAt(0).toUpperCase() + company.payment_status.slice(1) : 'none'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                          {company.plan || 'N/A'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center text-gray-600">{company.vehicles || 0}</td>
                       <td className="px-6 py-4 text-center text-gray-600">{company.drivers || 0}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                          {company.subscription || 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex gap-2 justify-center">
-                          <button 
-                            onClick={() => handleViewCompany(company)}
-                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
-                            title="View Details"
-                          >
-                            <FaEye />
-                          </button>
-                          <button 
-                            onClick={() => {
-                              setSelectedCompany(company);
-                              setShowDeleteConfirm(true);
-                            }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete Company"
-                          >
-                            <FaTrash />
-                          </button>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-1">
+                          {/* Approve/Decline Action Buttons (Left Group) */}
+                          <div className="flex gap-1">
+                            {company.company_status !== 'approved' && company.company_status !== 'declined' && (
+                              <button 
+                                onClick={() => handleApproveCompany(company)}
+                                disabled={actioning}
+                                className="inline-flex items-center justify-center w-9 h-9 bg-green-100 text-green-700 rounded-lg border border-green-300 hover:bg-green-200 hover:shadow-md disabled:opacity-50 active:scale-95 transition-all duration-200"
+                                title="Approve Company"
+                              >
+                                {actioning ? <FaSpinner className="animate-spin text-sm" /> : <FaCheck className="text-sm" />}
+                              </button>
+                            )}
+                            {company.company_status !== 'declined' && company.company_status !== 'approved' && (
+                              <button 
+                                onClick={() => handleDeclineCompanyInitiate(company)}
+                                className="inline-flex items-center justify-center w-9 h-9 bg-red-100 text-red-700 rounded-lg border border-red-300 hover:bg-red-200 hover:shadow-md active:scale-95 transition-all duration-200"
+                                title="Decline Company"
+                              >
+                                <FaTimes className="text-sm" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* View/Delete Action Buttons (Right Group) */}
+                          <div className="flex gap-1">
+                            <button 
+                              onClick={() => handleViewCompany(company)}
+                              className="inline-flex items-center justify-center w-9 h-9 bg-blue-100 text-blue-700 rounded-lg border border-blue-300 hover:bg-blue-200 hover:shadow-md active:scale-95 transition-all duration-200"
+                              title="View Details"
+                            >
+                              <FaEye className="text-sm" />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSelectedCompany(company);
+                                setShowDeleteConfirm(true);
+                              }}
+                              className="inline-flex items-center justify-center w-9 h-9 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
+                              title="Delete Company"
+                            >
+                              <FaTrash className="text-sm" />
+                            </button>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -278,29 +434,33 @@ export default function PlatformCompanies() {
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200">
-        <p className="text-gray-600">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+        <p className="text-gray-600 font-medium">
           Showing {filteredCompanies.length} of {companies.length} companies
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-200 transition-colors"
+            className="px-5 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg disabled:opacity-50 hover:bg-gray-200 active:scale-95 transition-all duration-200"
           >
-            Previous
+            ← Previous
           </button>
           <button
             onClick={() => setPage(page + 1)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-5 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg hover:shadow-md active:scale-95 transition-all duration-200"
           >
-            Next
+            Next →
           </button>
         </div>
       </div>
 
+      </div>
+
+      {/* Modals */}
+      <>
       {/* Company Details Modal */}
-      {selectedCompany && !showDeleteConfirm && (
+      {selectedCompany && !showDeleteConfirm && !showDeclineModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
@@ -319,14 +479,26 @@ export default function PlatformCompanies() {
                   <p className="text-lg font-semibold text-gray-900">{selectedCompany.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                    selectedCompany.status === 'active'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {selectedCompany.status === 'active' ? 'Active' : 'Trial'}
+                  <p className="text-sm text-gray-600">Company Status</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(selectedCompany.company_status)}`}>
+                    {selectedCompany.company_status ? selectedCompany.company_status.replace('_', ' ') : 'registered'}
                   </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Subscription Status</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getSubscriptionColor(selectedCompany.subscription_status)}`}>
+                    {selectedCompany.subscription_status ? selectedCompany.subscription_status.charAt(0).toUpperCase() + selectedCompany.subscription_status.slice(1) : 'none'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Payment Status</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getPaymentColor(selectedCompany.payment_status)}`}>
+                    {selectedCompany.payment_status ? selectedCompany.payment_status.charAt(0).toUpperCase() + selectedCompany.payment_status.slice(1) : 'none'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Plan</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedCompany.plan || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Vehicles</p>
@@ -337,26 +509,96 @@ export default function PlatformCompanies() {
                   <p className="text-lg font-semibold text-gray-900">{selectedCompany.drivers || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Plan</p>
-                  <p className="text-lg font-semibold text-yellow-600">{selectedCompany.subscription || 'N/A'}</p>
-                </div>
-                <div>
                   <p className="text-sm text-gray-600">Joined</p>
-                  <p className="text-lg font-semibold text-gray-900">{selectedCompany.joinDate || selectedCompany.created_at || 'N/A'}</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedCompany.created_at || 'N/A'}</p>
                 </div>
               </div>
-              <div className="border-t border-gray-200 pt-4 mt-4 flex gap-2">
+              <div className="border-t border-gray-200 pt-4 mt-4 flex gap-3 flex-wrap">
                 <button 
                   onClick={() => setSelectedCompany(null)}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
                 >
                   Close
                 </button>
+                {selectedCompany.company_status !== 'approved' && selectedCompany.company_status !== 'declined' && (
+                  <>
+                    <button 
+                      onClick={handleApproveCompany}
+                      disabled={actioning}
+                      className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      {actioning ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => setShowDeclineModal(true)}
+                      className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg hover:shadow-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      <FaTimes /> Decline
+                    </button>
+                  </>
+                )}
                 <button 
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg hover:shadow-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                  <FaTrash /> Delete
+                  <FaTrash className="text-sm" /> Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decline Modal */}
+      {showDeclineModal && selectedCompany && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3 text-red-600">
+                <FaExclamationTriangle className="text-3xl" />
+                <h3 className="text-xl font-bold">Decline Company?</h3>
+              </div>
+              <p className="text-gray-600">
+                Are you sure you want to decline <strong>{selectedCompany.name}</strong>? A refund will be processed automatically.
+              </p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Decline Reason (Optional)
+                </label>
+                <textarea
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  placeholder="Provide a reason for declining this company..."
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 resize-none"
+                  rows="3"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeclineModal(false);
+                    setDeclineReason('');
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleDeclineCompany}
+                  disabled={actioning}
+                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {actioning ? (
+                    <>
+                      <FaSpinner className="animate-spin text-sm" />
+                      Declining...
+                    </>
+                  ) : (
+                    <>
+                      <FaTimes className="text-sm" /> Decline
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -369,14 +611,14 @@ export default function PlatformCompanies() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6 space-y-4">
-              <div className="flex items-center gap-3 text-red-600">
+              <div className="flex items-center gap-3 text-gray-600">
                 <FaExclamationTriangle className="text-3xl" />
                 <h3 className="text-xl font-bold">Delete Company?</h3>
               </div>
               <p className="text-gray-600">
                 Are you sure you want to delete <strong>{selectedCompany.name}</strong>? This action is permanent and will delete:
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 bg-red-50 p-3 rounded">
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 bg-gray-50 p-3 rounded">
                 <li>All company information</li>
                 <li>All vehicles ({selectedCompany.vehicles || 0})</li>
                 <li>All drivers ({selectedCompany.drivers || 0})</li>
@@ -384,29 +626,29 @@ export default function PlatformCompanies() {
                 <li>All subscriptions and billing data</li>
                 <li>All trips, services, inspections, and records</li>
               </ul>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button 
                   onClick={() => {
                     setShowDeleteConfirm(false);
                     setSelectedCompany(null);
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleDeleteCompany}
                   disabled={deleting}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   {deleting ? (
                     <>
-                      <FaSpinner className="animate-spin" />
+                      <FaSpinner className="animate-spin text-sm" />
                       Deleting...
                     </>
                   ) : (
                     <>
-                      <FaTrash /> Delete Permanently
+                      <FaTrash className="text-sm" /> Delete Permanently
                     </>
                   )}
                 </button>
@@ -415,7 +657,8 @@ export default function PlatformCompanies() {
           </div>
         </div>
       )}
-      </div>
+      </>
     </div>
   );
 }
+

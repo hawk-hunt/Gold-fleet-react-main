@@ -9,7 +9,7 @@ import api from '../services/api'
 
 const AuthPage = () => {
   const navigate = useNavigate()
-  const { login, signup, token, isInitialized, loading: authLoading, user } = useAuth()
+  const { login, signup, token, isInitialized, loading: authLoading, user, refreshAuth } = useAuth()
   const [isSignup, setIsSignup] = useState(false)
   const [signupStep, setSignupStep] = useState(1) // 1: Plan Selection, 2: Form, 3: Payment Simulation
   const [selectedPlan, setSelectedPlan] = useState(null)
@@ -164,6 +164,20 @@ const AuthPage = () => {
           })
           console.log('✅ Subscription created:', subscriptionResponse)
           setSubscriptionId(subscriptionResponse.subscription.id)
+          
+          // CRITICAL: Refresh company status from backend
+          // When subscription is created, backend sets company_status to 'pending_approval'
+          // We need to fetch this fresh status so it's available when redirecting to dashboard
+          try {
+            const refreshSuccess = await refreshAuth();
+            if (refreshSuccess) {
+              console.log('[AuthPage] ✓ Company status refreshed after subscription creation');
+            }
+          } catch (refreshErr) {
+            console.warn('[AuthPage] Warning: Could not refresh auth after subscription:', refreshErr);
+            // Don't fail the signup, just warn
+          }
+          
           setSignupStep(3) // Move to payment simulation step
         } catch (subErr) {
           console.warn('❌ Subscription creation failed:', subErr.message, subErr.data)
@@ -641,7 +655,10 @@ const AuthPage = () => {
                       return
                     }
                     
-                    // Complete signup
+                    // Show success message first
+                    setError('✓ Account created successfully! Redirecting to dashboard...')
+                    
+                    // Complete signup - DON'T set skipAutoRedirect to false yet
                     setIsSignup(false)
                     setSignupStep(1)
                     setSelectedPlan(null)
@@ -649,8 +666,12 @@ const AuthPage = () => {
                     setPaymentSimulations([])
                     loginForm.resetForm()
                     signupForm.resetForm()
-                    setError('✓ Account created successfully! Please check your email for activation.')
-                    setSkipAutoRedirect(false)
+                    
+                    // Delay navigation so user sees the success message
+                    setTimeout(() => {
+                      const redirectPath = user?.role === 'driver' ? '/driver' : '/main'
+                      navigate(redirectPath, { replace: true })
+                    }, 1500)
                   }}
                   disabled={!paymentSimulations || paymentSimulations.length === 0}
                   className={`px-8 py-3 rounded-lg font-semibold transition-all ${

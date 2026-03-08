@@ -105,8 +105,8 @@ export default function PlatformSignup() {
       <div className="relative z-10 w-full flex flex-col items-center min-h-screen">
         {/* Header Section */}
         <div className="text-center mb-4 md:mb-6 pt-2 md:pt-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-500/20 border-2 border-yellow-500 mb-2">
-            <span className="text-lg md:text-xl font-bold text-yellow-400">GF</span>
+          <div className="inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-100 border-2 border-yellow-600 mb-2">
+            <span className="text-lg md:text-xl font-bold text-yellow-600">GF</span>
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-white mb-1">Gold Fleet</h1>
           <p className="text-xs md:text-sm text-slate-300">Owner Registration</p>
@@ -116,21 +116,21 @@ export default function PlatformSignup() {
         <div className="w-full max-w-2xl mb-8 md:mb-12">
           {/* Form Card */}
           <div 
-            className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-sm border border-yellow-500/30 rounded-xl shadow-2xl p-6 md:p-8"
+            className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-sm border border-yellow-600 rounded-xl shadow-2xl p-6 md:p-8"
             style={{
               maxHeight: 'auto',
             }}
           >
             {/* Success Message */}
             {success && (
-              <div className="mb-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm animate-pulse">
+              <div className="mb-3 p-3 bg-gray-700/10 border border-gray-400/30 rounded-lg text-gray-400 text-sm animate-pulse">
                 {success}
               </div>
             )}
 
             {/* Error Message */}
             {error && (
-              <div className="mb-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              <div className="mb-3 p-3 bg-gray-700/10 border border-gray-400/30 rounded-lg text-gray-400 text-sm">
                 {error}
               </div>
             )}
@@ -142,7 +142,7 @@ export default function PlatformSignup() {
               {/* Full Name */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-                  Full Name <span className="text-red-400">*</span>
+                  Full Name <span className="text-gray-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -151,14 +151,14 @@ export default function PlatformSignup() {
                   onChange={handleInputChange}
                   placeholder="Your Name"
                   required
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
                 />
               </div>
 
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-                  Email <span className="text-red-400">*</span>
+                  Email <span className="text-gray-400">*</span>
                 </label>
                 <input
                   type="email"
@@ -167,14 +167,14 @@ export default function PlatformSignup() {
                   onChange={handleInputChange}
                   placeholder="your@email.com"
                   required
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
                 />
               </div>
 
               {/* Company Name */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-                  Company Name <span className="text-red-400">*</span>
+                  Company Name <span className="text-gray-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -183,14 +183,14 @@ export default function PlatformSignup() {
                   onChange={handleInputChange}
                   placeholder="Your Company Name"
                   required
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
                 />
               </div>
 
               {/* Phone */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-                  Phone <span className="text-red-400">*</span>
+                  Phone <span className="text-gray-400">*</span>
                 </label>
                 <input
                   type="tel"
@@ -199,7 +199,7 @@ export default function PlatformSignup() {
                   onChange={handleInputChange}
                   placeholder="+1 (555) 123-4567"
                   required
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
                 />
               </div>
 
@@ -207,7 +207,7 @@ export default function PlatformSignup() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-                    Password <span className="text-red-400">*</span>
+                    Password <span className="text-gray-400">*</span>
                   </label>
                   <input
                     type="password"
@@ -216,13 +216,13 @@ export default function PlatformSignup() {
                     onChange={handleInputChange}
                     placeholder="••••••••"
                     required
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-                    Confirm <span className="text-red-400">*</span>
+                    Confirm <span className="text-gray-400">*</span>
                   </label>
                   <input
                     type="password"
@@ -231,7 +231,7 @@ export default function PlatformSignup() {
                     onChange={handleInputChange}
                     placeholder="••••••••"
                     required
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-400 transition-colors"
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function PlatformSignup() {
                   name="subscription_plan"
                   value={formData.subscription_plan}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:border-yellow-500 transition-colors"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:border-slate-400 transition-colors"
                 >
                   <option value="basic">Basic - $29/month</option>
                   <option value="pro">Pro - $99/month</option>
@@ -258,7 +258,7 @@ export default function PlatformSignup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-slate-900 font-bold text-sm rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-6 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-sm rounded-lg shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
@@ -268,15 +268,15 @@ export default function PlatformSignup() {
           <div className="mt-4 text-center">
             <p className="text-slate-400 text-xs">
               Have an account?{' '}
-              <Link to="/platform/login" className="text-yellow-400 hover:text-yellow-300 font-semibold transition-colors">
+              <Link to="/platform/login" className="text-gray-400 hover:text-gray-300 font-semibold transition-colors">
                 Sign in
               </Link>
             </p>
           </div>
 
           {/* Quick Note */}
-          <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-            <p className="text-xs text-yellow-300">
+          <div className="mt-4 p-3 bg-gray-700/10 border border-gray-400/20 rounded-lg">
+            <p className="text-xs text-gray-300">
               ✓ Instant access • ✓ Secure data • ✓ Update details in admin panel
             </p>
           </div>
@@ -293,3 +293,4 @@ export default function PlatformSignup() {
     </div>
   );
 }
+

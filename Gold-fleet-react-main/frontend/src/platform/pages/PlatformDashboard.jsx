@@ -121,7 +121,7 @@ export default function PlatformDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Platform Dashboard</h1>
             <p className="mt-2 text-lg text-gray-600">SaaS Overview & Key Metrics</p>
@@ -129,7 +129,7 @@ export default function PlatformDashboard() {
           </div>
           <button
             onClick={refreshDashboardData}
-            className="mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+            className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
           >
             <FaSync className="text-sm" />
             Refresh
@@ -139,33 +139,33 @@ export default function PlatformDashboard() {
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Total Companies */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => toggleCard('companies')}>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg border border-gray-200 transition-all duration-200 cursor-pointer group" onClick={() => toggleCard('companies')}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Companies</p>
                 <p className="text-4xl font-bold text-gray-900 mt-2">{formatNumber(statData.totalCompanies)}</p>
-                <p className="text-xs text-green-600 mt-2 font-medium">+12% from last month</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium">+12% from last month</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 text-xl">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 text-xl group-hover:shadow-md transition-all">
                 <FaBuilding />
               </div>
             </div>
             {expandedCards.companies && (
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                <p>You have <span className="font-semibold text-gray-900">{formatNumber(statData.totalCompanies)}</span> total companies with <span className="text-green-600 font-semibold">{formatNumber(statData.activeCompanies)}</span> actively using the platform.</p>
+                <p>You have <span className="font-semibold text-gray-900">{formatNumber(statData.totalCompanies)}</span> total companies with <span className="text-gray-600 font-semibold">{formatNumber(statData.activeCompanies)}</span> actively using the platform.</p>
               </div>
             )}
           </div>
 
           {/* Active Companies */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => toggleCard('activeCompanies')}>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg border border-gray-200 transition-all duration-200 cursor-pointer group" onClick={() => toggleCard('activeCompanies')}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Active Companies</p>
                 <p className="text-4xl font-bold text-gray-900 mt-2">{formatNumber(statData.activeCompanies)}</p>
-                <p className="text-xs text-green-600 mt-2 font-medium">75% activation rate</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium">75% activation rate</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center text-green-600 text-xl">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 text-xl group-hover:shadow-md transition-all">
                 <FaCheckCircle />
               </div>
             </div>
@@ -177,52 +177,52 @@ export default function PlatformDashboard() {
           </div>
 
           {/* Total Vehicles */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => toggleCard('vehicles')}>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg border border-gray-200 transition-all duration-200 cursor-pointer group" onClick={() => toggleCard('vehicles')}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Vehicles</p>
                 <p className="text-4xl font-bold text-gray-900 mt-2">{formatNumber(statData.totalVehicles)}</p>
-                <p className="text-xs text-green-600 mt-2 font-medium">{formatNumber(statData.activeVehicles)} active</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium">{formatNumber(statData.activeVehicles)} active</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 text-xl">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 text-xl group-hover:shadow-md transition-all">
                 <FaTruck />
               </div>
             </div>
             {expandedCards.vehicles && (
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                <p><span className="font-semibold text-green-600">{formatNumber(statData.activeVehicles)}</span> vehicles are currently active across all companies.</p>
+                <p><span className="font-semibold text-gray-600">{formatNumber(statData.activeVehicles)}</span> vehicles are currently active across all companies.</p>
               </div>
             )}
           </div>
 
           {/* Trips Today */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => toggleCard('trips')}>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg border border-gray-200 transition-all duration-200 cursor-pointer group" onClick={() => toggleCard('trips')}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Trips Today</p>
                 <p className="text-4xl font-bold text-gray-900 mt-2">{formatNumber(statData.tripsToday)}</p>
-                <p className="text-xs text-green-600 mt-2 font-medium">{formatNumber(statData.completedTrips)} completed</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium">{formatNumber(statData.completedTrips)} completed</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 text-xl">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 text-xl group-hover:shadow-md transition-all">
                 <FaRoad />
               </div>
             </div>
             {expandedCards.trips && (
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                <p><span className="font-semibold text-green-600">{formatNumber(statData.completedTrips)}</span> trips completed out of <span className="font-semibold">{formatNumber(statData.tripsToday)}</span> total trips today.</p>
+                <p><span className="font-semibold text-gray-600">{formatNumber(statData.completedTrips)}</span> trips completed out of <span className="font-semibold">{formatNumber(statData.tripsToday)}</span> total trips today.</p>
               </div>
             )}
           </div>
 
           {/* Active Subscriptions */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => toggleCard('subscriptions')}>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg border border-gray-200 transition-all duration-200 cursor-pointer group" onClick={() => toggleCard('subscriptions')}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Active Subscriptions</p>
                 <p className="text-4xl font-bold text-gray-900 mt-2">{formatNumber(statData.activeSubscriptions)}</p>
-                <p className="text-xs text-green-600 mt-2 font-medium">2 new this week</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium">2 new this week</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 text-xl group-hover:shadow-md transition-all">
                 <FaCreditCard />
               </div>
             </div>
@@ -234,20 +234,20 @@ export default function PlatformDashboard() {
           </div>
 
           {/* Monthly Revenue */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => toggleCard('revenue')}>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg border border-gray-200 transition-all duration-200 cursor-pointer group" onClick={() => toggleCard('revenue')}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Monthly Revenue</p>
                 <p className="text-4xl font-bold text-gray-900 mt-2">{formatCurrency(statData.monthlyRevenue)}</p>
-                <p className="text-xs text-green-600 mt-2 font-medium">+18% growth</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium">+18% growth</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center text-red-600 text-xl">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 text-xl group-hover:shadow-md transition-all">
                 <FaMoneyBillWave />
               </div>
             </div>
             {expandedCards.revenue && (
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                <p>Current monthly revenue is <span className="font-semibold text-gray-900">{formatCurrency(statData.monthlyRevenue)}</span> with <span className="text-green-600 font-semibold">18% growth</span> from last month.</p>
+                <p>Current monthly revenue is <span className="font-semibold text-gray-900">{formatCurrency(statData.monthlyRevenue)}</span> with <span className="text-gray-600 font-semibold">18% growth</span> from last month.</p>
               </div>
             )}
           </div>
@@ -404,11 +404,11 @@ export default function PlatformDashboard() {
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                 <span className="text-gray-600">Overdue</span>
-                <span className="font-bold text-xl text-red-600">{statData.overdueRenewals || 0}</span>
+                <span className="font-bold text-xl text-gray-900">{statData.overdueRenewals || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Due Soon</span>
-                <span className="font-bold text-xl text-orange-600">{statData.dueSoonRenewals || 0}</span>
+                <span className="font-bold text-xl text-gray-900">{statData.dueSoonRenewals || 0}</span>
               </div>
             </div>
           </div>
@@ -421,7 +421,7 @@ export default function PlatformDashboard() {
             </div>
             <div className="flex-1 flex items-center justify-center py-6">
               <div className="text-center">
-                <div className="text-5xl font-bold text-green-600">{formatCurrency(statData.totalRevenue)}</div>
+                <div className="text-5xl font-bold text-gray-900">{formatCurrency(statData.totalRevenue)}</div>
                 <div className="text-sm text-gray-600 mt-2 font-medium">All Time</div>
               </div>
             </div>
@@ -429,7 +429,7 @@ export default function PlatformDashboard() {
         </div>
 
         {/* Payment Management Quick Link */}
-        <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl shadow-lg border border-yellow-200 p-6">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Payment Management</h2>
@@ -448,3 +448,4 @@ export default function PlatformDashboard() {
     </div>
   );
 }
+

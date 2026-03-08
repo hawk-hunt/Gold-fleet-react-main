@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ApprovalGuard from './components/ApprovalGuard';
 import AuthPage from './pages/AuthPage';
 import DriverSignup from './pages/DriverSignup';
 import DriverSetup from './pages/DriverSetup';
@@ -16,6 +17,7 @@ import DriverLayout from './components/DriverLayout';
 import ProtectedDriverRoute from './components/ProtectedDriverRoute';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 import DriverDashboard from './pages/DriverDashboard';
 import MapDashboard from './pages/MapDashboard';
 import InfoDashboard from './pages/InfoDashboard';
@@ -103,63 +105,64 @@ function AppRoutes() {
       
       {/* Dashboard */}
       <Route path="/main" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
+      <Route path="/dashboard/pending-approval" element={<ProtectedRoute><PendingApprovalPage /></ProtectedRoute>} />
       <Route path="/driver" element={<ProtectedDriverRoute><DriverLayout><DriverDashboard /></DriverLayout></ProtectedDriverRoute>} />
-      <Route path="/map" element={<ProtectedLayout><MapDashboard /></ProtectedLayout>} />
-      <Route path="/info" element={<ProtectedLayout><InfoDashboard /></ProtectedLayout>} />
+      <Route path="/map" element={<ProtectedRoute><ApprovalGuard><Layout><MapDashboard /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/info" element={<ProtectedRoute><ApprovalGuard><Layout><InfoDashboard /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Fleet Management - Vehicles */}
-      <Route path="/vehicles" element={<ProtectedLayout><Vehicles /></ProtectedLayout>} />
-      <Route path="/vehicles/create" element={<ProtectedLayout><VehicleForm /></ProtectedLayout>} />
-      <Route path="/vehicles/:id" element={<ProtectedLayout><VehicleDetail /></ProtectedLayout>} />
-      <Route path="/vehicles/:id/edit" element={<ProtectedLayout><VehicleForm /></ProtectedLayout>} />
+      {/* Fleet Management - Vehicles (require approval) */}
+      <Route path="/vehicles" element={<ProtectedRoute><ApprovalGuard><Layout><Vehicles /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/vehicles/create" element={<ProtectedRoute><ApprovalGuard><Layout><VehicleForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/vehicles/:id" element={<ProtectedRoute><ApprovalGuard><Layout><VehicleDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/vehicles/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><VehicleForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Fleet Management - Drivers */}
-      <Route path="/drivers" element={<ProtectedLayout><Drivers /></ProtectedLayout>} />
-      <Route path="/drivers/create" element={<ProtectedLayout><DriverForm /></ProtectedLayout>} />
-      <Route path="/drivers/:id" element={<ProtectedLayout><DriverDetail /></ProtectedLayout>} />
-      <Route path="/drivers/:id/edit" element={<ProtectedLayout><DriverForm /></ProtectedLayout>} />
+      {/* Fleet Management - Drivers (require approval) */}
+      <Route path="/drivers" element={<ProtectedRoute><ApprovalGuard><Layout><Drivers /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/drivers/create" element={<ProtectedRoute><ApprovalGuard><Layout><DriverForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/drivers/:id" element={<ProtectedRoute><ApprovalGuard><Layout><DriverDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/drivers/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><DriverForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Fleet Management - Trips */}
-      <Route path="/trips" element={<ProtectedLayout><Trips /></ProtectedLayout>} />
-      <Route path="/trips/create" element={<ProtectedLayout><TripForm /></ProtectedLayout>} />
-      <Route path="/trips/:id" element={<ProtectedLayout><TripDetail /></ProtectedLayout>} />
-      <Route path="/trips/:id/edit" element={<ProtectedLayout><TripForm /></ProtectedLayout>} />
+      {/* Fleet Management - Trips (require approval) */}
+      <Route path="/trips" element={<ProtectedRoute><ApprovalGuard><Layout><Trips /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/trips/create" element={<ProtectedRoute><ApprovalGuard><Layout><TripForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/trips/:id" element={<ProtectedRoute><ApprovalGuard><Layout><TripDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/trips/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><TripForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Maintenance - Services */}
-      <Route path="/services" element={<ProtectedLayout><Services /></ProtectedLayout>} />
-      <Route path="/services/create" element={<ProtectedLayout><ServiceForm /></ProtectedLayout>} />
-      <Route path="/services/:id" element={<ProtectedLayout><ServiceDetail /></ProtectedLayout>} />
-      <Route path="/services/:id/edit" element={<ProtectedLayout><ServiceForm /></ProtectedLayout>} />
+      {/* Maintenance - Services (require approval) */}
+      <Route path="/services" element={<ProtectedRoute><ApprovalGuard><Layout><Services /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/services/create" element={<ProtectedRoute><ApprovalGuard><Layout><ServiceForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/services/:id" element={<ProtectedRoute><ApprovalGuard><Layout><ServiceDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/services/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><ServiceForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Maintenance - Inspections */}
-      <Route path="/inspections" element={<ProtectedLayout><Inspections /></ProtectedLayout>} />
-      <Route path="/inspections/create" element={<ProtectedLayout><InspectionForm /></ProtectedLayout>} />
-      <Route path="/inspections/:id" element={<ProtectedLayout><InspectionDetail /></ProtectedLayout>} />
-      <Route path="/inspections/:id/edit" element={<ProtectedLayout><InspectionForm /></ProtectedLayout>} />
+      {/* Maintenance - Inspections (require approval) */}
+      <Route path="/inspections" element={<ProtectedRoute><ApprovalGuard><Layout><Inspections /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/inspections/create" element={<ProtectedRoute><ApprovalGuard><Layout><InspectionForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/inspections/:id" element={<ProtectedRoute><ApprovalGuard><Layout><InspectionDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/inspections/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><InspectionForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Maintenance - Issues */}
-      <Route path="/issues" element={<ProtectedLayout><Issues /></ProtectedLayout>} />
-      <Route path="/issues/create" element={<ProtectedLayout><IssueForm /></ProtectedLayout>} />
-      <Route path="/issues/:id" element={<ProtectedLayout><IssueDetail /></ProtectedLayout>} />
-      <Route path="/issues/:id/edit" element={<ProtectedLayout><IssueForm /></ProtectedLayout>} />
+      {/* Maintenance - Issues (require approval) */}
+      <Route path="/issues" element={<ProtectedRoute><ApprovalGuard><Layout><Issues /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/issues/create" element={<ProtectedRoute><ApprovalGuard><Layout><IssueForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/issues/:id" element={<ProtectedRoute><ApprovalGuard><Layout><IssueDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/issues/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><IssueForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Financial - Expenses */}
-      <Route path="/expenses" element={<ProtectedLayout><Expenses /></ProtectedLayout>} />
-      <Route path="/expenses/create" element={<ProtectedLayout><ExpenseForm /></ProtectedLayout>} />
-      <Route path="/expenses/:id" element={<ProtectedLayout><ExpenseDetail /></ProtectedLayout>} />
-      <Route path="/expenses/:id/edit" element={<ProtectedLayout><ExpenseForm /></ProtectedLayout>} />
+      {/* Financial - Expenses (require approval) */}
+      <Route path="/expenses" element={<ProtectedRoute><ApprovalGuard><Layout><Expenses /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/expenses/create" element={<ProtectedRoute><ApprovalGuard><Layout><ExpenseForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/expenses/:id" element={<ProtectedRoute><ApprovalGuard><Layout><ExpenseDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/expenses/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><ExpenseForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Financial - Fuel Fillups */}
-      <Route path="/fuel-fillups" element={<ProtectedLayout><FuelFillups /></ProtectedLayout>} />
-      <Route path="/fuel-fillups/create" element={<ProtectedLayout><FuelFillupForm /></ProtectedLayout>} />
-      <Route path="/fuel-fillups/:id" element={<ProtectedLayout><FuelFillupDetail /></ProtectedLayout>} />
-      <Route path="/fuel-fillups/:id/edit" element={<ProtectedLayout><FuelFillupForm /></ProtectedLayout>} />
+      {/* Financial - Fuel Fillups (require approval) */}
+      <Route path="/fuel-fillups" element={<ProtectedRoute><ApprovalGuard><Layout><FuelFillups /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/fuel-fillups/create" element={<ProtectedRoute><ApprovalGuard><Layout><FuelFillupForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/fuel-fillups/:id" element={<ProtectedRoute><ApprovalGuard><Layout><FuelFillupDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/fuel-fillups/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><FuelFillupForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
-      {/* Planning - Reminders */}
-      <Route path="/reminders" element={<ProtectedLayout><Reminders /></ProtectedLayout>} />
-      <Route path="/reminders/create" element={<ProtectedLayout><ReminderForm /></ProtectedLayout>} />
-      <Route path="/reminders/:id" element={<ProtectedLayout><ReminderDetail /></ProtectedLayout>} />
-      <Route path="/reminders/:id/edit" element={<ProtectedLayout><ReminderForm /></ProtectedLayout>} />
+      {/* Planning - Reminders (require approval) */}
+      <Route path="/reminders" element={<ProtectedRoute><ApprovalGuard><Layout><Reminders /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/reminders/create" element={<ProtectedRoute><ApprovalGuard><Layout><ReminderForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/reminders/:id" element={<ProtectedRoute><ApprovalGuard><Layout><ReminderDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/reminders/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><ReminderForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       
       {/* Profile & Notifications */}
       <Route path="/profile" element={<ProtectedLayout><Profile /></ProtectedLayout>} />

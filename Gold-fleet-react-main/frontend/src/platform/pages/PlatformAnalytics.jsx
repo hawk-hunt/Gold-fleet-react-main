@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FaChartLine, FaSpinner, FaSync } from 'react-icons/fa';
+import { FaChartLine, FaSpinner, FaSync, FaInfoCircle } from 'react-icons/fa';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend as RechartsLegend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import platformApi from '../services/platformApi';
 
@@ -91,17 +91,17 @@ export default function PlatformAnalytics() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FaChartLine className="text-yellow-600" />
-            Platform Analytics
-          </h1>
-          <p className="text-gray-600 mt-2">Detailed SaaS Business Metrics</p>
-        </div>
-        <button
-          onClick={fetchAnalytics}
-          className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+<div className="flex items-center justify-between bg-white rounded-xl border border-yellow-200 p-6 shadow-lg">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <FaChartLine className="text-yellow-700" />
+              Platform Analytics
+            </h1>
+            <p className="text-gray-600 mt-2">Detailed SaaS Business Metrics</p>
+          </div>
+          <button
+            onClick={fetchAnalytics}
+            className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-50 border border-yellow-300 text-yellow-700 font-semibold rounded-lg hover:bg-yellow-100 hover:shadow-md active:scale-95 transition-all duration-200"
         >
           <FaSync className="text-sm" />
           Refresh
@@ -109,15 +109,15 @@ export default function PlatformAnalytics() {
       </div>
 
       {error && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+        <div className="p-4 bg-gray-50 border border-yellow-200 rounded-lg text-gray-800 text-sm">
           Using demo data. {error}
         </div>
       )}
 
       {/* Company Growth Chart */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <FaChartLine className="text-yellow-600" />
+          <FaChartLine className="text-yellow-700" />
           Company Growth Trend
         </h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -147,9 +147,9 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Trips Per Company */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <FaChartLine className="text-yellow-600" />
+          <FaChartLine className="text-yellow-700" />
           Top Companies by Trips
         </h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -168,9 +168,9 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Vehicle Usage */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <FaChartLine className="text-yellow-600" />
+          <FaChartLine className="text-yellow-700" />
           Vehicle Type Usage
         </h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -189,9 +189,9 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Revenue by Plan */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <FaChartLine className="text-yellow-600" />
+          <FaChartLine className="text-yellow-700" />
           Revenue by Subscription Plan
         </h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -215,3 +215,4 @@ export default function PlatformAnalytics() {
     </div>
   );
 }
+

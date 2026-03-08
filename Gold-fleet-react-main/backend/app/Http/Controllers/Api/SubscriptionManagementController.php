@@ -294,7 +294,7 @@ class SubscriptionManagementController extends Controller
     /**
      * Get all subscriptions with payment simulations
      */
-    public function getAllWithSimulations()
+    public function getAllWithSimulations(Request $request)
     {
         $user = Auth::user();
         
@@ -302,22 +302,43 @@ class SubscriptionManagementController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $subscriptions = Subscription::with(['company', 'plan'])->paginate(10);
+        // Get pagination parameters from request
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+
+        $subscriptions = Subscription::with(['company', 'plan'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($limit, ['*'], 'page', $page);
 
         $data = $subscriptions->map(function ($subscription) {
             $simulations = PaymentSimulation::where('subscription_id', $subscription->id)->latest()->get();
             
-            return [
-                'subscription' => $subscription,
-                'simulations' => $simulations,
-                'plan_details' => [
+            // Handle case where plan might be null
+            $planDetails = [];
+            if ($subscription->plan) {
+                $planDetails = [
                     'name' => $subscription->plan->name,
                     'price' => $subscription->plan->price,
                     'trial_days' => $subscription->plan->trial_days,
                     'max_vehicles' => $subscription->plan->max_vehicles,
                     'max_drivers' => $subscription->plan->max_drivers,
                     'max_users' => $subscription->plan->max_users,
-                ]
+                ];
+            } else {
+                $planDetails = [
+                    'name' => 'No Plan',
+                    'price' => 0,
+                    'trial_days' => 0,
+                    'max_vehicles' => 0,
+                    'max_drivers' => 0,
+                    'max_users' => 0,
+                ];
+            }
+            
+            return [
+                'subscription' => $subscription,
+                'simulations' => $simulations,
+                'plan_details' => $planDetails
             ];
         })->toArray();
 
@@ -335,7 +356,7 @@ class SubscriptionManagementController extends Controller
     /**
      * Get subscriptions by status
      */
-    public function getByStatus($status)
+    public function getByStatus($status, Request $request)
     {
         $user = Auth::user();
         
@@ -343,9 +364,14 @@ class SubscriptionManagementController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Get pagination parameters from request
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+
         $subscriptions = Subscription::where('status', $status)
             ->with(['company', 'plan'])
-            ->paginate(10);
+            ->orderBy('created_at', 'desc')
+            ->paginate($limit, ['*'], 'page', $page);
 
         return response()->json([
             'data' => $subscriptions->items(),

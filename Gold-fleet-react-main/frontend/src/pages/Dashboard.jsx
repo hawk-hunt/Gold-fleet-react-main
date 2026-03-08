@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import ApprovalBanner from '../components/ApprovalBanner';
+import SuspensionBanner from '../components/SuspensionBanner';
 import { useCompanyApprovalStatus } from '../hooks/useCompanyApprovalStatus';
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
 import { FaCar, FaUser, FaRoad, FaGasPump, FaTools, FaMapMarkerAlt, FaMoneyBillWave, FaChartLine, FaCheckCircle, FaExclamationCircle, FaPlus, FaSync, FaLock } from 'react-icons/fa';
@@ -452,6 +453,11 @@ export default function Dashboard() {
             {/* Approval Banner - Render immediately based on company status, don't wait for full dashboard load */}
             <ApprovalBanner 
               companyStatus={currentCompanyStatus} 
+              subscriptionStatus={currentSubscriptionStatus} 
+            />
+
+            {/* Suspension Banner - Show when subscription is suspended */}
+            <SuspensionBanner 
               subscriptionStatus={currentSubscriptionStatus} 
             />
           </>

@@ -65,7 +65,7 @@ export default function PlatformSettings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading settings...</p>
@@ -75,79 +75,79 @@ export default function PlatformSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
+    <div className="min-h-screen bg-white py-4">
+      <div className="w-full px-2 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FaCog className="text-gray-700" />
-            Platform Settings
-          </h1>
-          <p className="text-gray-600 mt-2">Configure your SaaS platform</p>
-        </div>
-        <button
-          onClick={fetchSettings}
-          className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
-        >
-          <FaSync className="text-sm" />
-          Refresh
-        </button>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-gray-50 border border-gray-200 border-l-4 border-l-gray-600 text-gray-800 rounded-lg flex items-center gap-3 shadow-sm">
-          <FaExclamationCircle className="text-lg text-gray-700" />
-          <span className="font-medium">{error}</span>
-        </div>
-      )}
-
-      {success && (
-        <div className="p-4 bg-gray-50 border border-gray-200 border-l-4 border-l-gray-600 text-gray-800 rounded-lg flex items-center gap-3 shadow-sm">
-          <FaCheckCircle className="text-lg text-gray-700" />
-          <span className="font-medium">{success}</span>
-        </div>
-      )}
-
-      {/* Settings Forms */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* General Settings */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4 shadow-lg">
-          <h3 className="text-lg font-semibold text-gray-900">General Settings</h3>
-
+        <div className="flex items-center justify-between bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl border border-yellow-600 p-6 shadow-lg">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Platform Name</label>
-            <input
-              type="text"
-              value={settings?.platformName || ''}
-              onChange={(e) => handleInputChange('platformName', e.target.value)}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
-            />
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <FaCog className="text-white" />
+              Platform Settings
+            </h1>
+            <p className="text-yellow-100 mt-2">Configure your SaaS platform</p>
+          </div>
+          <button
+            onClick={fetchSettings}
+            className="inline-flex items-center gap-2 px-5 py-3 bg-white text-yellow-600 font-semibold rounded-lg hover:shadow-md active:scale-95 transition-all duration-200"
+          >
+            <FaSync className="text-sm" />
+            Refresh
+          </button>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-red-50 border-2 border-red-500 text-red-800 rounded-lg flex items-center gap-3 shadow-sm">
+            <FaExclamationCircle className="text-lg text-red-600" />
+            <span className="font-medium">{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="p-4 bg-green-50 border-2 border-green-500 text-green-800 rounded-lg flex items-center gap-3 shadow-sm">
+            <FaCheckCircle className="text-lg text-green-600" />
+            <span className="font-medium">{success}</span>
+          </div>
+        )}
+
+        {/* Settings Forms */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* General Settings */}
+          <div className="bg-white border-2 border-yellow-500 rounded-lg p-6 space-y-4 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-900">General Settings</h3>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Platform Name</label>
+              <input
+                type="text"
+                value={settings?.platformName || ''}
+                onChange={(e) => handleInputChange('platformName', e.target.value)}
+                className="w-full px-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Support Email</label>
+              <input
+                type="email"
+                value={settings?.supportEmail || ''}
+                onChange={(e) => handleInputChange('supportEmail', e.target.value)}
+                className="w-full px-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Notification Email</label>
+              <input
+                type="email"
+                value={settings?.notificationEmail || ''}
+                onChange={(e) => handleInputChange('notificationEmail', e.target.value)}
+                className="w-full px-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Support Email</label>
-            <input
-              type="email"
-              value={settings?.supportEmail || ''}
-              onChange={(e) => handleInputChange('supportEmail', e.target.value)}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notification Email</label>
-            <input
-              type="email"
-              value={settings?.notificationEmail || ''}
-              onChange={(e) => handleInputChange('notificationEmail', e.target.value)}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
-            />
-          </div>
-        </div>
-
-        {/* Platform Limits */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4 shadow-lg">
+          {/* Platform Limits */}
+          <div className="bg-white border-2 border-yellow-500 rounded-lg p-6 space-y-4 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-900">Platform Limits</h3>
 
           <div>
@@ -156,7 +156,7 @@ export default function PlatformSettings() {
               type="number"
               value={settings?.maxCompanies || 0}
               onChange={(e) => handleInputChange('maxCompanies', parseInt(e.target.value))}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
             />
           </div>
 
@@ -166,13 +166,13 @@ export default function PlatformSettings() {
               type="number"
               value={settings?.maxVehiclesPerCompany || 0}
               onChange={(e) => handleInputChange('maxVehiclesPerCompany', parseInt(e.target.value))}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
             />
           </div>
         </div>
 
         {/* Trial Settings */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4 shadow-lg">
+        <div className="bg-white border-2 border-yellow-500 rounded-lg p-6 space-y-4 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-900">Trial Settings</h3>
 
           <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ export default function PlatformSettings() {
               type="checkbox"
               checked={settings?.enableTrials || false}
               onChange={(e) => handleInputChange('enableTrials', e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 text-gray-700 focus:ring-gray-500 cursor-pointer"
+              className="w-5 h-5 rounded border-yellow-500 text-yellow-600 focus:ring-yellow-500 cursor-pointer"
             />
             <label className="text-gray-700 font-medium cursor-pointer">Enable Trial Accounts</label>
           </div>
@@ -191,21 +191,21 @@ export default function PlatformSettings() {
               type="number"
               value={settings?.defaultTrialDays || 0}
               onChange={(e) => handleInputChange('defaultTrialDays', parseInt(e.target.value))}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
             />
           </div>
         </div>
 
         {/* System Settings */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4 shadow-lg">
+        <div className="bg-white border-2 border-yellow-500 rounded-lg p-6 space-y-4 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-900">System Settings</h3>
 
-          <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <input
               type="checkbox"
               checked={settings?.maintenanceMode || false}
               onChange={(e) => handleInputChange('maintenanceMode', e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 text-gray-700 focus:ring-gray-500 cursor-pointer"
+              className="w-5 h-5 rounded border-yellow-500 text-yellow-600 focus:ring-yellow-500 cursor-pointer"
             />
             <label className="text-gray-700 font-medium cursor-pointer">Enable Maintenance Mode</label>
           </div>
@@ -218,7 +218,7 @@ export default function PlatformSettings() {
 
       {/* Save Button */}
       <div className="flex justify-end gap-3">
-        <button className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg border border-gray-300 active:scale-95 transition-all duration-200">
+        <button className="px-6 py-3 bg-white border-2 border-yellow-500 text-yellow-700 font-semibold rounded-lg hover:bg-yellow-50 active:scale-95 transition-all duration-200">
           Reset
         </button>
         <button

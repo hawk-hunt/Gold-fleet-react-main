@@ -69,6 +69,7 @@ export default function Inspections() {
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-white">Vehicle</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-white">Driver</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-white">Trip</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-white">Date</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-white">Result</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-white">Actions</th>
@@ -79,6 +80,15 @@ export default function Inspections() {
                 <tr key={inspection.id} className="hover:bg-gray-50">
                   <td className="px-6 py-5 text-base text-gray-900">{inspection.vehicle?.make} {inspection.vehicle?.model} ({inspection.vehicle?.license_plate || '-'})</td>
                   <td className="px-6 py-5 text-base text-gray-800">{inspection.driver?.user?.name || inspection.driver?.name || '-'}</td>
+                  <td className="px-6 py-5 text-base text-gray-800">
+                    {inspection.trip_id ? (
+                      <Link to={`/inspections/${inspection.id}`} className="text-blue-700 hover:text-blue-900 font-medium">
+                        Trip #{inspection.trip_id}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
                   <td className="px-6 py-5 text-base text-gray-800">{inspection.inspection_date ? new Date(inspection.inspection_date).toLocaleDateString() : '-'}</td>
                   <td className="px-6 py-5 text-base">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${

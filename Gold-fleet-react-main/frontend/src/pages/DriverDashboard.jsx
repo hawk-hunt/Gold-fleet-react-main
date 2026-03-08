@@ -83,7 +83,8 @@ export default function DriverDashboard() {
   const [driverId, setDriverId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [showMessages, setShowMessages] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // overview, trip, maintenance
+  const [activeTab, setActiveTab] = useState('trips'); // trips, overview, trip, maintenance
+  const [assignedTrips, setAssignedTrips] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
     height: typeof window !== 'undefined' ? window.innerHeight : 0,
@@ -130,7 +131,7 @@ export default function DriverDashboard() {
     }
   }, [currentTrip]);
 
-  // Fetch driver's vehicle and current trip
+  // Fetch driver and assigned trips
   useEffect(() => {
     const fetchDriverData = async () => {
       try {
@@ -143,18 +144,29 @@ export default function DriverDashboard() {
         
         if (userDriver) {
           setDriverId(userDriver.id);
-          if (userDriver.vehicle_id) {
-            // Get the vehicle
-            const vehicleResponse = await api.getVehicle(userDriver.vehicle_id);
-            const vehicleData = vehicleResponse.data || vehicleResponse;
-            setVehicle(vehicleData);
-          }
         }
 
         // Get all trips and find active ones for this driver
         const tripsResponse = await api.getTrips();
         const trips = tripsResponse.data || tripsResponse;
-        const activeTrip = Array.isArray(trips) ? trips.find(trip => trip.status === 'active') : null;
+        
+        // Filter to get today and future trips only (assigned trips inbox)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const assignedTripsList = Array.isArray(trips) 
+          ? trips.filter(trip => {
+              const tripDate = new Date(trip.date || trip.created_at);
+              tripDate.setHours(0, 0, 0, 0);
+              return tripDate >= today && trip.status !== 'completed';
+            })
+          : [];
+        
+        setAssignedTrips(assignedTripsList);
+        
+        // Set the first trip as active if available, otherwise the first incomplete one
+        const activeTrip = assignedTripsList.find(trip => trip.status === 'active') || 
+                          assignedTripsList.find(trip => trip.status === 'pending') ||
+                          null;
         setCurrentTrip(activeTrip);
 
         // Fetch messages (notifications)
@@ -172,6 +184,26 @@ export default function DriverDashboard() {
       fetchDriverData();
     }
   }, [user]);
+
+  // Fetch vehicle data from the current trip (not from driver's permanent vehicle)
+  useEffect(() => {
+    const fetchTripVehicle = async () => {
+      if (currentTrip?.vehicle_id) {
+        try {
+          const vehicleResponse = await api.getVehicle(currentTrip.vehicle_id);
+          const vehicleData = vehicleResponse.data || vehicleResponse;
+          setVehicle(vehicleData);
+        } catch (err) {
+          console.error('Error fetching trip vehicle:', err);
+          setVehicle(null);
+        }
+      } else {
+        setVehicle(null);
+      }
+    };
+
+    fetchTripVehicle();
+  }, [currentTrip]);
 
   // Fetch messages/notifications
   const fetchMessages = async () => {
@@ -223,6 +255,11 @@ export default function DriverDashboard() {
     setMessages(messages.map(msg => 
       msg.id === messageId ? { ...msg, read: true } : msg
     ));
+  };
+
+  // Dismiss/remove message
+  const dismissMessage = (messageId) => {
+    setMessages(messages.filter(msg => msg.id !== messageId));
   };
 
   // Start GPS tracking
@@ -445,11 +482,22 @@ export default function DriverDashboard() {
         {showMessages && (
           <div className="mb-4 sm:mb-8 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden max-h-96 sm:max-h-full">
             <div className="sticky top-0 bg-gradient-to-r from-yellow-50 to-gray-50 border-b border-gray-200 p-3 sm:p-4 z-10">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <FaEnvelope className="text-yellow-600 flex-shrink-0" />
-                <span>Messages</span>
-                <span className="text-sm text-gray-500">({messages.filter(m => !m.read).length})</span>
-              </h3>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 flex-1">
+                  <FaEnvelope className="text-yellow-600 flex-shrink-0" />
+                  <span>Messages</span>
+                  <span className="text-sm text-gray-500">({messages.filter(m => !m.read).length})</span>
+                </h3>
+                <button
+                  onClick={() => setShowMessages(false)}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-300 rounded"
+                  aria-label="Close messages"
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="overflow-y-auto max-h-80">
               {messages.length === 0 ? (
@@ -462,27 +510,40 @@ export default function DriverDashboard() {
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
-                      onClick={() => markMessageAsRead(msg.id)}
-                      className={`p-3 sm:p-4 cursor-pointer transition-colors hover:bg-gray-50 ${!msg.read ? 'bg-yellow-50 border-l-4 border-yellow-600' : ''}`}
+                      className={`p-3 sm:p-4 transition-colors hover:bg-gray-50 ${!msg.read ? 'bg-yellow-50 border-l-4 border-yellow-600' : ''}`}
                     >
                       <div className="flex items-start gap-2 sm:gap-3">
-                        <div className={`mt-1 p-1.5 sm:p-2 rounded flex-shrink-0 ${
-                          msg.type === 'success' ? 'bg-green-100' :
-                          msg.type === 'warning' ? 'bg-orange-100' :
-                          'bg-blue-100'
-                        }`}>
+                        <div 
+                          className={`mt-1 p-1.5 sm:p-2 rounded flex-shrink-0 cursor-pointer ${
+                            msg.type === 'success' ? 'bg-green-100' :
+                            msg.type === 'warning' ? 'bg-orange-100' :
+                            'bg-blue-100'
+                          }`}
+                          onClick={() => markMessageAsRead(msg.id)}
+                        >
                           {msg.type === 'success' ? <FaCheckCircle className="text-green-600 text-sm sm:text-base" /> :
                            msg.type === 'warning' ? <FaExclamationTriangle className="text-orange-600 text-sm sm:text-base" /> :
                            <FaBell className="text-blue-600 text-sm sm:text-base" />}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => markMessageAsRead(msg.id)}>
                           <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{msg.title}</h4>
                           <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">{msg.message}</p>
                           <p className="text-xs text-gray-500 mt-1 sm:mt-2">
                             {msg.timestamp.toLocaleString()}
                           </p>
                         </div>
-                        {!msg.read && <div className="w-2 h-2 bg-yellow-600 rounded-full mt-2 flex-shrink-0"></div>}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dismissMessage(msg.id);
+                          }}
+                          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded mt-1"
+                          aria-label="Dismiss message"
+                        >
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -494,6 +555,16 @@ export default function DriverDashboard() {
 
         {/* Tab Navigation - Responsive and Scrollable */}
         <div className="flex gap-2 mb-4 sm:mb-8 border-b border-gray-200 bg-white rounded-t-lg px-3 sm:px-6 overflow-x-auto sticky top-0 z-20">
+          <button
+            onClick={() => setActiveTab('trips')}
+            className={`py-3 sm:py-4 px-3 sm:px-6 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${
+              activeTab === 'trips'
+                ? 'border-yellow-600 text-yellow-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Assigned Trips
+          </button>
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-3 sm:py-4 px-3 sm:px-6 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${
@@ -530,6 +601,82 @@ export default function DriverDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Main Content Area - Map */}
           <div className="lg:col-span-2">
+            {activeTab === 'trips' && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3 sm:p-4">
+                  <h2 className="text-lg sm:text-xl font-semibold flex items-center text-gray-900 gap-2">
+                    <FaClipboardList className="text-blue-600 flex-shrink-0" />
+                    <span className="truncate">Assigned Trips Inbox</span>
+                  </h2>
+                </div>
+                
+                {assignedTrips.length === 0 ? (
+                  <div className="p-6 sm:p-8 text-center">
+                    <div className="text-gray-400 text-4xl mb-3">📭</div>
+                    <p className="text-gray-600 font-medium">No trips assigned</p>
+                    <p className="text-gray-500 text-sm mt-1">Check back soon for new trip assignments</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {assignedTrips.map((trip) => (
+                      <div
+                        key={trip.id}
+                        onClick={() => setCurrentTrip(trip)}
+                        className={`p-4 sm:p-6 cursor-pointer transition-all hover:bg-blue-50 border-l-4 ${
+                          currentTrip?.id === trip.id
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-transparent hover:border-blue-600'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3 sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                                Trip {trip.id}
+                              </h3>
+                              <span className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                                trip.status === 'active' ? 'bg-green-100 text-green-800' :
+                                trip.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {trip.status}
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-2 text-xs sm:text-sm text-gray-600">
+                              <p className="flex items-center gap-2">
+                                <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" />
+                                <span className="truncate">From: {trip.start_location || 'TBD'}</span>
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" />
+                                <span className="truncate">To: {trip.end_location || 'TBD'}</span>
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <FaClock className="text-gray-400 flex-shrink-0" />
+                                {trip.date ? new Date(trip.date).toLocaleDateString() : 'Date TBD'}
+                                {trip.time ? ` at ${trip.time}` : ''}
+                              </p>
+                              {trip.distance && (
+                                <p className="flex items-center gap-2">
+                                  <FaRoute className="text-gray-400 flex-shrink-0" />
+                                  Estimated: {trip.distance} km
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="text-gray-400 flex-shrink-0 mt-1">
+                            <FaChevronRight />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === 'overview' && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3 sm:p-4">
@@ -782,7 +929,8 @@ export default function DriverDashboard() {
               </div>
             </div>
 
-            {/* Trip Controls */}
+            {/* Trip Controls - Only shown when trip is selected */}
+            {currentTrip && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3 sm:p-4">
                 <h3 className="font-semibold flex items-center text-gray-900 gap-2 text-sm sm:text-base">
@@ -790,15 +938,14 @@ export default function DriverDashboard() {
                   <span className="truncate">Trip Controls</span>
                 </h3>
               </div>
-              <div className="p-4 sm:p-6 space-y-2 sm:space-y-3">
-                {!currentTrip ? (
+              <div className="p-4 sm:p-6 space-y-3">
+                {currentTrip.status !== 'active' ? (
                   <button
                     onClick={startTrip}
                     className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:from-green-700 hover:to-green-800 flex items-center justify-center font-semibold transition-all shadow-md hover:shadow-lg text-sm sm:text-base gap-2"
                   >
                     <FaPlay className="flex-shrink-0" />
-                    <span className="hidden sm:inline">Start New Trip</span>
-                    <span className="sm:hidden">Start Trip</span>
+                    <span>Start Trip</span>
                   </button>
                 ) : (
                   <button
@@ -806,31 +953,12 @@ export default function DriverDashboard() {
                     className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:from-red-700 hover:to-red-800 flex items-center justify-center font-semibold transition-all shadow-md hover:shadow-lg text-sm sm:text-base gap-2"
                   >
                     <FaStop className="flex-shrink-0" />
-                    <span className="hidden sm:inline">End Current Trip</span>
-                    <span className="sm:hidden">End Trip</span>
+                    <span>End Trip</span>
                   </button>
                 )}
-                
-                <div className="border-t pt-2 sm:pt-3">
-                  <p className="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">GPS Tracking</p>
-                  {!watchId ? (
-                    <button
-                      onClick={startGPSTracking}
-                      className="w-full bg-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-700 font-medium transition-colors text-xs sm:text-sm"
-                    >
-                      Start Tracking
-                    </button>
-                  ) : (
-                    <button
-                      onClick={stopGPSTracking}
-                      className="w-full bg-gray-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-gray-700 font-medium transition-colors text-xs sm:text-sm"
-                    >
-                      Stop Tracking
-                    </button>
-                  )}
-                </div>
               </div>
             </div>
+            )}
 
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -877,6 +1005,7 @@ export default function DriverDashboard() {
               <VehicleInspectionChecklist
                 vehicleId={vehicle?.id}
                 driverId={driverId}
+                tripId={currentTrip?.id}
                 onSubmit={handleInspectionSubmit}
                 onCancel={() => setShowInspection(false)}
               />
@@ -891,6 +1020,7 @@ export default function DriverDashboard() {
               <ManualIssueReport
                 vehicleId={vehicle?.id}
                 driverId={driverId}
+                tripId={currentTrip?.id}
                 onSubmit={handleIssueSubmit}
                 onCancel={() => setShowIssueReport(false)}
               />

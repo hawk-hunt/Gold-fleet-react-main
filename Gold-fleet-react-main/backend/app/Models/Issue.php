@@ -15,6 +15,7 @@ class Issue extends Model
         'company_id',
         'vehicle_id',
         'driver_id',
+        'trip_id',
         'title',
         'description',
         'severity',

@@ -155,6 +155,12 @@ export default function IssueDetail() {
                 {issue.priority?.replace(/\b\w/g, (char) => char.toUpperCase())}
               </span>
             </div>
+            {issue.trip_id && (
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-600">Associated Trip</p>
+                <p className="text-lg text-blue-700 mt-1 font-semibold">Trip #{issue.trip_id}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

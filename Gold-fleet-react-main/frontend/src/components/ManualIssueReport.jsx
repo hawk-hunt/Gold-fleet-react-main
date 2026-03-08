@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { FaUpload, FaTimesCircle, FaTimes } from 'react-icons/fa';
 
-export default function ManualIssueReport({ vehicleId, driverId, onSubmit, onCancel }) {
+export default function ManualIssueReport({ vehicleId, driverId, tripId, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -103,6 +103,7 @@ export default function ManualIssueReport({ vehicleId, driverId, onSubmit, onCan
       const submitData = new FormData();
       submitData.append('vehicle_id', vehicleId);
       submitData.append('driver_id', driverId);
+      submitData.append('trip_id', tripId);
       submitData.append('title', formData.title);
       submitData.append('description', formData.description);
       submitData.append('priority', formData.priority);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaCheckCircle, FaTimesCircle, FaClipboardList } from 'react-icons/fa';
 
-export default function VehicleInspectionChecklist({ vehicleId, driverId, onSubmit, onCancel }) {
+export default function VehicleInspectionChecklist({ vehicleId, driverId, tripId, onSubmit, onCancel }) {
   const inspectionItems = [
     { id: 'brakes', label: 'Brakes', icon: '🛑' },
     { id: 'tires', label: 'Tires', icon: '🛞' },
@@ -63,6 +63,7 @@ export default function VehicleInspectionChecklist({ vehicleId, driverId, onSubm
       const inspectionData = {
         vehicle_id: vehicleId,
         driver_id: driverId,
+        trip_id: tripId,
         inspection_date: inspectionDate,
         notes: generalNotes || 'Vehicle inspection completed',
         result: Object.values(checklist).some((item) => item.status === 'fail') ? 'fail' : 'pass',

@@ -15,6 +15,7 @@ class Inspection extends Model
         'company_id',
         'vehicle_id',
         'driver_id',
+        'trip_id',
         'inspection_date',
         'notes',
         'status',

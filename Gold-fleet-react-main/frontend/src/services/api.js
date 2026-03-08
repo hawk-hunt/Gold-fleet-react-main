@@ -155,6 +155,7 @@ export const api = {
   getDashboardStats: () => apiCall(`${API_BASE_URL}/dashboard`),
   getVehicleLocations: () => apiCall(`${API_BASE_URL}/vehicle-locations`),
   getChartData: () => apiCall(`${API_BASE_URL}/dashboard/info/chart-data`),
+  getPlatformStatus: () => apiCall(`${API_BASE_URL}/platform/status`),
 
   // Chart Data Endpoints
   getChartRepairPriorityClass: () => apiCall(`${API_BASE_URL}/charts/repair-priority-class`),

@@ -9,6 +9,8 @@ import {
   FaEye,
   FaChartLine,
   FaDownload,
+  FaArrowRight,
+  FaInfo,
 } from 'react-icons/fa';
 import platformApi from '../../platform/services/platformApi';
 
@@ -90,11 +92,11 @@ export default function PaymentManagement() {
   const getPaymentStatusColor = (status) => {
     switch (status) {
       case 'verified':
-        return 'bg-green-100 text-green-800';
+        return 'bg-gray-100 text-gray-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-gray-100 text-gray-800';
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -103,11 +105,11 @@ export default function PaymentManagement() {
   const getPaymentStatusIcon = (status) => {
     switch (status) {
       case 'verified':
-        return <FaCheck className="text-green-600" />;
+        return <FaCheck className="text-yellow-700" />;
       case 'pending':
-        return <FaClock className="text-yellow-600" />;
+        return <FaClock className="text-yellow-700" />;
       case 'failed':
-        return <FaTimesCircle className="text-red-600" />;
+        return <FaTimesCircle className="text-yellow-700" />;
       default:
         return null;
     }
@@ -141,14 +143,17 @@ export default function PaymentManagement() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl border border-yellow-200 p-6 shadow-lg">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Payment Management</h1>
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+              <FaCreditCard className="text-yellow-700" />
+              Payment Management
+            </h1>
             <p className="mt-2 text-lg text-gray-600">Track and manage all company payments</p>
           </div>
           <button
             onClick={fetchPaymentData}
-            className="mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-300 text-yellow-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
           >
             <FaSync className="text-sm" />
             Refresh
@@ -156,7 +161,7 @@ export default function PaymentManagement() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <div className="bg-gray-50 border border-yellow-200 rounded-lg p-4 text-yellow-700">
             {error}
           </div>
         )}
@@ -165,7 +170,7 @@ export default function PaymentManagement() {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Total Collected */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Total Collected</p>
@@ -174,46 +179,46 @@ export default function PaymentManagement() {
                   </p>
                   <p className="text-xs text-gray-500 mt-2">From all payments</p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-yellow-700">
                   <FaCreditCard />
                 </div>
               </div>
             </div>
 
             {/* Platform Revenue */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Platform Revenue</p>
-                  <p className="text-3xl font-bold text-green-600 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 mt-2">
                     {formatCurrency(stats.platform_revenue)}
                   </p>
                   <p className="text-xs text-gray-500 mt-2">{stats.commission_rate}% commission</p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-yellow-700">
                   <FaChartLine />
                 </div>
               </div>
             </div>
 
             {/* Company Earnings */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Company Earnings</p>
-                  <p className="text-3xl font-bold text-yellow-600 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 mt-2">
                     {formatCurrency(stats.companies_total_earnings)}
                   </p>
                   <p className="text-xs text-gray-500 mt-2">{100 - stats.commission_rate}% to companies</p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-yellow-700">
                   <FaCreditCard />
                 </div>
               </div>
             </div>
 
             {/* Payment Count */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Verified Payments</p>
@@ -222,7 +227,7 @@ export default function PaymentManagement() {
                   </p>
                   <p className="text-xs text-gray-500 mt-2">Confirmed transactions</p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-yellow-700">
                   <FaCheck />
                 </div>
               </div>
@@ -232,17 +237,17 @@ export default function PaymentManagement() {
 
         {/* Companies Summary */}
         {companiesSummary.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Company Payment Summary</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Company</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Total Paid</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Company Earnings</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payments</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Last Payment</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Company</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Total Paid</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Company Earnings</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Payments</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Last Payment</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -255,7 +260,7 @@ export default function PaymentManagement() {
                       <td className="px-6 py-4 font-semibold text-gray-900">
                         {formatCurrency(company.total_paid)}
                       </td>
-                      <td className="px-6 py-4 text-green-600 font-semibold">
+                      <td className="px-6 py-4 text-gray-900 font-semibold">
                         {formatCurrency(company.company_earnings)}
                       </td>
                       <td className="px-6 py-4 text-gray-600">{company.payment_count}</td>
@@ -271,16 +276,16 @@ export default function PaymentManagement() {
         )}
 
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className="block text-sm font-semibold text-yellow-700 mb-2">Status</label>
             <select
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+              className="px-4 py-2.5 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
             >
               <option value="all">All Statuses</option>
               <option value="verified">Verified</option>
@@ -290,14 +295,14 @@ export default function PaymentManagement() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Company</label>
+            <label className="block text-sm font-semibold text-yellow-700 mb-2">Company</label>
             <select
               value={filterCompany}
               onChange={(e) => {
                 setFilterCompany(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+              className="px-4 py-2.5 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-200"
             >
               <option value="all">All Companies</option>
               {companiesSummary.map((company) => (
@@ -310,8 +315,8 @@ export default function PaymentManagement() {
         </div>
 
         {/* Payments Table */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-yellow-200 overflow-hidden">
+          <div className="p-6 border-b border-yellow-200">
             <h2 className="text-2xl font-bold text-gray-900">Payment History</h2>
             <p className="text-sm text-gray-600 mt-1">
               Showing {paginatedPayments.length} of {filteredPayments.length} payments
@@ -322,13 +327,13 @@ export default function PaymentManagement() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Company</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Plan</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Platform Earnings</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Action</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Payment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Company</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Plan</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Platform Earnings</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -356,7 +361,7 @@ export default function PaymentManagement() {
                         </p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-green-600 font-semibold">
+                        <p className="text-gray-900 font-semibold">
                           {formatCurrency(payment.platform_earnings)}
                         </p>
                       </td>
@@ -374,16 +379,16 @@ export default function PaymentManagement() {
                         {payment.payment_status === 'pending' ? (
                           <button
                             onClick={() => handleVerifyPayment(payment.id)}
-                            className="text-blue-600 hover:text-blue-900 font-medium text-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold rounded-lg border border-yellow-200 hover:border-yellow-400 active:scale-95 transition-all duration-200 text-sm"
                           >
-                            Verify
+                            <FaCheck className="text-sm" /> Verify
                           </button>
                         ) : (
                           <button
                             onClick={() => setSelectedPayment(payment)}
-                            className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold rounded-lg border border-yellow-200 hover:border-yellow-400 active:scale-95 transition-all duration-200 text-sm"
                           >
-                            <FaEye />
+                            <FaEye className="text-sm" /> View
                           </button>
                         )}
                       </td>
@@ -401,7 +406,7 @@ export default function PaymentManagement() {
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-yellow-200 flex items-center justify-between">
             <p className="text-sm text-gray-600">
               Page {currentPage} of {Math.ceil(filteredPayments.length / pageSize)}
             </p>
@@ -436,11 +441,11 @@ export default function PaymentManagement() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Payment ID</p>
+                  <p className="text-sm font-medium text-yellow-700">Payment ID</p>
                   <p className="text-lg font-semibold text-gray-900">#{selectedPayment.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Status</p>
+                  <p className="text-sm font-medium text-yellow-700">Status</p>
                   <span
                     className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mt-1 ${getPaymentStatusColor(
                       selectedPayment.payment_status
@@ -452,43 +457,43 @@ export default function PaymentManagement() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Company</p>
+                  <p className="text-sm font-medium text-yellow-700">Company</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {selectedPayment.company?.name}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Plan</p>
+                  <p className="text-sm font-medium text-yellow-700">Plan</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {selectedPayment.subscription?.plan?.name}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Payment Amount</p>
+                  <p className="text-sm font-medium text-yellow-700">Payment Amount</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {formatCurrency(selectedPayment.simulated_amount)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Payment Method</p>
+                  <p className="text-sm font-medium text-yellow-700">Payment Method</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {selectedPayment.payment_method?.replace(/_/g, ' ')}
                   </p>
                 </div>
 
                 <div className="col-span-2 border-t pt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Earnings Breakdown</p>
+                  <p className="text-sm font-medium text-yellow-700 mb-2">Earnings Breakdown</p>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-xs text-gray-600">Platform Earns (20%)</p>
-                      <p className="text-xl font-bold text-yellow-600">
+                      <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(selectedPayment.platform_earnings)}
                       </p>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-xs text-gray-600">Company Gets (80%)</p>
-                      <p className="text-xl font-bold text-green-600">
+                      <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(selectedPayment.company_earnings)}
                       </p>
                     </div>
@@ -496,7 +501,7 @@ export default function PaymentManagement() {
                 </div>
 
                 <div className="col-span-2 border-t pt-4">
-                  <p className="text-sm font-medium text-gray-700">Verified At</p>
+                  <p className="text-sm font-medium text-yellow-700">Verified At</p>
                   <p className="text-gray-900">
                     {selectedPayment.verified_at
                       ? new Date(selectedPayment.verified_at).toLocaleString()
@@ -518,3 +523,4 @@ export default function PaymentManagement() {
     </div>
   );
 }
+

@@ -85,6 +85,13 @@ class SubscriptionController extends Controller
                     'status' => 'active',
                 ]);
 
+                // Update company subscription status to active and company_status to pending_approval
+                $company = Company::findOrFail($validated['company_id']);
+                $company->update([
+                    'subscription_status' => 'active',
+                    'company_status' => 'pending_approval',
+                ]);
+
                 // Create payment simulation from signup request
                 if ($request->has('payment_data')) {
                     $paymentData = $request->input('payment_data');
@@ -110,7 +117,13 @@ class SubscriptionController extends Controller
 
             return response()->json([
                 'message' => 'Subscription created successfully',
-                'subscription' => $subscription->load('plan')
+                'subscription' => $subscription->load('plan'),
+                'company' => [
+                    'id' => $subscription->company->id,
+                    'name' => $subscription->company->name,
+                    'subscription_status' => $subscription->company->subscription_status,
+                    'company_status' => $subscription->company->company_status,
+                ]
             ], 201);
         } catch (\Exception $e) {
             error_log('Subscription creation error: ' . $e->getMessage());

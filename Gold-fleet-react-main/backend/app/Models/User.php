@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'account_status',
         'company_id',
         'api_token',
         'email_verified_at',
@@ -67,6 +68,30 @@ class User extends Authenticatable
     public function driver()
     {
         return $this->hasOne(\App\Models\Driver::class);
+    }
+
+    /**
+     * Get approvals made by this user (for super admin).
+     */
+    public function approvalsGiven()
+    {
+        return $this->hasMany(Company::class, 'approved_by');
+    }
+
+    /**
+     * Check if user's account is verified.
+     */
+    public function isAccountVerified(): bool
+    {
+        return $this->account_status === 'verified';
+    }
+
+    /**
+     * Check if user can access dashboard features.
+     */
+    public function canAccessDashboard(): bool
+    {
+        return $this->isAccountVerified() && $this->company && $this->company->isApproved();
     }
 
     // Email verification removed: do not automatically send verification notifications

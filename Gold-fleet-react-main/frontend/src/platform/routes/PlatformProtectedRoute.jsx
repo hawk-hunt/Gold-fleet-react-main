@@ -15,3 +15,4 @@ export default function PlatformProtectedRoute({ children }) {
 
   return children;
 }
+

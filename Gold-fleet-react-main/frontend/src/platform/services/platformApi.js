@@ -334,7 +334,10 @@ const platformApi = {
       method: 'POST',
       headers: platformApi.getAuthHeader(),
     });
-    if (!response.ok) throw new Error('Failed to activate subscription');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(error.message || `Failed to activate subscription (${response.status})`);
+    }
     return response.json();
   },
 
@@ -343,7 +346,10 @@ const platformApi = {
       method: 'POST',
       headers: platformApi.getAuthHeader(),
     });
-    if (!response.ok) throw new Error('Failed to deactivate subscription');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(error.message || `Failed to deactivate subscription (${response.status})`);
+    }
     return response.json();
   },
 
@@ -352,7 +358,10 @@ const platformApi = {
       method: 'POST',
       headers: platformApi.getAuthHeader(),
     });
-    if (!response.ok) throw new Error('Failed to suspend subscription');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(error.message || `Failed to suspend subscription (${response.status})`);
+    }
     return response.json();
   },
 
@@ -361,7 +370,10 @@ const platformApi = {
       method: 'POST',
       headers: platformApi.getAuthHeader(),
     });
-    if (!response.ok) throw new Error('Failed to resume subscription');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(error.message || `Failed to resume subscription (${response.status})`);
+    }
     return response.json();
   },
 
@@ -498,6 +510,62 @@ const platformApi = {
         throw new Error('Unauthorized: Your session has expired. Please login again.');
       }
       throw new Error(`Failed to fetch companies summary (${response.status})`);
+    }
+    return response.json();
+  },
+
+  // ===== Company Management Actions =====
+
+  /**
+   * Approve a company
+   */
+  approveCompany: async (companyId) => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
+      method: 'POST',
+      headers: {
+        ...platformApi.getAuthHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      const error = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(error.message || `Failed to approve company (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Decline a company and trigger refund
+   */
+  declineCompany: async (companyId, reason = '') => {
+    const token = sessionStorage.getItem('platformToken');
+    if (!token) {
+      throw new Error('Not authenticated. Please login first.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}/decline`, {
+      method: 'POST',
+      headers: {
+        ...platformApi.getAuthHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session has expired. Please login again.');
+      }
+      const error = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+      throw new Error(error.message || `Failed to decline company (${response.status})`);
     }
     return response.json();
   },

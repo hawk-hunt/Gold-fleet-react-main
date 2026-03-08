@@ -86,11 +86,11 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
                 placeholder="Search companies, subscriptions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-colors"
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <FaSearch className="w-4 h-4" />
               </button>
@@ -108,7 +108,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
             >
               <FaBell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 w-2 h-2 bg-yellow-500 rounded-full" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-gray-700 rounded-full" />
               )}
             </button>
 
@@ -145,8 +145,8 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
                         }}
                       >
                         <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 p-2 rounded-full bg-blue-100">
-                            <FaBell className="w-4 h-4 text-blue-600" />
+                          <div className="flex-shrink-0 p-2 rounded-full bg-gray-200">
+                            <FaBell className="w-4 h-4 text-gray-700" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900">{n.title || n.message}</p>
@@ -186,7 +186,7 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
                 <hr className="border-gray-200 my-2" />
                 <button
                   onClick={() => { setProfileOpen(false); handleLogout(); }}
-                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-yellow-50 hover:text-yellow-900 transition-colors flex items-center gap-2"
                 >
                   <FaSignOutAlt className="w-4 h-4" />
                   Logout
@@ -206,3 +206,4 @@ export default function PlatformHeader({ sidebarOpen, setSidebarOpen, isLarge, s
     </header>
   );
 }
+

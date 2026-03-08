@@ -22,8 +22,8 @@ export default function PlatformLayout({ children }) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const SIDEBAR_EXPANDED = 260;
-  const SIDEBAR_COLLAPSED = 80;
+  const SIDEBAR_EXPANDED = 240;
+  const SIDEBAR_COLLAPSED = 70;
 
   const sidebarWidth = isLarge && sidebarOpen ? (sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED) : 0;
 
@@ -37,25 +37,26 @@ export default function PlatformLayout({ children }) {
         sidebarWidth={sidebarWidth}
       />
 
-      {/* Sidebar */}
-      <PlatformSidebar
-        isOpen={sidebarOpen}
-        setIsOpen={setSidebarOpen}
-        isCollapsed={sidebarCollapsed}
-        setIsCollapsed={setSidebarCollapsed}
-        isLarge={isLarge}
-      />
+      {/* Sidebar + Main Content Container */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <PlatformSidebar
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+          isCollapsed={sidebarCollapsed}
+          setIsCollapsed={setSidebarCollapsed}
+          isLarge={isLarge}
+        />
 
-      {/* Main Content Area */}
-      <div
-        className="flex-1 flex flex-col overflow-y-auto pt-20 lg:pt-12"
-        style={{
-          marginLeft: isLarge ? sidebarWidth : 0,
-          width: isLarge ? `calc(100% - ${sidebarWidth}px)` : '100%',
-          minHeight: 'calc(100vh - 64px)',
-          transition: 'margin-left 300ms cubic-bezier(.2,.8,.2,1), width 300ms cubic-bezier(.2,.8,.2,1)',
-        }}
-      >
+        {/* Main Content Area */}
+        <div
+          className="flex-1 flex flex-col overflow-y-auto pt-0"
+          style={{
+            width: isLarge ? `calc(100% - ${sidebarWidth}px)` : '100%',
+            minHeight: 'calc(100vh - 64px)',
+            transition: 'width 0.3s ease',
+          }}
+        >
         {/* Content Wrapper */}
         <div className="w-full px-3 sm:px-4 lg:px-6">
           <main className="w-full py-4 lg:py-6 space-y-6">
@@ -72,5 +73,7 @@ export default function PlatformLayout({ children }) {
         </footer>
       </div>
     </div>
+    </div>
   );
 }
+

@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import ApprovalBanner from '../components/ApprovalBanner';
+import { useCompanyApprovalStatus } from '../hooks/useCompanyApprovalStatus';
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { FaCar, FaUser, FaRoad, FaGasPump, FaTools, FaMapMarkerAlt, FaMoneyBillWave, FaChartLine, FaCheckCircle, FaExclamationCircle, FaPlus, FaSync } from 'react-icons/fa';
+import { FaCar, FaUser, FaRoad, FaGasPump, FaTools, FaMapMarkerAlt, FaMoneyBillWave, FaChartLine, FaCheckCircle, FaExclamationCircle, FaPlus, FaSync, FaLock } from 'react-icons/fa';
 import StatCard from '../components/StatCard';
 import {
   Chart as ChartJS,
@@ -50,7 +52,8 @@ ChartJS.register(
 
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, company, refreshAuth } = useAuth();
+  const { isPendingApproval, canAccessRestrictedFeatures } = useCompanyApprovalStatus();
   const navigate = useNavigate();
   const userName = user?.name || user?.company_name || 'Fleet Manager';
   const [stats, setStats] = useState(null);
@@ -58,6 +61,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedCards, setExpandedCards] = useState({});
+  
+  // Track company status changes to force re-render when status updates
+  const [currentCompanyStatus, setCurrentCompanyStatus] = useState(company?.company_status);
+  const [currentSubscriptionStatus, setCurrentSubscriptionStatus] = useState(company?.subscription_status);
   
   // Analytics Data States
   const [maintenanceLogs, setMaintenanceLogs] = useState([]);
@@ -292,6 +299,35 @@ export default function Dashboard() {
     }
   }, [fetchAnalyticsData]);
 
+  // Refresh company status from backend on mount to get real-time approval status
+  useEffect(() => {
+    const refreshCompanyStatus = async () => {
+      try {
+        const success = await refreshAuth();
+        if (success) {
+          console.log('[Dashboard] ✓ Company status refreshed from backend');
+        }
+      } catch (err) {
+        console.error('[Dashboard] Error refreshing company status:', err);
+      }
+    };
+    
+    // Refresh immediately when mounted
+    refreshCompanyStatus();
+  }, []); // Run only on mount
+
+  // Watch for company status changes and update local state to force re-render
+  useEffect(() => {
+    if (company?.company_status !== currentCompanyStatus) {
+      console.log('[Dashboard] Company status changed:', currentCompanyStatus, '→', company?.company_status);
+      setCurrentCompanyStatus(company?.company_status);
+    }
+    if (company?.subscription_status !== currentSubscriptionStatus) {
+      console.log('[Dashboard] Subscription status changed:', currentSubscriptionStatus, '→', company?.subscription_status);
+      setCurrentSubscriptionStatus(company?.subscription_status);
+    }
+  }, [company?.company_status, company?.subscription_status, currentCompanyStatus, currentSubscriptionStatus]);
+
   useEffect(() => {
     refreshAllDashboardData();
   }, [refreshAllDashboardData]);
@@ -404,6 +440,23 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Header Section - Always render immediately */}
+        {company && (
+          <>
+            <div className="flex flex-col items-center justify-center text-center py-6 bg-white rounded-xl shadow-lg border border-gray-200">
+              <h1 className="text-4xl font-bold text-gray-900">Fleet Dashboard</h1>
+              <p className="mt-2 text-lg text-gray-600">Welcome back, <span className="font-semibold text-gray-900">{userName}</span>!</p>
+              <p className="mt-1 text-sm text-gray-500">Manage and monitor your entire fleet at a glance</p>
+            </div>
+
+            {/* Approval Banner - Render immediately based on company status, don't wait for full dashboard load */}
+            <ApprovalBanner 
+              companyStatus={currentCompanyStatus} 
+              subscriptionStatus={currentSubscriptionStatus} 
+            />
+          </>
+        )}
+
         {loading && (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -415,56 +468,81 @@ export default function Dashboard() {
 
         {!loading && stats && (
           <>
-            {/* Header Section */}
-            <div className="flex flex-col items-center justify-center text-center py-6 bg-white rounded-xl shadow-lg border border-gray-200">
-              <h1 className="text-4xl font-bold text-gray-900">Fleet Dashboard</h1>
-              <p className="mt-2 text-lg text-gray-600">Welcome back, <span className="font-semibold text-gray-900">{userName}</span>!</p>
-              <p className="mt-1 text-sm text-gray-500">Manage and monitor your entire fleet at a glance</p>
-            </div>
+            {/* KPI Cards and full dashboard content */}
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-              <StatCard
-                icon={<FaCar />}
-                title="Total Vehicles"
-                value={formatNumber(stats?.total_vehicles || 0)}
-                description={`${stats?.active_vehicles || 0} active`}
-                onClick={() => toggleCard('vehicles')}
-              >
-                {expandedCards.vehicles && (
-                  <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                    <p>Your fleet has <span className="font-semibold text-gray-900">{formatNumber(stats?.total_vehicles)}</span> total vehicles with <span className="text-green-600 font-semibold">{stats?.active_vehicles}</span> currently active.</p>
+              <div className={`relative ${!canAccessRestrictedFeatures ? 'opacity-60' : ''}`}>
+                <StatCard
+                  icon={<FaCar />}
+                  title="Total Vehicles"
+                  value={formatNumber(stats?.total_vehicles || 0)}
+                  description={`${stats?.active_vehicles || 0} active`}
+                  onClick={() => !canAccessRestrictedFeatures ? null : navigate('/vehicles')}
+                  className={!canAccessRestrictedFeatures ? 'cursor-not-allowed' : ''}
+                >
+                  {expandedCards.vehicles && (
+                    <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
+                      <p>Your fleet has <span className="font-semibold text-gray-900">{formatNumber(stats?.total_vehicles)}</span> total vehicles with <span className="text-green-600 font-semibold">{stats?.active_vehicles}</span> currently active.</p>
+                    </div>
+                  )}
+                </StatCard>
+                {!canAccessRestrictedFeatures && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-20 rounded-lg">
+                    <div className="bg-white rounded-md p-2">
+                      <FaLock className="text-gray-600 mx-auto" />
+                    </div>
                   </div>
                 )}
-              </StatCard>
+              </div>
 
-              <StatCard
-                icon={<FaUser />}
-                title="Total Drivers"
-                value={formatNumber(stats?.total_drivers || 0)}
-                description={`${stats?.active_drivers || 0} on duty`}
-                onClick={() => toggleCard('drivers')}
-              >
-                {expandedCards.drivers && (
-                  <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                    <p><span className="font-semibold text-gray-900">{formatNumber(stats?.active_drivers)}</span> drivers are currently on duty out of <span className="font-semibold">{formatNumber(stats?.total_drivers)}</span> total.</p>
+              <div className={`relative ${!canAccessRestrictedFeatures ? 'opacity-60' : ''}`}>
+                <StatCard
+                  icon={<FaUser />}
+                  title="Total Drivers"
+                  value={formatNumber(stats?.total_drivers || 0)}
+                  description={`${stats?.active_drivers || 0} on duty`}
+                  onClick={() => !canAccessRestrictedFeatures ? null : navigate('/drivers')}
+                  className={!canAccessRestrictedFeatures ? 'cursor-not-allowed' : ''}
+                >
+                  {expandedCards.drivers && (
+                    <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
+                      <p><span className="font-semibold text-gray-900">{formatNumber(stats?.active_drivers)}</span> drivers are currently on duty out of <span className="font-semibold">{formatNumber(stats?.total_drivers)}</span> total.</p>
+                    </div>
+                  )}
+                </StatCard>
+                {!canAccessRestrictedFeatures && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-20 rounded-lg">
+                    <div className="bg-white rounded-md p-2">
+                      <FaLock className="text-gray-600 mx-auto" />
+                    </div>
                   </div>
                 )}
-              </StatCard>
+              </div>
 
-              <StatCard
-                icon={<FaRoad />}
-                title="Total Trips"
-                value={formatNumber(stats?.total_trips || 0)}
-                description={`${stats?.completed_trips || 0} completed`}
-                onClick={() => toggleCard('trips')}
-              >
-                {expandedCards.trips && (
-                  <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
-                    <p><span className="font-semibold text-green-600">{formatNumber(stats?.completed_trips)}</span> completed out of <span className="font-semibold">{formatNumber(stats?.total_trips)}</span> total trips.</p>
+              <div className={`relative ${!canAccessRestrictedFeatures ? 'opacity-60' : ''}`}>
+                <StatCard
+                  icon={<FaRoad />}
+                  title="Total Trips"
+                  value={formatNumber(stats?.total_trips || 0)}
+                  description={`${stats?.completed_trips || 0} completed`}
+                  onClick={() => !canAccessRestrictedFeatures ? null : navigate('/trips')}
+                  className={!canAccessRestrictedFeatures ? 'cursor-not-allowed' : ''}
+                >
+                  {expandedCards.trips && (
+                    <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">
+                      <p><span className="font-semibold text-green-600">{formatNumber(stats?.completed_trips)}</span> completed out of <span className="font-semibold">{formatNumber(stats?.total_trips)}</span> total trips.</p>
+                    </div>
+                  )}
+                </StatCard>
+                {!canAccessRestrictedFeatures && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-20 rounded-lg">
+                    <div className="bg-white rounded-md p-2">
+                      <FaLock className="text-gray-600 mx-auto" />
+                    </div>
                   </div>
                 )}
-              </StatCard>
+              </div>
 
               <StatCard
                 icon={<FaMoneyBillWave />}

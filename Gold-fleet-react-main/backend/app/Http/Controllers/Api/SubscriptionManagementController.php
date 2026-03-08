@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Subscription;
 use App\Models\Company;
 use App\Models\PaymentSimulation;
@@ -66,27 +67,46 @@ class SubscriptionManagementController extends Controller
     public function activate($id)
     {
         $user = Auth::user();
-        
+
         if (!$user || $user->role !== 'platform_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized: Only platform administrators can activate subscriptions'], 403);
         }
 
-        $subscription = Subscription::findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        $subscription->update([
-            'status' => 'active',
-        ]);
+            $subscription = Subscription::findOrFail($id);
 
-        // Also activate the company
-        $subscription->company->update([
-            'subscription_status' => 'active',
-            'is_active' => true,
-        ]);
+            // Check if subscription can be activated
+            if ($subscription->status === 'active') {
+                return response()->json(['message' => 'Subscription is already active'], 400);
+            }
 
-        return response()->json([
-            'message' => 'Subscription activated successfully',
-            'subscription' => $subscription->load(['company', 'plan'])
-        ]);
+            $subscription->update([
+                'status' => 'active',
+            ]);
+
+            // Also activate the company
+            $subscription->company->update([
+                'subscription_status' => 'active',
+                'is_active' => true,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Subscription activated successfully',
+                'subscription' => $subscription->load(['company', 'plan'])
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Subscription not found'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to activate subscription: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -95,27 +115,46 @@ class SubscriptionManagementController extends Controller
     public function deactivate($id)
     {
         $user = Auth::user();
-        
+
         if (!$user || $user->role !== 'platform_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized: Only platform administrators can deactivate subscriptions'], 403);
         }
 
-        $subscription = Subscription::findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        $subscription->update([
-            'status' => 'cancelled',
-        ]);
+            $subscription = Subscription::findOrFail($id);
 
-        // Also deactivate the company
-        $subscription->company->update([
-            'subscription_status' => 'cancelled',
-            'is_active' => false,
-        ]);
+            // Check if subscription can be deactivated
+            if ($subscription->status === 'cancelled') {
+                return response()->json(['message' => 'Subscription is already cancelled'], 400);
+            }
 
-        return response()->json([
-            'message' => 'Subscription deactivated successfully',
-            'subscription' => $subscription->load(['company', 'plan'])
-        ]);
+            $subscription->update([
+                'status' => 'cancelled',
+            ]);
+
+            // Also deactivate the company
+            $subscription->company->update([
+                'subscription_status' => 'cancelled',
+                'is_active' => false,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Subscription deactivated successfully',
+                'subscription' => $subscription->load(['company', 'plan'])
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Subscription not found'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to deactivate subscription: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -124,26 +163,50 @@ class SubscriptionManagementController extends Controller
     public function suspend($id)
     {
         $user = Auth::user();
-        
+
         if (!$user || $user->role !== 'platform_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized: Only platform administrators can suspend subscriptions'], 403);
         }
 
-        $subscription = Subscription::findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        $subscription->update([
-            'status' => 'suspended',
-        ]);
+            $subscription = Subscription::findOrFail($id);
 
-        // Also mark company as inactive but don't change subscription_status
-        $subscription->company->update([
-            'is_active' => false,
-        ]);
+            // Check if subscription can be suspended
+            if ($subscription->status === 'suspended') {
+                return response()->json(['message' => 'Subscription is already suspended'], 400);
+            }
 
-        return response()->json([
-            'message' => 'Subscription suspended successfully',
-            'subscription' => $subscription->load(['company', 'plan'])
-        ]);
+            if ($subscription->status !== 'active') {
+                return response()->json(['message' => 'Only active subscriptions can be suspended'], 400);
+            }
+
+            $subscription->update([
+                'status' => 'suspended',
+            ]);
+
+            // Also sync company status to match
+            $subscription->company->update([
+                'subscription_status' => 'suspended',
+                'is_active' => false,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Subscription suspended successfully',
+                'subscription' => $subscription->load(['company', 'plan'])
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Subscription not found'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to suspend subscription: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -152,26 +215,46 @@ class SubscriptionManagementController extends Controller
     public function resume($id)
     {
         $user = Auth::user();
-        
+
         if (!$user || $user->role !== 'platform_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized: Only platform administrators can resume subscriptions'], 403);
         }
 
-        $subscription = Subscription::findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        $subscription->update([
-            'status' => 'active',
-        ]);
+            $subscription = Subscription::findOrFail($id);
 
-        // Mark company as active again
-        $subscription->company->update([
-            'is_active' => true,
-        ]);
+            // Check if subscription can be resumed
+            if ($subscription->status !== 'suspended') {
+                return response()->json(['message' => 'Only suspended subscriptions can be resumed'], 400);
+            }
 
-        return response()->json([
-            'message' => 'Subscription resumed successfully',
-            'subscription' => $subscription->load(['company', 'plan'])
-        ]);
+            $subscription->update([
+                'status' => 'active',
+            ]);
+
+            // Sync company status to match
+            $subscription->company->update([
+                'subscription_status' => 'active',
+                'is_active' => true,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Subscription resumed successfully',
+                'subscription' => $subscription->load(['company', 'plan'])
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Subscription not found'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to resume subscription: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

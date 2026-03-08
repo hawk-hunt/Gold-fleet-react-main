@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PlatformAuthController;
 use App\Http\Controllers\Api\PlatformDashboardController;
 use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\CompanyApprovalController;
+use App\Http\Controllers\Api\PlatformStatusController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapDashboardController;
 use App\Http\Controllers\InfoDashboardController;
@@ -61,6 +63,8 @@ Route::prefix('platform')->group(function () {
         Route::get('/dashboard/stats', [PlatformDashboardController::class, 'getStats']);
         Route::get('/companies', [PlatformDashboardController::class, 'getCompanies']);
         Route::delete('/companies/{id}', [PlatformDashboardController::class, 'deleteCompany']);
+        Route::post('/companies/{id}/approve', [PlatformDashboardController::class, 'approveCompany']);
+        Route::post('/companies/{id}/decline', [PlatformDashboardController::class, 'declineCompany']);
         Route::get('/analytics', [PlatformDashboardController::class, 'getAnalytics']);
         Route::get('/subscriptions', [PlatformDashboardController::class, 'getSubscriptions']);
         Route::get('/messages', [PlatformDashboardController::class, 'getMessages']);
@@ -85,6 +89,13 @@ Route::prefix('platform')->group(function () {
         Route::get('/payments-stats/revenue', [PlatformPaymentController::class, 'revenueStats']);
         Route::get('/payments-stats/company/{companyId}', [PlatformPaymentController::class, 'companyStats']);
         Route::get('/payments-stats/companies-summary', [PlatformPaymentController::class, 'companiesSummary']);
+
+        // Company Approval endpoints for super admin
+        Route::get('/company-approvals', [CompanyApprovalController::class, 'getPendingApprovals']);
+        Route::get('/company-approvals/{id}', [CompanyApprovalController::class, 'showForApproval']);
+        Route::post('/company-approvals/{id}/approve', [CompanyApprovalController::class, 'approveCompany']);
+        Route::post('/company-approvals/{id}/reject', [CompanyApprovalController::class, 'rejectCompany']);
+        Route::get('/company-approvals/status/{status}', [CompanyApprovalController::class, 'getCompaniesByStatus']);
     });
 });
 
@@ -98,6 +109,9 @@ Route::get('/plans/{id}', [PlanController::class, 'show']);
 Route::middleware('authorize.api.token')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
+    // Platform status - accessible without approval (used to check status)
+    Route::get('/platform/status', [PlatformStatusController::class, 'getStatus']);
 
     // Dashboard data
     Route::get('/dashboard', [InfoDashboardController::class, 'index']);
@@ -125,36 +139,7 @@ Route::middleware('authorize.api.token')->group(function () {
     Route::get('/simulation/status', [SimulationController::class, 'status']);
     Route::post('/simulation/update', [SimulationController::class, 'update']);
 
-    // Resource endpoints
-    Route::apiResource('vehicles', VehicleController::class);
-    Route::apiResource('drivers', DriverController::class);
-    Route::apiResource('trips', TripController::class);
-    Route::apiResource('services', ServiceController::class);
-    Route::apiResource('inspections', InspectionController::class);
-    Route::apiResource('issues', IssueController::class);
-    Route::apiResource('expenses', ExpenseController::class);
-    Route::apiResource('fuel-fillups', FuelFillupController::class);
-    Route::apiResource('reminders', ReminderController::class);
-
-    // Plans and Subscriptions
-    Route::apiResource('subscriptions', SubscriptionController::class);
-    Route::get('/subscriptions/current', [SubscriptionController::class, 'getCurrentSubscription']);
-    Route::post('/plans', [PlanController::class, 'store'])->middleware('role:admin');
-    Route::put('/plans/{id}', [PlanController::class, 'update'])->middleware('role:admin');
-    Route::delete('/plans/{id}', [PlanController::class, 'destroy'])->middleware('role:admin');
-
-    // Payment Simulations
-    Route::apiResource('payment-simulations', PaymentSimulationController::class);
-    Route::get('/payment-simulations/subscription/{subscriptionId}', [PaymentSimulationController::class, 'getBySubscription']);
-    Route::post('/payment-simulations/{id}/process', [PaymentSimulationController::class, 'processPayment']);
-
-    // Company's own payment history
-    Route::get('/payments/my', [PlatformPaymentController::class, 'myPayments']);
-
-    // Driver vehicle location endpoint
-    Route::middleware('driver')->post('/vehicle-location', [MapDashboardController::class, 'storeVehicleLocation']);
-
-    // Profile and notifications
+    // Profile, Notifications, and Settings (NO approval required)
     Route::get('/profile', [ProfileController::class, 'edit']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
@@ -178,5 +163,58 @@ Route::middleware('authorize.api.token')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::post('/admin/send-message', [NotificationController::class, 'sendAdminMessage']);
         Route::post('/admin/broadcast-message', [NotificationController::class, 'broadcastMessage']);
+    });
+
+    // Plans and Subscriptions (view allowed, modifications may require approval)
+    Route::apiResource('subscriptions', SubscriptionController::class);
+    Route::get('/subscriptions/current', [SubscriptionController::class, 'getCurrentSubscription']);
+    Route::post('/plans', [PlanController::class, 'store'])->middleware('role:admin');
+    Route::put('/plans/{id}', [PlanController::class, 'update'])->middleware('role:admin');
+    Route::delete('/plans/{id}', [PlanController::class, 'destroy'])->middleware('role:admin');
+
+    // Payment Simulations (view allowed)
+    Route::apiResource('payment-simulations', PaymentSimulationController::class);
+    Route::get('/payment-simulations/subscription/{subscriptionId}', [PaymentSimulationController::class, 'getBySubscription']);
+    Route::post('/payment-simulations/{id}/process', [PaymentSimulationController::class, 'processPayment']);
+
+    // Company's own payment history
+    Route::get('/payments/my', [PlatformPaymentController::class, 'myPayments']);
+
+    // ========== FLEET MANAGEMENT ROUTES - REQUIRE COMPANY APPROVAL ==========
+    // These routes are protected by EnsureCompanyApproved middleware
+    Route::middleware('ensure.company.approved')->group(function () {
+        // Resource endpoints - Vehicles, Drivers, Trips, Services, Inspections, Issues, Expenses, Fuel, Reminders
+        Route::apiResource('vehicles', VehicleController::class);
+        Route::apiResource('drivers', DriverController::class);
+        Route::apiResource('trips', TripController::class);
+        Route::apiResource('services', ServiceController::class);
+        Route::apiResource('inspections', InspectionController::class);
+        Route::apiResource('issues', IssueController::class);
+        Route::apiResource('expenses', ExpenseController::class);
+        Route::apiResource('fuel-fillups', FuelFillupController::class);
+        Route::apiResource('reminders', ReminderController::class);
+
+        // Dashboard data (restricted to approved companies)
+        Route::get('/dashboard', [InfoDashboardController::class, 'index']);
+        Route::get('/dashboard/stats', [InfoDashboardController::class, 'index']);
+        Route::get('/dashboard/info/chart-data', [InfoDashboardController::class, 'getChartData']);
+
+        // Mapping and Tracking (restricted to approved companies)
+        Route::get('/vehicle-locations', [MapDashboardController::class, 'getVehicleLocations']);
+        Route::post('/vehicle-location', [MapDashboardController::class, 'storeVehicleLocation']);
+        Route::middleware('driver')->post('/vehicle-location', [MapDashboardController::class, 'storeVehicleLocation']);
+
+        // Phone Tracker (restricted)
+        Route::post('/tracker/update-location', [PhoneTrackerController::class, 'updateLocation']);
+        Route::get('/tracker/last-location/{vehicleId}', [PhoneTrackerController::class, 'getLastLocation']);
+        Route::post('/tracker/simulate/{vehicleId}', [PhoneTrackerController::class, 'simulateTrackerUpdate']);
+
+        // Chart data endpoints (restricted)
+        Route::prefix('charts')->group(function () {
+            Route::get('/repair-priority-class', [ChartController::class, 'repairPriorityClass']);
+            Route::get('/time-to-resolve', [ChartController::class, 'timeToResolve']);
+            Route::get('/fuel-costs', [ChartController::class, 'fuelCosts']);
+            Route::get('/service-costs', [ChartController::class, 'serviceCosts']);
+        });
     });
 });

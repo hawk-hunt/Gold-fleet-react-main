@@ -119,9 +119,10 @@ class PlatformDashboardController extends Controller
     }
 
     /**
-     * Get Companies
+     * Get Companies - Returns ALL companies with full details
+     * Includes payment status, subscription status, company status, and plan info
      */
-    public function getCompanies()
+    public function getCompanies(Request $request)
     {
         $user = Auth::user();
         
@@ -129,17 +130,95 @@ class PlatformDashboardController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $companies = Company::paginate(10);
+        try {
+            $page = $request->query('page', 1);
+            $limit = $request->query('limit', 10);
 
-        return response()->json([
-            'data' => $companies->items(),
-            'pagination' => [
-                'current_page' => $companies->currentPage(),
-                'per_page' => $companies->perPage(),
-                'total' => $companies->total(),
-                'last_page' => $companies->lastPage(),
-            ]
-        ]);
+            // Build query with all necessary relationships
+            $query = Company::with(['subscriptions.plan', 'paymentSimulations', 'users'])
+                ->orderBy('created_at', 'desc');
+
+            // Get paginated results
+            $companies = $query->paginate($limit);
+
+            // Transform companies to include all necessary data
+            $companiesData = $companies->map(function($company) {
+                // Get latest subscription
+                $latestSubscription = $company->subscriptions->sortByDesc('created_at')->first();
+                
+                // Get latest payment
+                $latestPayment = $company->paymentSimulations->sortByDesc('created_at')->first();
+                
+                // Build status display
+                $companyStatus = $company->company_status ?? 'registered';
+                
+                // Map internal status to display status
+                $statusDisplay = match($companyStatus) {
+                    'pending_approval' => 'Pending Approval',
+                    'approved' => 'Approved',
+                    'rejected' => 'Declined',
+                    'declined' => 'Declined',
+                    default => 'Registered'
+                };
+                
+                // Get plan information
+                $planName = 'N/A';
+                if ($latestSubscription && $latestSubscription->plan) {
+                    $planName = $latestSubscription->plan->name;
+                }
+                
+                // Get subscription status
+                $subscriptionStatus = $latestSubscription ? $latestSubscription->status : 'none';
+                
+                // Get payment status
+                $paymentStatus = 'none';
+                if ($latestPayment) {
+                    $paymentStatus = $latestPayment->payment_status ?? 'pending';
+                }
+                
+                // Count actual vehicles and drivers
+                $vehiclesCount = $company->vehicles()->count();
+                $driversCount = $company->drivers()->count();
+                
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'email' => $company->email,
+                    'phone' => $company->phone,
+                    'status' => $statusDisplay,
+                    'company_status' => $companyStatus,
+                    'subscription_status' => $subscriptionStatus,
+                    'payment_status' => $paymentStatus,
+                    'plan' => $planName,
+                    'vehicles' => $vehiclesCount,
+                    'drivers' => $driversCount,
+                    'created_at' => $company->created_at->format('Y-m-d'),
+                    'created_at_timestamp' => $company->created_at,
+                    'approved_at' => $company->approved_at ? $company->approved_at->format('Y-m-d') : null,
+                    'account_status' => $company->account_status ?? 'pending',
+                    'latest_payment_amount' => $latestPayment ? $latestPayment->simulated_amount : null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $companiesData,
+                'companies' => $companiesData, // Include both for backward compatibility
+                'pagination' => [
+                    'current_page' => $companies->currentPage(),
+                    'per_page' => $companies->perPage(),
+                    'total' => $companies->total(),
+                    'last_page' => $companies->lastPage(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error fetching companies: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch companies',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -161,6 +240,8 @@ class PlatformDashboardController extends Controller
             $companyName = $company->name;
             
             // Delete all related data in proper order to respect foreign keys
+            // IMPORTANT: Delete child records BEFORE parent records (respect FK constraints)
+            
             // 1. Delete all trips related to vehicles
             Trip::whereIn('vehicle_id', $company->vehicles()->pluck('id'))->delete();
             
@@ -173,11 +254,11 @@ class PlatformDashboardController extends Controller
             // 4. Delete all users in the company
             User::where('company_id', $company->id)->delete();
             
-            // 5. Delete subscriptions
-            $company->subscriptions()->delete();
-            
-            // 6. Delete payment simulations
+            // 5. DELETE PAYMENT SIMULATIONS FIRST (they reference subscriptions via FK)
             \App\Models\PaymentSimulation::where('company_id', $company->id)->delete();
+            
+            // 6. NOW delete subscriptions (after payment_simulations deleted)
+            $company->subscriptions()->delete();
             
             // 7. Delete all other company records
             // Services, Inspections, Issues, Expenses, Fuel Fillups, Reminders, etc.
@@ -410,5 +491,193 @@ class PlatformDashboardController extends Controller
             'message' => 'Settings updated successfully',
             'settings' => request()->all()
         ]);
+    }
+
+    /**
+     * Approve a company (platform admin action)
+     */
+    public function approveCompany(Request $request, $id)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->role !== 'platform_admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $company = Company::findOrFail($id);
+
+            // Update company status to approved
+            $company->update([
+                'company_status' => 'approved',
+                'approved_at' => now(),
+                'approved_by' => $user->id,
+            ]);
+
+            // Send notifications to company users
+            $this->notifyCompanyApproved($company);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Company '{$company->name}' has been approved",
+                'company' => [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'company_status' => 'approved',
+                    'approved_at' => $company->approved_at->format('Y-m-d H:i:s'),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error approving company: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve company',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Decline a company and trigger refund (platform admin action)
+     */
+    public function declineCompany(Request $request, $id)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->role !== 'platform_admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $validated = $request->validate([
+                'reason' => 'nullable|string|max:1000',
+            ]);
+
+            $company = Company::findOrFail($id);
+
+            // Update company status to declined
+            $company->update([
+                'company_status' => 'declined',
+                'approved_at' => now(),
+                'approved_by' => $user->id,
+            ]);
+
+            // Deactivate subscription
+            $company->subscriptions()->update(['status' => 'inactive']);
+            $company->update(['subscription_status' => 'none']);
+
+            // Process refund if payment exists
+            $this->processRefund($company);
+
+            // Send decline notification to company users
+            $this->notifyCompanyDeclined($company, $validated['reason'] ?? null);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Company '{$company->name}' has been declined",
+                'company' => [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'company_status' => 'declined',
+                    'declined_at' => $company->approved_at->format('Y-m-d H:i:s'),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error declining company: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to decline company',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Process refund for declined company
+     */
+    private function processRefund(Company $company): void
+    {
+        // Get the latest payment for this company
+        $payment = \App\Models\PaymentSimulation::where('company_id', $company->id)
+            ->where('payment_status', 'verified')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($payment) {
+            // Mark payment as refunded
+            $payment->update([
+                'payment_status' => 'refunded',
+                'verified_at' => now(),
+            ]);
+
+            \Illuminate\Support\Facades\Log::info('Refund processed', [
+                'company_id' => $company->id,
+                'payment_id' => $payment->id,
+                'amount' => $payment->simulated_amount,
+                'timestamp' => now(),
+            ]);
+        }
+    }
+
+    /**
+     * Send approval notification to company users
+     */
+    private function notifyCompanyApproved(Company $company): void
+    {
+        $companyUsers = $company->users()->where('role', 'admin')->get();
+
+        foreach ($companyUsers as $user) {
+            // Create notification
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'title' => 'Company Approved',
+                'message' => "Your company has been approved. All fleet management features are now unlocked.",
+                'type' => 'approval',
+                'is_read' => false,
+            ]);
+
+            // Create message
+            Message::create([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'subject' => 'Company Approval Confirmation',
+                'message' => "Congratulations! Your company '{$company->name}' has been approved by the platform administrator. You now have full access to all GoldFleet features.",
+                'sender_name' => 'GoldFleet Platform',
+                'is_read' => false,
+            ]);
+        }
+    }
+
+    /**
+     * Send decline notification to company users
+     */
+    private function notifyCompanyDeclined(Company $company, ?string $reason = null): void
+    {
+        $companyUsers = $company->users()->where('role', 'admin')->get();
+
+        foreach ($companyUsers as $user) {
+            $reasonText = $reason ? "Reason: {$reason}. " : "";
+            
+            // Create notification
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'title' => 'Company Application Declined',
+                'message' => "Your company application has been declined. {$reasonText}Please contact support for more information.",
+                'type' => 'decline',
+                'is_read' => false,
+            ]);
+
+            // Create message
+            Message::create([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'subject' => 'Company Application Decision',
+                'message' => "Your company '{$company->name}' application has been reviewed and declined. {$reasonText}Your payment has been refunded. Please contact support at support@goldfleet.com if you have questions.",
+                'sender_name' => 'GoldFleet Platform',
+                'is_read' => false,
+            ]);
+        }
     }
 }

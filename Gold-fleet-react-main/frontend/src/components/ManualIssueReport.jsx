@@ -125,8 +125,8 @@ export default function ManualIssueReport({ vehicleId, driverId, tripId, onSubmi
   const selectedPriority = priorityOptions.find((p) => p.value === formData.priority);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-      <div className="mb-6">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3 mb-3">
           <FaTimesCircle className="text-red-600 text-2xl" />
           <h2 className="text-2xl font-bold text-gray-900">Report Vehicle Issue</h2>
@@ -134,167 +134,170 @@ export default function ManualIssueReport({ vehicleId, driverId, tripId, onSubmi
         <p className="text-gray-600">Submit a problem or concern about your vehicle</p>
       </div>
 
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Quick Problem Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Common Problems (Click to select)
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {commonProblems.map((problem) => (
-              <button
-                key={problem}
-                type="button"
-                onClick={() => handleQuickSelect(problem)}
-                className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors text-left ${
-                  formData.title === problem
-                    ? 'bg-yellow-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {problem}
-              </button>
-            ))}
+      <div className="overflow-y-auto flex-1 p-6">
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
           </div>
-        </div>
+        )}
 
-        {/* Issue Title */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Issue Title * <span className="text-gray-500 text-xs">(or select from above)</span>
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="Brief description of the issue"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-        </div>
-
-        {/* Issue Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Provide detailed information about the issue - when did it start, what do you hear/see, etc."
-            rows="4"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-        </div>
-
-        {/* Priority */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level *</label>
-          <div className="grid grid-cols-4 gap-2">
-            {priorityOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    priority: option.value,
-                  }))
-                }
-                className={`py-2 px-3 rounded-lg font-medium text-sm transition-all ${
-                  formData.priority === option.value
-                    ? `${option.color} ring-2 ring-offset-2 ring-blue-500`
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <div className={`mt-2 text-sm px-3 py-2 rounded ${selectedPriority?.color}`}>
-            <strong>{selectedPriority?.label} Priority:</strong>
-            {selectedPriority?.value === 'low' && ' Can wait, discuss at next service'}
-            {selectedPriority?.value === 'medium' && ' Should be addressed soon'}
-            {selectedPriority?.value === 'high' && ' Needs attention before next trip'}
-            {selectedPriority?.value === 'critical' && ' Stop using vehicle immediately'}
-          </div>
-        </div>
-
-        {/* Photo Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Photo (Optional)
-          </label>
-
-          {photoPreview ? (
-            <div className="relative mb-4">
-              <img
-                src={photoPreview}
-                alt="Issue preview"
-                className="max-w-full max-h-64 rounded-lg border border-gray-200"
-              />
-              <button
-                type="button"
-                onClick={handleRemovePhoto}
-                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
-              >
-                <FaTimes />
-              </button>
-              <p className="text-sm text-gray-600 mt-2">File: {photo?.name}</p>
+        <form onSubmit={handleSubmit} className="space-y-6" id="issue-report-form">
+          {/* Quick Problem Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Common Problems (Click to select)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {commonProblems.map((problem) => (
+                <button
+                  key={problem}
+                  type="button"
+                  onClick={() => handleQuickSelect(problem)}
+                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors text-left ${
+                    formData.title === problem
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {problem}
+                </button>
+              ))}
             </div>
-          ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-yellow-500 hover:bg-yellow-50 transition-colors"
-            >
-              <FaUpload className="mx-auto text-3xl text-gray-400 mb-2" />
-              <p className="font-medium text-gray-700">Click to upload or drag and drop</p>
-              <p className="text-sm text-gray-500">PNG, JPG, GIF up to 5MB</p>
+          </div>
+
+          {/* Issue Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Issue Title * <span className="text-gray-500 text-xs">(or select from above)</span>
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              placeholder="Brief description of the issue"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            />
+          </div>
+
+          {/* Issue Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Provide detailed information about the issue - when did it start, what do you hear/see, etc."
+              rows="3"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            />
+          </div>
+
+          {/* Priority */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level *</label>
+            <div className="grid grid-cols-4 gap-2">
+              {priorityOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      priority: option.value,
+                    }))
+                  }
+                  className={`py-2 px-3 rounded-lg font-medium text-sm transition-all ${
+                    formData.priority === option.value
+                      ? `${option.color} ring-2 ring-offset-2 ring-blue-500`
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
-          )}
+            <div className={`mt-2 text-sm px-3 py-2 rounded ${selectedPriority?.color}`}>
+              <strong>{selectedPriority?.label} Priority:</strong>
+              {selectedPriority?.value === 'low' && ' Can wait, discuss at next service'}
+              {selectedPriority?.value === 'medium' && ' Should be addressed soon'}
+              {selectedPriority?.value === 'high' && ' Needs attention before next trip'}
+              {selectedPriority?.value === 'critical' && ' Stop using vehicle immediately'}
+            </div>
+          </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            className="hidden"
-          />
-        </div>
+          {/* Photo Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Photo (Optional)
+            </label>
 
-        {/* Report Info */}
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <p className="text-sm text-blue-900">
-            <strong>Note:</strong> When you submit this report, your company admin will be notified
-            and can assign a mechanic to address the issue.
-          </p>
-        </div>
+            {photoPreview ? (
+              <div className="relative mb-4">
+                <img
+                  src={photoPreview}
+                  alt="Issue preview"
+                  className="max-w-full max-h-48 rounded-lg border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                >
+                  <FaTimes />
+                </button>
+                <p className="text-sm text-gray-600 mt-2">File: {photo?.name}</p>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-yellow-500 hover:bg-yellow-50 transition-colors"
+              >
+                <FaUpload className="mx-auto text-3xl text-gray-400 mb-2" />
+                <p className="font-medium text-gray-700">Click to upload or drag and drop</p>
+                <p className="text-sm text-gray-500">PNG, JPG, GIF up to 5MB</p>
+              </div>
+            )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Submitting...' : 'Submit Issue Report'}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 bg-gray-200 text-gray-900 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+          </div>
+
+          {/* Report Info */}
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <p className="text-sm text-blue-900">
+              <strong>Note:</strong> When you submit this report, your company admin will be notified
+              and can assign a mechanic to address the issue.
+            </p>
+          </div>
+        </form>
+      </div>
+
+      {/* Action Buttons - Sticky Footer */}
+      <div className="border-t border-gray-200 bg-white p-6 flex gap-3">
+        <button
+          form="issue-report-form"
+          type="submit"
+          disabled={loading}
+          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {loading ? 'Submitting...' : 'Submit Issue Report'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 bg-gray-200 text-gray-900 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }

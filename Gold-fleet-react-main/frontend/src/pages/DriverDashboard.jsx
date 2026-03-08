@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
@@ -83,6 +83,7 @@ export default function DriverDashboard() {
   const [driverId, setDriverId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [showMessages, setShowMessages] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [activeTab, setActiveTab] = useState('trips'); // trips, overview, trip, maintenance
   const [assignedTrips, setAssignedTrips] = useState([]);
   const [windowSize, setWindowSize] = useState({
@@ -91,6 +92,8 @@ export default function DriverDashboard() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const mapRef = useRef(null);
+  const [startLocationCoords, setStartLocationCoords] = useState(null);
+  const [endLocationCoords, setEndLocationCoords] = useState(null);
 
   // Handle window resize for responsive design
   useEffect(() => {
@@ -131,7 +134,54 @@ export default function DriverDashboard() {
     }
   }, [currentTrip]);
 
-  // Fetch driver and assigned trips
+  // Geocode location string to coordinates (Nominatim free API)
+  const geocodeLocation = async (locationString) => {
+    if (!locationString || locationString === 'Current Location' || locationString === 'TBD') {
+      return null;
+    }
+    
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationString)}`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      }
+    } catch (err) {
+      console.error('Geocoding error:', err);
+    }
+    
+    return null;
+  };
+
+  // Load location coordinates when trip changes
+  useEffect(() => {
+    if (currentTrip) {
+      const loadCoordinates = async () => {
+        // Start location: if "Current Location", use current GPS
+        if (currentTrip.start_location === 'Current Location' || !currentTrip.start_location) {
+          setStartLocationCoords(currentLocation);
+        } else {
+          const coords = await geocodeLocation(currentTrip.start_location);
+          setStartLocationCoords(coords || currentLocation);
+        }
+        
+        // End location: geocode it
+        const endCoords = await geocodeLocation(currentTrip.end_location);
+        setEndLocationCoords(endCoords);
+      };
+      
+      loadCoordinates();
+    } else {
+      setStartLocationCoords(null);
+      setEndLocationCoords(null);
+    }
+  }, [currentTrip]);
+
+  // Fetch driver data and assign trips
   useEffect(() => {
     const fetchDriverData = async () => {
       try {
@@ -140,7 +190,10 @@ export default function DriverDashboard() {
         // Get all drivers and find the one for this user
         const driversResponse = await api.getDrivers();
         const drivers = driversResponse.data || driversResponse;
-        const userDriver = Array.isArray(drivers) ? drivers[0] : null;
+        // Find driver that matches current user
+        const userDriver = Array.isArray(drivers) 
+          ? drivers.find(d => d.user_id === user.id || d.id === user.driver_id) || drivers[0]
+          : null;
         
         if (userDriver) {
           setDriverId(userDriver.id);
@@ -324,21 +377,22 @@ export default function DriverDashboard() {
 
   // Start trip
   const startTrip = async () => {
-    if (!vehicle || !user) return;
+    if (!vehicle || !driverId || !currentTrip) return;
     
     try {
-      await api.createTrip({
-        vehicle_id: vehicle.id,
-        driver_id: user.id,
-        start_location: 'Current Location',
-        end_location: 'TBD',
-        start_time: new Date().toISOString().slice(0, 16),
-        status: 'active',
-        trip_date: new Date().toISOString().split('T')[0],
-        start_mileage: 0,
+      await api.updateTrip(currentTrip.id, {
+        status: 'in_progress',
       });
-      // Refresh data
-      window.location.reload();
+      
+      // Switch to trip map view
+      setActiveTab('trip');
+      
+      // Start GPS tracking
+      startGPSTracking();
+      
+      // Refresh trip data
+      const updatedTrip = await api.getTrip(currentTrip.id);
+      setCurrentTrip(updatedTrip.data || updatedTrip);
     } catch (err) {
       console.error('Error starting trip:', err);
       setError('Failed to start trip');
@@ -350,14 +404,15 @@ export default function DriverDashboard() {
     if (!currentTrip) return;
     
     try {
+      stopGPSTracking();
+      
       await api.updateTrip(currentTrip.id, {
-        ...currentTrip,
         status: 'completed',
-        end_location: 'Current Location',
-        end_time: new Date().toISOString().slice(0, 16),
       });
-      // Refresh data
-      window.location.reload();
+      
+      // Refresh trip data
+      const updatedTrip = await api.getTrip(currentTrip.id);
+      setCurrentTrip(updatedTrip.data || updatedTrip);
     } catch (err) {
       console.error('Error ending trip:', err);
       setError('Failed to end trip');
@@ -371,8 +426,10 @@ export default function DriverDashboard() {
       await api.createInspection(inspectionData);
       setShowInspection(false);
       setError(null);
-      // Refresh data
-      window.location.reload();
+      setSuccessMessage('Inspection submitted successfully!');
+      // Auto-dismiss success message after 4 seconds
+      setTimeout(() => setSuccessMessage(null), 4000);
+      setLoading(false);
     } catch (err) {
       console.error('Error submitting inspection:', err);
       setError('Failed to submit inspection');
@@ -387,8 +444,10 @@ export default function DriverDashboard() {
       await api.createIssue(issueData);
       setShowIssueReport(false);
       setError(null);
-      // Refresh data
-      window.location.reload();
+      setSuccessMessage('Issue report submitted successfully!');
+      // Auto-dismiss success message after 4 seconds
+      setTimeout(() => setSuccessMessage(null), 4000);
+      setLoading(false);
     } catch (err) {
       console.error('Error submitting issue:', err);
       setError('Failed to submit issue report');
@@ -553,6 +612,37 @@ export default function DriverDashboard() {
           </div>
         )}
 
+        {/* Success and Error Messages */}
+        {successMessage && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-3 animate-pulse">
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">{successMessage}</span>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="ml-auto text-green-700 hover:text-green-900"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3">
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-700 hover:text-red-900"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Tab Navigation - Responsive and Scrollable */}
         <div className="flex gap-2 mb-4 sm:mb-8 border-b border-gray-200 bg-white rounded-t-lg px-3 sm:px-6 overflow-x-auto sticky top-0 z-20">
           <button
@@ -621,7 +711,10 @@ export default function DriverDashboard() {
                     {assignedTrips.map((trip) => (
                       <div
                         key={trip.id}
-                        onClick={() => setCurrentTrip(trip)}
+                        onClick={() => {
+                          setCurrentTrip(trip);
+                          setActiveTab('overview');
+                        }}
                         className={`p-4 sm:p-6 cursor-pointer transition-all hover:bg-blue-50 border-l-4 ${
                           currentTrip?.id === trip.id
                             ? 'border-blue-600 bg-blue-50'
@@ -702,7 +795,18 @@ export default function DriverDashboard() {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
                     
-                    {/* Route Line */}
+                    {/* Start-to-End Route Line */}
+                    {startLocationCoords && endLocationCoords && (
+                      <Polyline 
+                        positions={[startLocationCoords, endLocationCoords]} 
+                        color="#10b981" 
+                        weight={4}
+                        opacity={0.6}
+                        dashArray="5, 5"
+                      />
+                    )}
+                    
+                    {/* GPS Tracked Route Waypoints */}
                     {routeWaypoints.length > 1 && (
                       <Polyline 
                         positions={routeWaypoints} 
@@ -712,7 +816,45 @@ export default function DriverDashboard() {
                       />
                     )}
                     
-                    {/* Vehicle Marker */}
+                    {/* Start Location Marker */}
+                    {startLocationCoords && (
+                      <Marker position={startLocationCoords} icon={L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                      })}>
+                        <Popup>
+                          <div className="text-xs sm:text-sm">
+                            <p className="font-semibold text-green-600">Start Location</p>
+                            <p>{currentTrip?.start_location}</p>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )}
+                    
+                    {/* End Location Marker */}
+                    {endLocationCoords && (
+                      <Marker position={endLocationCoords} icon={L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                      })}>
+                        <Popup>
+                          <div className="text-xs sm:text-sm">
+                            <p className="font-semibold text-red-600">End Location</p>
+                            <p>{currentTrip?.end_location}</p>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )}
+                    
+                    {/* Vehicle Marker (live position) */}
                     {vehicle && (
                       <Marker position={currentLocation} icon={vehicleIcon}>
                         <Popup>
@@ -854,7 +996,7 @@ export default function DriverDashboard() {
                     <p className="text-gray-600 mb-4 text-sm sm:text-base">Perform a pre-trip or safety inspection of your vehicle.</p>
                     <button
                       onClick={() => setShowInspection(true)}
-                      disabled={!vehicle || !driverId}
+                      disabled={!currentTrip || !driverId}
                       className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-yellow-700 hover:to-yellow-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-semibold transition-all shadow-md hover:shadow-lg text-sm sm:text-base gap-2"
                     >
                       <FaClipboardList />
@@ -879,7 +1021,7 @@ export default function DriverDashboard() {
                     <p className="text-gray-600 mb-4 text-sm sm:text-base">Report any problems or concerns with your vehicle.</p>
                     <button
                       onClick={() => setShowIssueReport(true)}
-                      disabled={!vehicle || !driverId}
+                      disabled={!currentTrip || !driverId}
                       className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-red-700 hover:to-red-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-semibold transition-all shadow-md hover:shadow-lg text-sm sm:text-base gap-2"
                     >
                       <FaExclamationTriangle />
@@ -968,14 +1110,16 @@ export default function DriverDashboard() {
               <div className="p-3 sm:p-6 space-y-1 sm:space-y-2">
                 <button
                   onClick={() => { setShowInspection(true); setActiveTab('maintenance'); }}
-                  className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-yellow-50 transition-colors flex items-center text-gray-700 hover:text-yellow-700 font-medium text-sm sm:text-base gap-2"
+                  disabled={!currentTrip || !driverId}
+                  className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-yellow-50 transition-colors flex items-center text-gray-700 hover:text-yellow-700 font-medium text-sm sm:text-base gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaClipboardList className="text-yellow-600 flex-shrink-0" />
                   <span className="truncate">Run Inspection</span>
                 </button>
                 <button
                   onClick={() => { setShowIssueReport(true); setActiveTab('maintenance'); }}
-                  className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-red-50 transition-colors flex items-center text-gray-700 hover:text-red-700 font-medium text-sm sm:text-base gap-2"
+                  disabled={!currentTrip || !driverId}
+                  className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-red-50 transition-colors flex items-center text-gray-700 hover:text-red-700 font-medium text-sm sm:text-base gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaExclamationTriangle className="text-red-600 flex-shrink-0" />
                   <span className="truncate">Report Issue</span>
@@ -1000,10 +1144,10 @@ export default function DriverDashboard() {
 
         {/* Inspection Modal */}
         {showInspection && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
-            <div className="my-4 sm:my-8 w-full max-w-2xl">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg">
               <VehicleInspectionChecklist
-                vehicleId={vehicle?.id}
+                vehicleId={currentTrip?.vehicle_id}
                 driverId={driverId}
                 tripId={currentTrip?.id}
                 onSubmit={handleInspectionSubmit}
@@ -1015,10 +1159,10 @@ export default function DriverDashboard() {
 
         {/* Issue Report Modal */}
         {showIssueReport && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
-            <div className="my-4 sm:my-8 w-full max-w-2xl">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg">
               <ManualIssueReport
-                vehicleId={vehicle?.id}
+                vehicleId={currentTrip?.vehicle_id}
                 driverId={driverId}
                 tripId={currentTrip?.id}
                 onSubmit={handleIssueSubmit}

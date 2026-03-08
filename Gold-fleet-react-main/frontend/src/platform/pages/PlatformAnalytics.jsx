@@ -78,7 +78,7 @@ export default function PlatformAnalytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading analytics...</p>
@@ -88,34 +88,34 @@ export default function PlatformAnalytics() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
+    <div className="min-h-screen bg-white py-4">
+      <div className="w-full px-2 space-y-6">
         {/* Header */}
-<div className="flex items-center justify-between bg-white rounded-xl border border-yellow-200 p-6 shadow-lg">
+        <div className="flex items-center justify-between bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl border border-yellow-600 p-6 shadow-lg">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <FaChartLine className="text-yellow-700" />
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <FaChartLine className="text-white" />
               Platform Analytics
             </h1>
-            <p className="text-gray-600 mt-2">Detailed SaaS Business Metrics</p>
+            <p className="text-yellow-100 mt-2">Detailed SaaS Business Metrics</p>
           </div>
           <button
             onClick={fetchAnalytics}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-50 border border-yellow-300 text-yellow-700 font-semibold rounded-lg hover:bg-yellow-100 hover:shadow-md active:scale-95 transition-all duration-200"
-        >
-          <FaSync className="text-sm" />
-          Refresh
-        </button>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-gray-50 border border-yellow-200 rounded-lg text-gray-800 text-sm">
-          Using demo data. {error}
+            className="inline-flex items-center gap-2 px-5 py-3 bg-white border border-white text-yellow-600 font-semibold rounded-lg hover:shadow-md active:scale-95 transition-all duration-200"
+          >
+            <FaSync className="text-sm" />
+            Refresh
+          </button>
         </div>
-      )}
 
-      {/* Company Growth Chart */}
-      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-red-800 text-sm">
+            Using demo data. {error}
+          </div>
+        )}
+
+        {/* Company Growth Chart */}
+        <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FaChartLine className="text-yellow-700" />
           Company Growth Trend
@@ -147,7 +147,7 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Trips Per Company */}
-      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FaChartLine className="text-yellow-700" />
           Top Companies by Trips
@@ -168,7 +168,7 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Vehicle Usage */}
-      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FaChartLine className="text-yellow-700" />
           Vehicle Type Usage
@@ -189,7 +189,7 @@ export default function PlatformAnalytics() {
       </div>
 
       {/* Revenue by Plan */}
-      <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FaChartLine className="text-yellow-700" />
           Revenue by Subscription Plan

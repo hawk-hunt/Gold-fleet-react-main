@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Vehicle;
 use App\Models\Trip;
 use App\Models\Message;
+use App\Models\Plan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -161,10 +162,26 @@ class PlatformDashboardController extends Controller
                     default => 'Registered'
                 };
                 
-                // Get plan information
+                // Get plan information - check multiple sources
                 $planName = 'N/A';
-                if ($latestSubscription && $latestSubscription->plan) {
-                    $planName = $latestSubscription->plan->name;
+                
+                // First try from latest subscription
+                if ($latestSubscription) {
+                    if ($latestSubscription->plan) {
+                        $planName = $latestSubscription->plan->name;
+                    } elseif ($latestSubscription->plan_id) {
+                        // Try loading plan directly
+                        $plan = Plan::find($latestSubscription->plan_id);
+                        if ($plan) {
+                            $planName = $plan->name;
+                        }
+                    }
+                }
+                
+                // Fallback: check subscription_status for plan info
+                if ($planName === 'N/A' && $latestSubscription && $latestSubscription->status) {
+                    // Use subscription status if plan name not found
+                    $planName = ucfirst(str_replace('_', ' ', $latestSubscription->status));
                 }
                 
                 // Get subscription status
@@ -190,6 +207,8 @@ class PlatformDashboardController extends Controller
                     'subscription_status' => $subscriptionStatus,
                     'payment_status' => $paymentStatus,
                     'plan' => $planName,
+                    'subscription_plan' => $planName, // Alias for backward compatibility
+                    'plan_name' => $planName, // Alias for backward compatibility
                     'vehicles' => $vehiclesCount,
                     'drivers' => $driversCount,
                     'created_at' => $company->created_at->format('Y-m-d'),

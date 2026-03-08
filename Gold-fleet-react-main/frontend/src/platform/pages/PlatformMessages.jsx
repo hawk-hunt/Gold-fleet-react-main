@@ -84,7 +84,7 @@ export default function PlatformMessages() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading messages...</p>
@@ -94,45 +94,45 @@ export default function PlatformMessages() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
+    <div className="min-h-screen bg-white py-4">
+      <div className="w-full px-2 space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl border border-yellow-200 p-6 shadow-lg">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FaEnvelope className="text-yellow-700" />
-            Messages
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Communication with tenant companies {unreadCount > 0 && `(${unreadCount} unread)`}
-          </p>
+        <div className="flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl border border-yellow-600 p-6 shadow-lg">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <FaEnvelope className="text-white" />
+              Messages
+            </h1>
+            <p className="text-yellow-100 mt-2">
+              Communication with tenant companies {unreadCount > 0 && `(${unreadCount} unread)`}
+            </p>
+          </div>
+          <div className="flex gap-3 mt-4 md:mt-0">
+            <button
+              onClick={fetchMessages}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-white border border-white text-yellow-600 font-semibold rounded-lg hover:shadow-md active:scale-95 transition-all duration-200"
+            >
+              <FaSync className="text-sm" />
+              Refresh
+            </button>
+            <button
+              onClick={() => setShowCompose(!showCompose)}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-white text-yellow-600 font-semibold rounded-lg shadow-md hover:shadow-lg active:scale-95 transition-all duration-200"
+            >
+              <FaPlus /> Compose
+            </button>
+          </div>
         </div>
-        <div className="flex gap-3 mt-4 md:mt-0">
-          <button
-            onClick={fetchMessages}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-50 border border-yellow-300 text-yellow-700 font-semibold rounded-lg hover:bg-yellow-100 hover:shadow-md active:scale-95 transition-all duration-200"
-          >
-            <FaSync className="text-sm" />
-            Refresh
-          </button>
-          <button
-            onClick={() => setShowCompose(!showCompose)}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg active:scale-95 transition-all duration-200"
-          >
-            <FaPlus /> Compose
-          </button>
-        </div>
-      </div>
 
-      {error && (
-        <div className="p-4 bg-gray-50 border border-yellow-200 rounded-lg text-gray-800 text-sm">
-          Using demo data. {error}
-        </div>
-      )}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-red-800 text-sm">
+            Using demo data. {error}
+          </div>
+        )}
 
-      {/* Compose Form */}
-      {showCompose && (
-        <div className="bg-white border border-yellow-200 rounded-lg p-6 space-y-4 shadow-lg">
+        {/* Compose Form */}
+        {showCompose && (
+          <div className="bg-white border-2 border-yellow-500 rounded-lg p-6 space-y-4 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-900">Send Message</h3>
           <div className="grid grid-cols-1 gap-4">
             <select className="px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all">
@@ -168,13 +168,13 @@ export default function PlatformMessages() {
 
       {/* Search Bar */}
       <div className="relative">
-        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-600" />
         <input
           type="text"
           placeholder="Search messages..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all"
+          className="w-full pl-12 pr-4 py-3 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all"
         />
       </div>
 
@@ -183,10 +183,10 @@ export default function PlatformMessages() {
         {filteredMessages.map((msg) => (
           <div
             key={msg.id}
-            className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+            className={`p-4 border-2 border-yellow-500 rounded-lg cursor-pointer transition-all hover:shadow-md ${
               msg.read
-                ? 'bg-white border-yellow-200 hover:border-gray-300'
-                : 'bg-gray-50 border-yellow-200 hover:border-gray-300'
+                ? 'bg-white hover:shadow-lg'
+                : 'bg-yellow-50 hover:shadow-lg'
             }`}
           >
             <div className="flex items-start justify-between gap-4">
@@ -213,7 +213,7 @@ export default function PlatformMessages() {
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border border-yellow-200">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border-2 border-yellow-500">
         <p className="text-gray-600">
           Showing {filteredMessages.length} of {messages.length} messages
         </p>
@@ -221,13 +221,13 @@ export default function PlatformMessages() {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-100 text-yellow-700 rounded-lg disabled:opacity-50 hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 border-2 border-yellow-500 text-yellow-700 bg-white rounded-lg disabled:opacity-50 hover:bg-yellow-50 transition-colors font-medium"
           >
             Previous
           </button>
           <button
             onClick={() => setPage(page + 1)}
-            className="px-4 py-2 bg-gray-100 text-yellow-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
           >
             Next
           </button>

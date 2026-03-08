@@ -15,8 +15,9 @@ import {
 import platformApi from '../../platform/services/platformApi';
 
 /**
- * Payment Management Component
- * Displays all company payments, earnings breakdown, and verification status
+ * Payment Management - Modern Gold & White Theme
+ * Comprehensive payment tracking and revenue analytics for SaaS platform
+ * Color scheme: Gold (#FFD700) and White (#FFFFFF) only
  */
 export default function PaymentManagement() {
   const [payments, setPayments] = useState([]);
@@ -130,38 +131,41 @@ export default function PaymentManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading Payment Data...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-300 border-t-yellow-600 mx-auto"></div>
+          <p className="mt-6 text-gray-600 font-semibold text-lg">Loading Payments...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl border border-yellow-200 p-6 shadow-lg">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <FaCreditCard className="text-yellow-700" />
-              Payment Management
-            </h1>
-            <p className="mt-2 text-lg text-gray-600">Track and manage all company payments</p>
+    <div className="min-h-screen bg-white py-4">
+      <div className="w-full px-2 space-y-6">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl p-8 shadow-lg">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
+            <div>
+              <h1 className="text-5xl font-bold text-white flex items-center gap-3">
+                <FaCreditCard className="text-white" />
+                Payment Management
+              </h1>
+              <p className="mt-3 text-lg text-yellow-50 font-medium">Track and manage all company payments and earnings</p>
+              <p className="mt-2 text-sm text-yellow-50 font-semibold">Real-time payment verification and revenue analytics</p>
+            </div>
+            <button
+              onClick={fetchPaymentData}
+              className="mt-6 md:mt-0 inline-flex items-center gap-3 px-6 py-3 bg-white text-yellow-600 font-bold rounded-xl hover:bg-yellow-50 hover:shadow-lg active:scale-95 transition-all duration-200 text-base"
+            >
+              <FaSync className="text-lg" />
+              Refresh Data
+            </button>
           </div>
-          <button
-            onClick={fetchPaymentData}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-300 text-yellow-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
-          >
-            <FaSync className="text-sm" />
-            Refresh
-          </button>
         </div>
 
         {error && (
-          <div className="bg-gray-50 border border-yellow-200 rounded-lg p-4 text-yellow-700">
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-red-700 font-semibold">
             {error}
           </div>
         )}
@@ -170,7 +174,7 @@ export default function PaymentManagement() {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Total Collected */}
-            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Total Collected</p>
@@ -186,7 +190,7 @@ export default function PaymentManagement() {
             </div>
 
             {/* Platform Revenue */}
-            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Platform Revenue</p>
@@ -202,7 +206,7 @@ export default function PaymentManagement() {
             </div>
 
             {/* Company Earnings */}
-            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Company Earnings</p>
@@ -218,7 +222,7 @@ export default function PaymentManagement() {
             </div>
 
             {/* Payment Count */}
-            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
+            <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Verified Payments</p>
@@ -237,13 +241,13 @@ export default function PaymentManagement() {
 
         {/* Companies Summary */}
         {companiesSummary.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
+          <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Company Payment Summary</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-yellow-50 border-b-2 border-yellow-500">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Company</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase font-bold">Company</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Total Paid</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Company Earnings</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Payments</th>
@@ -315,7 +319,7 @@ export default function PaymentManagement() {
         </div>
 
         {/* Payments Table */}
-        <div className="bg-white rounded-xl shadow-lg border border-yellow-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 overflow-hidden">
           <div className="p-6 border-b border-yellow-200">
             <h2 className="text-2xl font-bold text-gray-900">Payment History</h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -325,7 +329,7 @@ export default function PaymentManagement() {
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-yellow-50 border-b-2 border-yellow-500">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Payment</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Company</th>
@@ -336,10 +340,10 @@ export default function PaymentManagement() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-yellow-200">
                 {paginatedPayments.length > 0 ? (
                   paginatedPayments.map((payment) => (
-                    <tr key={payment.id} className="hover:bg-gray-50">
+                    <tr key={payment.id} className="hover:bg-yellow-50">
                       <td className="px-6 py-4">
                         <p className="font-medium text-gray-900">#{payment.id}</p>
                         <p className="text-xs text-gray-500">
@@ -406,7 +410,7 @@ export default function PaymentManagement() {
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-yellow-200 flex items-center justify-between">
+          <div className="px-6 py-4 border-t-2 border-yellow-500 flex items-center justify-between">
             <p className="text-sm text-gray-600">
               Page {currentPage} of {Math.ceil(filteredPayments.length / pageSize)}
             </p>
@@ -414,7 +418,7 @@ export default function PaymentManagement() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border-2 border-yellow-500 rounded-lg text-yellow-700 bg-white hover:bg-yellow-50 disabled:opacity-50 disabled:bg-gray-50 font-medium transition-all duration-200"
               >
                 Previous
               </button>
@@ -425,7 +429,7 @@ export default function PaymentManagement() {
                   )
                 }
                 disabled={currentPage >= Math.ceil(filteredPayments.length / pageSize)}
-                className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50"
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:bg-gray-400 font-medium transition-all duration-200"
               >
                 Next
               </button>

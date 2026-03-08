@@ -164,7 +164,7 @@ export default function PlatformSubscriptions() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading subscriptions...</p>
@@ -174,20 +174,20 @@ export default function PlatformSubscriptions() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
+    <div className="min-h-screen bg-white py-4">
+      <div className="w-full px-2 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
+        <div className="flex items-center justify-between bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-6 shadow-lg">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <FaCreditCard className="text-gray-700" />
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <FaCreditCard className="text-white" />
               Subscription Management
             </h1>
-            <p className="text-gray-600 mt-2">Manage and monitor all company subscriptions</p>
+            <p className="text-yellow-50 mt-2">Manage and monitor all company subscriptions</p>
           </div>
           <button
             onClick={fetchSubscriptions}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 hover:shadow-md active:scale-95 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-white text-yellow-600 font-semibold rounded-lg hover:bg-yellow-50 hover:shadow-md active:scale-95 transition-all duration-200"
           >
             <FaSync className="text-sm" />
             Refresh
@@ -195,54 +195,69 @@ export default function PlatformSubscriptions() {
         </div>
 
         {error && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm animate-pulse">
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm animate-pulse">
             {success}
           </div>
         )}
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
-            <p className="text-gray-600 text-sm font-medium mb-2">Annual Revenue (Active)</p>
-            <p className="text-3xl font-bold text-gray-900">${getTotalRevenue().toLocaleString()}</p>
-            <p className="text-xs text-gray-600 mt-1 font-medium">From active subscriptions</p>
+          <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-2">Annual Revenue (Active)</p>
+                <p className="text-3xl font-bold text-gray-900">${getTotalRevenue().toLocaleString()}</p>
+              </div>
+              <div className="text-yellow-600 text-3xl">💰</div>
+            </div>
+            <p className="text-xs text-gray-600 mt-3 font-medium">From active subscriptions</p>
           </div>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
-            <p className="text-gray-600 text-sm font-medium mb-2">Active Subscriptions</p>
-            <p className="text-3xl font-bold text-gray-900">{getActiveCount()}</p>
-            <p className="text-xs text-gray-600 mt-1 font-medium">Running plans</p>
+          <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-2">Active Subscriptions</p>
+                <p className="text-3xl font-bold text-gray-900">{getActiveCount()}</p>
+              </div>
+              <div className="text-yellow-600 text-3xl">✓</div>
+            </div>
+            <p className="text-xs text-gray-600 mt-3 font-medium">Running plans</p>
           </div>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
-            <p className="text-gray-600 text-sm font-medium mb-2">Total Companies</p>
-            <p className="text-3xl font-bold text-gray-900">{subscriptions.length}</p>
-            <p className="text-xs text-gray-600 mt-1 font-medium">With subscriptions</p>
+          <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-500 p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-2">Total Companies</p>
+                <p className="text-3xl font-bold text-gray-900">{subscriptions.length}</p>
+              </div>
+              <div className="text-yellow-600 text-3xl">🏢</div>
+            </div>
+            <p className="text-xs text-gray-600 mt-3 font-medium">With subscriptions</p>
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="relative">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-600 text-lg" />
           <input
             type="text"
             placeholder="Search by company or plan..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
+            className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-yellow-500 rounded-lg text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:border-yellow-600 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
           />
         </div>
 
         {/* Subscriptions Table */}
-        <div className="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+        <div className="hidden lg:block bg-white rounded-lg border-2 border-yellow-500 overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-yellow-50 border-b-2 border-yellow-500">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Company</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Plan</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Monthly Price</th>
@@ -259,10 +274,10 @@ export default function PlatformSubscriptions() {
                   const isInTrial = sub.trial_ends_at && new Date(sub.trial_ends_at) > new Date();
                   
                   return (
-                    <tr key={sub.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr key={sub.id} className="border-b border-yellow-200 hover:bg-yellow-50 transition-colors">
                       <td className="px-6 py-4 text-gray-900 font-medium">{sub.company.name}</td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
                           {plan.name}
                         </span>
                       </td>
@@ -285,7 +300,7 @@ export default function PlatformSubscriptions() {
                             <button
                               onClick={() => handleSuspend(sub.id)}
                               disabled={actionLoading === sub.id}
-                              className="inline-flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-md text-xs border border-gray-200 hover:border-gray-400 disabled:opacity-50 active:scale-95 transition-all duration-200"
+                              className="inline-flex items-center gap-1 px-3 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-semibold rounded-md text-xs border border-yellow-300 hover:border-yellow-400 disabled:opacity-50 active:scale-95 transition-all duration-200"
                               title="Suspend subscription"
                             >
                               <FaPause className="w-3 h-3" /> Suspend
@@ -293,7 +308,7 @@ export default function PlatformSubscriptions() {
                             <button
                               onClick={() => handleDeactivate(sub.id)}
                               disabled={actionLoading === sub.id}
-                              className="inline-flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-md text-xs border border-gray-200 hover:border-gray-400 disabled:opacity-50 active:scale-95 transition-all duration-200"
+                              className="inline-flex items-center gap-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-md text-xs border border-red-300 hover:border-red-400 disabled:opacity-50 active:scale-95 transition-all duration-200"
                               title="Deactivate subscription"
                             >
                               <FaBan className="w-3 h-3" /> Deactivate
@@ -304,7 +319,7 @@ export default function PlatformSubscriptions() {
                           <button
                             onClick={() => handleResume(sub.id)}
                             disabled={actionLoading === sub.id}
-                            className="inline-flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-md text-xs border border-gray-200 hover:border-gray-400 disabled:opacity-50 active:scale-95 transition-all duration-200"
+                            className="inline-flex items-center gap-1 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-semibold rounded-md text-xs border border-green-300 hover:border-green-400 disabled:opacity-50 active:scale-95 transition-all duration-200"
                             title="Resume subscription"
                           >
                             <FaPlayCircle className="w-3 h-3" /> Resume
@@ -314,7 +329,7 @@ export default function PlatformSubscriptions() {
                           <button
                             onClick={() => handleActivate(sub.id)}
                             disabled={actionLoading === sub.id}
-                            className="inline-flex items-center gap-1 px-3 py-2 bg-gray-600 hover:shadow-md text-white font-semibold rounded-md text-xs disabled:opacity-50 active:scale-95 transition-all duration-200"
+                            className="inline-flex items-center gap-1 px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-md text-xs disabled:opacity-50 active:scale-95 transition-all duration-200"
                             title="Activate subscription"
                           >
                             <FaCheckCircle className="w-3 h-3" /> Activate
@@ -324,7 +339,7 @@ export default function PlatformSubscriptions() {
                       <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => handleViewDetails(sub.id)}
-                          className="text-blue-600 hover:text-blue-700 transition-colors"
+                          className="text-yellow-600 hover:text-yellow-700 transition-colors"
                           title="View subscription"
                         >
                           <FaInfoCircle className="w-5 h-5" />
@@ -346,7 +361,7 @@ export default function PlatformSubscriptions() {
             const isInTrial = sub.trial_ends_at && new Date(sub.trial_ends_at) > new Date();
             
             return (
-              <div key={sub.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow">
+              <div key={sub.id} className="bg-white rounded-lg border-2 border-yellow-500 p-4 hover:shadow-lg transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{sub.company.name}</h3>
@@ -356,7 +371,7 @@ export default function PlatformSubscriptions() {
                     {sub.status}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 py-3 border-t border-gray-200">
+                <div className="grid grid-cols-2 gap-2 py-3 border-t border-yellow-200">
                   <div>
                     <p className="text-xs text-gray-600">Price</p>
                     <p className="font-semibold text-gray-900">${plan.price}/mo</p>
@@ -373,7 +388,7 @@ export default function PlatformSubscriptions() {
                     <>
                       <button
                         onClick={() => handleSuspend(sub.id)}
-                        className="flex-1 py-2 px-3 bg-orange-100 hover:bg-orange-200 text-orange-700 font-medium rounded text-sm transition"
+                        className="flex-1 py-2 px-3 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-medium rounded text-sm transition"
                       >
                         Suspend
                       </button>
@@ -395,7 +410,7 @@ export default function PlatformSubscriptions() {
                   )}
                   <button
                     onClick={() => handleViewDetails(sub.id)}
-                    className="flex-1 py-2 px-3 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded text-sm transition"
+                    className="flex-1 py-2 px-3 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-medium rounded text-sm transition"
                   >
                     <FaInfoCircle className="inline mr-1" /> View
                   </button>
@@ -406,7 +421,7 @@ export default function PlatformSubscriptions() {
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg p-4 border-2 border-yellow-500">
           <p className="text-gray-600">
             Showing {filteredSubscriptions.length} subscriptions
           </p>
@@ -414,13 +429,13 @@ export default function PlatformSubscriptions() {
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg disabled:opacity-50 hover:bg-yellow-100 transition-colors"
+              className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg disabled:opacity-50 hover:bg-yellow-200 transition-colors font-semibold"
             >
               Previous
             </button>
             <button
               onClick={() => setPage(page + 1)}
-              className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors"
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-semibold"
             >
               Next
             </button>

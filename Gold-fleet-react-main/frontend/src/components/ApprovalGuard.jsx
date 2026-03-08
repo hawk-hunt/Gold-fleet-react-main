@@ -51,8 +51,10 @@ export const ApprovalGuard = ({ children }) => {
   useEffect(() => {
     if (!loading && isInitialized && company) {
       // Check if company is approved for fleet features
+      // Allow access if company is approved AND subscription is active OR suspended
+      // (users should still be able to manage fleet during suspension)
       const approved = company.company_status === 'approved' && 
-                       company.subscription_status === 'active';
+                       (company.subscription_status === 'active' || company.subscription_status === 'suspended');
       setIsApproved(approved);
     }
   }, [company, loading, isInitialized]);

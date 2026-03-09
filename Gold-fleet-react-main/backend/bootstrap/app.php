@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'authorize.api.token' => \App\Http\Middleware\AuthorizeApiToken::class,
             'driver' => \App\Http\Middleware\DriverMiddleware::class,
             'ensure.company.approved' => \App\Http\Middleware\EnsureCompanyApproved::class,
+            'ensure.driver.verified' => \App\Http\Middleware\EnsureDriverVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -12,7 +12,10 @@ class ReminderController extends Controller
      */
     public function index()
     {
-        $reminders = Reminder::with('vehicle')->get();
+        $companyId = auth()->user()->company_id ?? 1;
+        $reminders = Reminder::with('vehicle')
+            ->where('company_id', $companyId)
+            ->get();
         return response()->json(['data' => $reminders]);
     }
 
@@ -51,6 +54,9 @@ class ReminderController extends Controller
      */
     public function show(Reminder $reminder)
     {
+        if ($reminder->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $reminder->load('vehicle')]);
     }
 
@@ -59,6 +65,9 @@ class ReminderController extends Controller
      */
     public function edit(Reminder $reminder)
     {
+        if ($reminder->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $reminder->load('vehicle')]);
     }
 
@@ -67,6 +76,9 @@ class ReminderController extends Controller
      */
     public function update(Request $request, Reminder $reminder)
     {
+        if ($reminder->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         $validated = $request->validate([
             'vehicle_id' => 'required|exists:vehicles,id',
             'title' => 'required|string|max:255',
@@ -85,6 +97,9 @@ class ReminderController extends Controller
      */
     public function destroy(Reminder $reminder)
     {
+        if ($reminder->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         $reminder->delete();
         return response()->json(['success' => true, 'message' => 'Reminder deleted successfully.']);
     }

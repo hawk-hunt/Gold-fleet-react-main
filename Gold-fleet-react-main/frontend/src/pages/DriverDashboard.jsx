@@ -141,14 +141,10 @@ export default function DriverDashboard() {
     }
     
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationString)}`,
-        { headers: { 'Accept': 'application/json' } }
-      );
-      const data = await response.json();
-      
-      if (data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      const response = await api.geocode(locationString);
+      if (response.success && response.data && response.data.length > 0) {
+        const firstResult = response.data[0];
+        return [firstResult.lat, firstResult.lon];
       }
     } catch (err) {
       console.error('Geocoding error:', err);
@@ -353,11 +349,15 @@ export default function DriverDashboard() {
         },
         (error) => {
           console.error('GPS error:', error);
+          // If high accuracy times out, retry with lower accuracy
+          if (error.code === 3) {
+            console.log('GPS timeout - retrying with lower accuracy');
+          }
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
+          timeout: 10000,
+          maximumAge: 5000,
         }
       );
       setWatchId(id);
@@ -375,20 +375,51 @@ export default function DriverDashboard() {
     }
   };
 
+  // Format time to Y-m-d\TH:i format (remove seconds)
+  const formatTimeForBackend = (timeString) => {
+    if (!timeString) return '';
+    // Handle both ISO format and datetime-local format
+    if (timeString.includes('T')) {
+      // Remove seconds if present
+      return timeString.substring(0, 16); // YYYY-MM-DDTHH:MM
+    }
+    return timeString;
+  };
+
   // Start trip
   const startTrip = async () => {
     if (!vehicle || !driverId || !currentTrip) return;
     
     try {
-      await api.updateTrip(currentTrip.id, {
+      // Get the current trip data to ensure all required fields are included
+      const tripData = currentTrip;
+      
+      // Format times to match Laravel's expected format (Y-m-d\TH:i)
+      const startTime = formatTimeForBackend(tripData.start_time);
+      const endTime = formatTimeForBackend(tripData.end_time);
+      
+      // Update only the status while preserving other fields
+      const updateData = {
+        vehicle_id: tripData.vehicle_id,
+        driver_id: tripData.driver_id,
+        start_location: tripData.start_location,
+        end_location: tripData.end_location,
+        start_time: startTime,
+        end_time: endTime || '',
+        start_mileage: tripData.start_mileage || 0,
+        end_mileage: tripData.end_mileage || '',
+        distance: tripData.distance || '',
+        trip_date: tripData.trip_date || new Date().toISOString().split('T')[0],
         status: 'in_progress',
-      });
+      };
       
-      // Switch to trip map view
-      setActiveTab('trip');
+      await api.updateTrip(currentTrip.id, updateData);
       
-      // Start GPS tracking
+      // Start GPS tracking first
       startGPSTracking();
+      
+      // Switch to map view to show the route
+      setActiveTab('overview');
       
       // Refresh trip data
       const updatedTrip = await api.getTrip(currentTrip.id);
@@ -406,9 +437,29 @@ export default function DriverDashboard() {
     try {
       stopGPSTracking();
       
-      await api.updateTrip(currentTrip.id, {
+      // Get the current trip data to ensure all required fields are included
+      const tripData = currentTrip;
+      
+      // Format times to match Laravel's expected format (Y-m-d\TH:i)
+      const startTime = formatTimeForBackend(tripData.start_time);
+      const endTime = formatTimeForBackend(tripData.end_time) || formatTimeForBackend(new Date().toISOString().slice(0, 16));
+      
+      // Update only the status while preserving other fields
+      const updateData = {
+        vehicle_id: tripData.vehicle_id,
+        driver_id: tripData.driver_id,
+        start_location: tripData.start_location,
+        end_location: tripData.end_location,
+        start_time: startTime,
+        end_time: endTime,
+        start_mileage: tripData.start_mileage || 0,
+        end_mileage: tripData.end_mileage || '',
+        distance: tripData.distance || '',
+        trip_date: tripData.trip_date || new Date().toISOString().split('T')[0],
         status: 'completed',
-      });
+      };
+      
+      await api.updateTrip(currentTrip.id, updateData);
       
       // Refresh trip data
       const updatedTrip = await api.getTrip(currentTrip.id);
@@ -807,7 +858,7 @@ export default function DriverDashboard() {
                     )}
                     
                     {/* GPS Tracked Route Waypoints */}
-                    {routeWaypoints.length > 1 && (
+                    {routeWaypoints.length >= 1 && (
                       <Polyline 
                         positions={routeWaypoints} 
                         color="#3b82f6" 

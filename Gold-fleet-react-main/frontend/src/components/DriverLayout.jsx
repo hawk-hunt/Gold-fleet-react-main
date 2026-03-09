@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { FaSignOutAlt } from 'react-icons/fa';
+import { FaSignOutAlt, FaClipboardCheck, FaHome } from 'react-icons/fa';
 
 export default function DriverLayout({ children }) {
   const { user, logout } = useAuth();
@@ -28,6 +28,21 @@ export default function DriverLayout({ children }) {
             <div className="flex-shrink-0">
               <span className="text-2xl font-bold text-yellow-600">Gold Fleet</span>
             </div>
+            {/* Navigation Links */}
+            <nav className="hidden md:flex gap-6 ml-8">
+              <button
+                onClick={() => navigate('/driver/dashboard')}
+                className="flex items-center gap-2 text-gray-700 hover:text-yellow-600 font-medium transition"
+              >
+                <FaHome /> Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/driver/maintenance')}
+                className="flex items-center gap-2 text-gray-700 hover:text-yellow-600 font-medium transition"
+              >
+                <FaClipboardCheck /> Maintenance
+              </button>
+            </nav>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-700 font-medium">{user?.name}</span>

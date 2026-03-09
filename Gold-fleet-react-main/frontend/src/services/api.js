@@ -117,6 +117,17 @@ export const api = {
   }),
   deleteInspection: (id) => apiCall(`${API_BASE_URL}/inspections/${id}`, { method: 'DELETE' }),
 
+  // Driver Maintenance Checklist
+  submitMaintenanceChecklist: (data) => apiCall(`${API_BASE_URL}/inspections/submit-checklist`, { 
+    method: 'POST', 
+    body: JSON.stringify(data) 
+  }),
+  getPendingInspectionReviews: () => apiCall(`${API_BASE_URL}/inspections/pending-reviews`),
+  reviewInspection: (id, data) => apiCall(`${API_BASE_URL}/inspections/${id}/review`, { 
+    method: 'PATCH', 
+    body: JSON.stringify(data) 
+  }),
+
   // Issues
   getIssues: () => apiCall(`${API_BASE_URL}/issues`),
   getIssue: (id) => apiCall(`${API_BASE_URL}/issues/${id}`),
@@ -210,6 +221,10 @@ export const api = {
   deletePaymentSimulation: (id) => apiCall(`${API_BASE_URL}/payment-simulations/${id}`, { method: 'DELETE' }),
   getPaymentSimulationsBySubscription: (subscriptionId) => apiCall(`${API_BASE_URL}/payment-simulations/subscription/${subscriptionId}`),
   processPaymentSimulation: (id, data) => apiCall(`${API_BASE_URL}/payment-simulations/${id}/process`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Geocoding (location services - no auth needed)
+  geocode: (location) => apiCall(`${API_BASE_URL}/geocode`, { method: 'POST', body: JSON.stringify({ location }) }),
+  reverseGeocode: (lat, lon) => apiCall(`${API_BASE_URL}/reverse-geocode`, { method: 'POST', body: JSON.stringify({ lat, lon }) }),
 };
 
 export default api;

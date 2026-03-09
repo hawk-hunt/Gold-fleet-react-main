@@ -20,22 +20,19 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Geocode location name to coordinates
+// Geocode location name to coordinates using backend
 const geocodeLocation = async (locationString) => {
   if (!locationString) return null;
   
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationString)}`,
-      { headers: { 'Accept': 'application/json' } }
-    );
-    const data = await response.json();
+    const response = await api.geocode(locationString);
     
-    if (data.length > 0) {
+    if (response.success && response.data && response.data.length > 0) {
+      const firstResult = response.data[0];
       return {
-        name: data[0].display_name || locationString,
-        lat: parseFloat(data[0].lat),
-        lon: parseFloat(data[0].lon),
+        name: firstResult.name || locationString,
+        lat: firstResult.lat,
+        lon: firstResult.lon,
       };
     }
   } catch (err) {
@@ -52,6 +49,11 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
   const [searching, setSearching] = useState(false);
   const mapRef = useRef(null);
   const searchResultsRef = useRef(null);
+
+  // Sync searchQuery with value prop when it changes
+  useEffect(() => {
+    setSearchQuery(value || '');
+  }, [value]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -92,12 +94,10 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
 
     setSearching(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-        { headers: { 'Accept': 'application/json' } }
-      );
-      const results = await response.json();
-      setSearchResults(results);
+      const response = await api.geocode(query);
+      if (response.success && response.data) {
+        setSearchResults(response.data);
+      }
     } catch (err) {
       console.error('Search error:', err);
     } finally {
@@ -107,35 +107,34 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
 
   const handleSelectResult = (result) => {
     const locationObj = {
-      name: result.display_name,
+      name: result.name || result.display_name || 'Location',
       lat: parseFloat(result.lat),
       lon: parseFloat(result.lon),
     };
-    onLocationChange(result.display_name);
+    onLocationChange(locationObj.name);
     onCoordinatesChange(locationObj);
     setSearchResults([]);
     setShowMap(false);
   };
 
-  const handleMapClick = (e) => {
+  const handleMapClick = async (e) => {
     const { lat, lng } = e.latlng;
-    // Reverse geocode to get location name
-    fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-      { headers: { 'Accept': 'application/json' } }
-    )
-      .then(r => r.json())
-      .then(data => {
+    try {
+      // Reverse geocode to get location name using backend
+      const response = await api.reverseGeocode(lat, lng);
+      if (response.success && response.data) {
         const locationObj = {
-          name: data.address?.city || data.address?.county || data.display_name,
+          name: response.data.name,
           lat,
           lon: lng,
         };
         onLocationChange(locationObj.name);
         onCoordinatesChange(locationObj);
         setShowMap(false);
-      })
-      .catch(err => console.error('Reverse geocode error:', err));
+      }
+    } catch (err) {
+      console.error('Reverse geocode error:', err);
+    }
   };
 
   return (
@@ -143,7 +142,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
       <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
       <div className="space-y-2">
         {/* Search Input */}
-        <div className="relative">
+        <div className="relative z-40">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <FaSearch className="absolute left-3 top-3 text-gray-400" />
@@ -172,7 +171,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
 
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && (
-            <div ref={searchResultsRef} className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+            <div ref={searchResultsRef} className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
               {searching ? (
                 <div className="p-3 text-gray-500">Searching...</div>
               ) : (
@@ -206,7 +205,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
 
         {/* Map Selector */}
         {showMap && (
-          <div style={{ marginTop: '1rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', overflow: 'visible', width: '100%', height: '500px', position: 'relative', zIndex: 50 }}>
+          <div style={{ marginTop: '1rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', width: '100%', height: '500px', position: 'relative', zIndex: 1 }}>
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
               <MapContainer
                 center={[5.6037, -0.1870]}
@@ -257,6 +256,8 @@ export default function TripForm() {
     end_location: '',
     start_time: new Date().toISOString().slice(0, 16),
     end_time: '',
+    start_mileage: '',
+    end_mileage: '',
     distance: '',
     trip_date: new Date().toISOString().split('T')[0],
     status: 'planned',
@@ -279,6 +280,35 @@ export default function TripForm() {
       setFormData(prev => ({ ...prev, distance: distance.toFixed(2) }));
     }
   }, [startCoords, endCoords]);
+
+  // Auto-set start_mileage when vehicle is selected
+  useEffect(() => {
+    if (formData.vehicle_id) {
+      const selectedVehicle = vehicles.find(v => v.id === parseInt(formData.vehicle_id));
+      if (selectedVehicle && selectedVehicle.mileage && !id) {
+        // Only auto-fill on create (not edit)
+        setFormData(prev => ({
+          ...prev,
+          start_mileage: selectedVehicle.mileage.toString()
+        }));
+      }
+    }
+  }, [formData.vehicle_id, vehicles, id]);
+
+  // Auto-calculate end_mileage when distance is set
+  useEffect(() => {
+    if (formData.start_mileage && formData.distance) {
+      const startMileage = parseFloat(formData.start_mileage);
+      const distance = parseFloat(formData.distance);
+      if (!isNaN(startMileage) && !isNaN(distance)) {
+        const calculatedEndMileage = (startMileage + distance).toFixed(2);
+        setFormData(prev => ({
+          ...prev,
+          end_mileage: calculatedEndMileage
+        }));
+      }
+    }
+  }, [formData.start_mileage, formData.distance]);
 
   const fetchVehiclesAndDrivers = async () => {
     try {
@@ -305,6 +335,8 @@ export default function TripForm() {
           end_location: tripData.end_location ?? '',
           start_time: tripData.start_time ?? new Date().toISOString().slice(0, 16),
           end_time: tripData.end_time ?? '',
+          start_mileage: tripData.start_mileage ?? '',
+          end_mileage: tripData.end_mileage ?? '',
           distance: tripData.distance ?? '',
           trip_date: tripData.trip_date ?? new Date().toISOString().split('T')[0],
           status: tripData.status ?? 'planned',
@@ -337,10 +369,28 @@ export default function TripForm() {
     setError('');
 
     try {
+      // Format time to Y-m-d\TH:i format (remove seconds if present)
+      const formatTimeForBackend = (timeString) => {
+        if (!timeString) return '';
+        // Handle both ISO format and datetime-local format
+        if (timeString.includes('T')) {
+          // Remove seconds if present - just keep YYYY-MM-DDTHH:MM
+          return timeString.substring(0, 16);
+        }
+        return timeString;
+      };
+
+      // Create a copy of formData with properly formatted times
+      const submitData = {
+        ...formData,
+        start_time: formatTimeForBackend(formData.start_time),
+        end_time: formatTimeForBackend(formData.end_time),
+      };
+
       if (id) {
-        await api.updateTrip(id, formData);
+        await api.updateTrip(id, submitData);
       } else {
-        await api.createTrip(formData);
+        await api.createTrip(submitData);
       }
       navigate('/trips');
     } catch (err) {
@@ -396,6 +446,25 @@ export default function TripForm() {
         onChange={handleChange}
       />
       <ModernTextInput
+        label="Start Mileage (km)"
+        name="start_mileage"
+        type="number"
+        value={formData.start_mileage ?? ''}
+        onChange={handleChange}
+        step="0.01"
+        required
+        helperText="Auto-filled from vehicle's current mileage"
+      />
+      <ModernTextInput
+        label="End Mileage (km)"
+        name="end_mileage"
+        type="number"
+        value={formData.end_mileage ?? ''}
+        onChange={handleChange}
+        step="0.01"
+        helperText="Auto-calculated from distance (editable)"
+      />
+      <ModernTextInput
         label="Trip Date"
         name="trip_date"
         type="date"
@@ -425,13 +494,14 @@ export default function TripForm() {
       />
 
       <ModernTextInput
-        label="Distance (km)"
+        label="Calculated Distance (km)"
         name="distance"
         type="number"
         value={formData.distance ?? ''}
         readOnly
         disabled
         step="0.01"
+        helperText="Auto-calculated from coordinates if available"
       />
 
       <ModernSelectInput

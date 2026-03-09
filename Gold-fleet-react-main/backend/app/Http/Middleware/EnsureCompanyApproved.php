@@ -11,10 +11,15 @@ class EnsureCompanyApproved
     /**
      * Handle an incoming request - Ensure company is fully approved for restricted features.
      * 
-     * Check all three conditions:
-     * - account_status = verified
-     * - subscription_status = active
-     * - company_status = approved
+     * For DRIVERS: 
+     * - Company account_status must be verified
+     * - Company subscription_status must be active
+     * - Company company_status must be approved
+     *
+     * For ADMINS:
+     * - User account_status must be verified (their own account)
+     * - Company subscription_status must be active
+     * - Company company_status must be approved
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -29,16 +34,6 @@ class EnsureCompanyApproved
                 'message' => 'Unauthorized - Authentication required',
                 'code' => 'UNAUTHENTICATED',
             ], 401);
-        }
-
-        // User's account must be verified
-        if ($user->account_status !== 'verified') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account is not yet verified',
-                'code' => 'ACCOUNT_NOT_VERIFIED',
-                'user_account_status' => $user->account_status,
-            ], 403);
         }
 
         // User must have a company
@@ -59,6 +54,30 @@ class EnsureCompanyApproved
                 'message' => 'Company not found',
                 'code' => 'COMPANY_NOT_FOUND',
             ], 403);
+        }
+
+        // For drivers, check company account verification (not user account)
+        // For admins, check user account verification
+        if ($user->role === 'driver') {
+            // Driver verification comes from company being verified
+            if ($company->account_status !== 'verified') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your company account is not yet verified. Please wait for verification.',
+                    'code' => 'COMPANY_NOT_VERIFIED',
+                    'company_account_status' => $company->account_status,
+                ], 403);
+            }
+        } else {
+            // Non-driver users must have their own account verified
+            if ($user->account_status !== 'verified') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your account is not yet verified',
+                    'code' => 'ACCOUNT_NOT_VERIFIED',
+                    'user_account_status' => $user->account_status,
+                ], 403);
+            }
         }
 
         // Company's subscription must be active

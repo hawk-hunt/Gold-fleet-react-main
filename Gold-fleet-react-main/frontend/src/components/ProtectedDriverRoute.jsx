@@ -17,8 +17,9 @@ const ProtectedDriverRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role !== 'driver') {
-    return <Navigate to="/driver" replace />;
+  // Allow both drivers and company admins
+  if (user.role !== 'driver' && user.role !== 'admin') {
+    return <Navigate to="/main" replace />;
   }
 
   return children;

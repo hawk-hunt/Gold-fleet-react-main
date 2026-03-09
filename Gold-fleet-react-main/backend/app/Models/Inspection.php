@@ -21,10 +21,18 @@ class Inspection extends Model
         'status',
         'result',
         'next_due_date',
+        'submitted_by_driver',
+        'checklist_items',
+        'submitted_at',
+        'admin_reviewed',
     ];
 
     protected $casts = [
         'inspection_date' => 'date',
+        'submitted_by_driver' => 'boolean',
+        'checklist_items' => 'array',
+        'submitted_at' => 'datetime',
+        'admin_reviewed' => 'boolean',
     ];
 
     public function company(): BelongsTo
@@ -42,8 +50,42 @@ class Inspection extends Model
         return $this->belongsTo(Driver::class);
     }
 
+    public function trip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(InspectionItem::class);
     }
-}
+
+    /**
+     * Scope to get inspections submitted by drivers
+     */
+    public function scopeSubmittedByDriver($query)
+    {
+        return $query->where('submitted_by_driver', true);
+    }
+
+    /**
+     * Scope to get unreviewed inspections
+     */
+    public function scopeUnreviewed($query)
+    {
+        return $query->where('admin_reviewed', false);
+    }
+
+    /**
+     * Get the status label for display
+     */
+    public function getStatusLabelAttribute()
+    {
+        if (!$this->submitted_by_driver) {
+            return 'Not Submitted';
+        }
+        if (!$this->admin_reviewed) {
+            return 'Pending Review';
+        }
+        return $this->result ?? 'Completed';
+    }

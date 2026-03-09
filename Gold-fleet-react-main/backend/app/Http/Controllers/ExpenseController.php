@@ -12,7 +12,10 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $expenses = Expense::with('vehicle')->get();
+        $companyId = auth()->user()->company_id ?? 1;
+        $expenses = Expense::with('vehicle')
+            ->where('company_id', $companyId)
+            ->get();
         return response()->json(['data' => $expenses]);
     }
 
@@ -67,6 +70,9 @@ class ExpenseController extends Controller
      */
     public function show(Expense $expense)
     {
+        if ($expense->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $expense->load('vehicle')]);
     }
 
@@ -75,6 +81,9 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
+        if ($expense->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $expense->load('vehicle')]);
     }
 
@@ -83,6 +92,9 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, Expense $expense)
     {
+        if ($expense->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $validated = $request->validate([
                 'vehicle_id' => 'required|integer|exists:vehicles,id',
@@ -120,6 +132,9 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
+        if ($expense->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $expense->delete();
             return response()->json(['success' => true, 'message' => 'Expense deleted successfully.']);

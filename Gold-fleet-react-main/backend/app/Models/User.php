@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 // Sanctum isn't installed in this project; avoid importing its trait here.
+use App\Models\Trip;
+use App\Models\Inspection;
+use App\Models\Issue;
+use App\Models\Driver;
 
 class User extends Authenticatable
 {
@@ -92,6 +96,43 @@ class User extends Authenticatable
     public function canAccessDashboard(): bool
     {
         return $this->isAccountVerified() && $this->company && $this->company->isApproved();
+    }
+
+    /**
+     * Boot the model - attach deleting event listener
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        /**
+         * Handle cascade deletion when a user is deleted
+         * Delete driver record and all driver-specific data
+         */
+        static::deleting(function ($user) {
+            // If this user is a driver, handle driver data cleanup
+            if ($user->role === 'driver' && $user->driver) {
+                $driver = $user->driver;
+                
+                // The following deletions are handled by database cascading,
+                // but we do them explicitly for safety and to ensure soft deletes work:
+                
+                // Delete all trips assigned to this driver
+                Trip::where('driver_id', $driver->id)->delete();
+                
+                // Delete all inspections by this driver
+                Inspection::where('driver_id', $driver->id)->delete();
+                
+                // Unassign issues from this driver (set driver_id to null)
+                // Issues have onDelete('set null') constraint in database
+                Issue::where('driver_id', $driver->id)->update(['driver_id' => null]);
+                
+                // The driver record will be automatically deleted due to foreign key
+                // constraint: drivers.user_id -> users.id onDelete('cascade')
+                // But we can explicitly delete it here for clarity:
+                $driver->delete();
+            }
+        });
     }
 
     // Email verification removed: do not automatically send verification notifications

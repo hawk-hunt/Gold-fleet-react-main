@@ -18,6 +18,16 @@ export default function PlatformSubscriptions() {
   // view details state
   const [selectedSubscription, setSelectedSubscription] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // confirmation modal state
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+    subscriptionId: null,
+    actionType: ''
+  });
   const [subscriptionDetails, setSubscriptionDetails] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -75,38 +85,56 @@ export default function PlatformSubscriptions() {
     }
   };
 
-  const handleDeactivate = async (subscriptionId) => {
-    if (!window.confirm('Are you sure you want to deactivate this subscription? This will cancel the subscription permanently.')) return;
-    setActionLoading(subscriptionId);
-    setError('');
-    setSuccess('');
-    try {
-      await platformApi.deactivateSubscription(subscriptionId);
-      setSuccess('✓ Subscription deactivated successfully!');
-      await fetchSubscriptions();
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setError(`✗ Deactivation failed: ${err.message}`);
-    } finally {
-      setActionLoading(null);
-    }
+  const handleDeactivate = (subscriptionId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Deactivate Subscription',
+      message: 'Are you sure you want to deactivate this subscription? This will cancel the subscription permanently.',
+      action: async () => {
+        setActionLoading(subscriptionId);
+        setError('');
+        setSuccess('');
+        try {
+          await platformApi.deactivateSubscription(subscriptionId);
+          setSuccess('✓ Subscription deactivated successfully!');
+          await fetchSubscriptions();
+          setTimeout(() => setSuccess(''), 3000);
+        } catch (err) {
+          setError(`✗ Deactivation failed: ${err.message}`);
+        } finally {
+          setActionLoading(null);
+          setConfirmModal({ ...confirmModal, isOpen: false });
+        }
+      },
+      subscriptionId,
+      actionType: 'deactivate'
+    });
   };
 
-  const handleSuspend = async (subscriptionId) => {
-    if (!window.confirm('Are you sure you want to suspend this subscription? The company will be temporarily disabled.')) return;
-    setActionLoading(subscriptionId);
-    setError('');
-    setSuccess('');
-    try {
-      await platformApi.suspendSubscription(subscriptionId);
-      setSuccess('✓ Subscription suspended successfully!');
-      await fetchSubscriptions();
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setError(`✗ Suspension failed: ${err.message}`);
-    } finally {
-      setActionLoading(null);
-    }
+  const handleSuspend = (subscriptionId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Suspend Subscription',
+      message: 'Are you sure you want to suspend this subscription? The company will be temporarily disabled.',
+      action: async () => {
+        setActionLoading(subscriptionId);
+        setError('');
+        setSuccess('');
+        try {
+          await platformApi.suspendSubscription(subscriptionId);
+          setSuccess('✓ Subscription suspended successfully!');
+          await fetchSubscriptions();
+          setTimeout(() => setSuccess(''), 3000);
+        } catch (err) {
+          setError(`✗ Suspension failed: ${err.message}`);
+        } finally {
+          setActionLoading(null);
+          setConfirmModal({ ...confirmModal, isOpen: false });
+        }
+      },
+      subscriptionId,
+      actionType: 'suspend'
+    });
   };
 
   const handleResume = async (subscriptionId) => {
@@ -564,6 +592,40 @@ export default function PlatformSubscriptions() {
 
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal */}
+        {confirmModal.isOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+              <div className="bg-yellow-50 border-b border-yellow-200 p-6 flex items-center gap-4">
+                <FaExclamationTriangle className="text-yellow-600 text-2xl flex-shrink-0" />
+                <h2 className="text-lg font-bold text-gray-900">{confirmModal.title}</h2>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-700 mb-6">{confirmModal.message}</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmModal.action}
+                    disabled={actionLoading !== null}
+                    className={`flex-1 px-4 py-2 font-medium rounded-lg text-white transition ${
+                      confirmModal.actionType === 'deactivate'
+                        ? 'bg-red-600 hover:bg-red-700 disabled:opacity-50'
+                        : 'bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50'
+                    }`}
+                  >
+                    {actionLoading ? 'Processing...' : 'Confirm'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

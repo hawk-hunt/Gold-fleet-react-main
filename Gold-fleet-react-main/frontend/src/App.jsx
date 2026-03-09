@@ -36,6 +36,8 @@ import ServiceDetail from './pages/ServiceDetail';
 import Inspections from './pages/Inspections';
 import InspectionForm from './pages/InspectionForm';
 import InspectionDetail from './pages/InspectionDetail';
+import DriverMaintenanceChecklist from './pages/DriverMaintenanceChecklist';
+import AdminInspectionReports from './pages/AdminInspectionReports';
 import Issues from './pages/Issues';
 import IssueForm from './pages/IssueForm';
 import IssueDetail from './pages/IssueDetail';
@@ -107,6 +109,9 @@ function AppRoutes() {
       <Route path="/main" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
       <Route path="/dashboard/pending-approval" element={<ProtectedRoute><PendingApprovalPage /></ProtectedRoute>} />
       <Route path="/driver" element={<ProtectedDriverRoute><DriverLayout><DriverDashboard /></DriverLayout></ProtectedDriverRoute>} />
+      <Route path="/driver-dashboard" element={<ProtectedDriverRoute><DriverLayout><DriverDashboard /></DriverLayout></ProtectedDriverRoute>} />
+      <Route path="/driver/dashboard" element={<ProtectedDriverRoute><DriverLayout><DriverDashboard /></DriverLayout></ProtectedDriverRoute>} />
+      <Route path="/driver/maintenance" element={<ProtectedDriverRoute><DriverLayout><DriverMaintenanceChecklist /></DriverLayout></ProtectedDriverRoute>} />
       <Route path="/map" element={<ProtectedRoute><ApprovalGuard><Layout><MapDashboard /></Layout></ApprovalGuard></ProtectedRoute>} />
       <Route path="/info" element={<ProtectedRoute><ApprovalGuard><Layout><InfoDashboard /></Layout></ApprovalGuard></ProtectedRoute>} />
       
@@ -139,6 +144,7 @@ function AppRoutes() {
       <Route path="/inspections/create" element={<ProtectedRoute><ApprovalGuard><Layout><InspectionForm /></Layout></ApprovalGuard></ProtectedRoute>} />
       <Route path="/inspections/:id" element={<ProtectedRoute><ApprovalGuard><Layout><InspectionDetail /></Layout></ApprovalGuard></ProtectedRoute>} />
       <Route path="/inspections/:id/edit" element={<ProtectedRoute><ApprovalGuard><Layout><InspectionForm /></Layout></ApprovalGuard></ProtectedRoute>} />
+      <Route path="/admin/inspection-reports" element={<ProtectedRoute><ApprovalGuard><Layout><AdminInspectionReports /></Layout></ApprovalGuard></ProtectedRoute>} />
       
       {/* Maintenance - Issues (require approval) */}
       <Route path="/issues" element={<ProtectedRoute><ApprovalGuard><Layout><Issues /></Layout></ApprovalGuard></ProtectedRoute>} />

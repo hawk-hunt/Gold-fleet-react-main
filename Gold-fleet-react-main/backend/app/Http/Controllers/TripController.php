@@ -12,7 +12,9 @@ class TripController extends Controller
      */
     public function index()
     {
-        $query = Trip::with('vehicle', 'driver', 'driver.user');
+        $companyId = auth()->user()->company_id ?? 1;
+        $query = Trip::with('vehicle', 'driver', 'driver.user')
+            ->where('company_id', $companyId);
         
         if (auth()->user()->role === 'driver') {
             $query->where('driver_id', auth()->user()->driver->id ?? null);
@@ -78,6 +80,9 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
+        if ($trip->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $trip->load('vehicle', 'driver', 'driver.user')]);
     }
 
@@ -86,6 +91,9 @@ class TripController extends Controller
      */
     public function edit(Trip $trip)
     {
+        if ($trip->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $trip->load('vehicle', 'driver', 'driver.user')]);
     }
 
@@ -94,6 +102,9 @@ class TripController extends Controller
      */
     public function update(Request $request, Trip $trip)
     {
+        if ($trip->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $validated = $request->validate([
                 'vehicle_id' => 'required|integer|exists:vehicles,id',
@@ -134,6 +145,9 @@ class TripController extends Controller
      */
     public function destroy(Trip $trip)
     {
+        if ($trip->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $trip->delete();
             return response()->json(['success' => true, 'message' => 'Trip deleted successfully.']);

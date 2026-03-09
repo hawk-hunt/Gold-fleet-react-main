@@ -16,7 +16,10 @@ class IssueController extends Controller
      */
     public function index()
     {
-        $issues = Issue::with('vehicle')->get();
+        $companyId = auth()->user()->company_id ?? 1;
+        $issues = Issue::with('vehicle')
+            ->where('company_id', $companyId)
+            ->get();
         return response()->json(['data' => $issues]);
     }
 
@@ -85,6 +88,9 @@ class IssueController extends Controller
      */
     public function show(Issue $issue)
     {
+        if ($issue->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $issue->load('vehicle')]);
     }
 
@@ -93,6 +99,9 @@ class IssueController extends Controller
      */
     public function edit(Issue $issue)
     {
+        if ($issue->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $issue->load('vehicle')]);
     }
 
@@ -101,6 +110,9 @@ class IssueController extends Controller
      */
     public function update(Request $request, Issue $issue)
     {
+        if ($issue->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $validated = $request->validate([
                 'vehicle_id' => 'required|exists:vehicles,id',
@@ -153,6 +165,9 @@ class IssueController extends Controller
      */
     public function destroy(Issue $issue)
     {
+        if ($issue->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             // Delete photo if exists
             if ($issue->photo_path) {

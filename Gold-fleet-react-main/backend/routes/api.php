@@ -32,6 +32,8 @@ use App\Http\Controllers\PlanController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PaymentSimulationController;
 use App\Http\Controllers\PlatformPaymentController;
+use App\Http\Controllers\TripSimulationController;
+use App\Http\Controllers\GeocodingController;
 
 // API routes for frontend consumption. These return JSON and are prefixed with /api by the framework.
 
@@ -48,6 +50,10 @@ Route::post('/messages', [ContactController::class, 'store']);
 // Public endpoint to record map clicks
 Route::post('/map-clicks', [MapClickController::class, 'store']);
 Route::get('/map-clicks', [MapClickController::class, 'index']);
+
+// Public geocoding endpoints (no auth needed)
+Route::post('/geocode', [GeocodingController::class, 'geocode']);
+Route::post('/reverse-geocode', [GeocodingController::class, 'reverseGeocode']);
 
 // Platform Owner Auth routes (public)
 Route::prefix('platform')->group(function () {
@@ -66,6 +72,10 @@ Route::prefix('platform')->group(function () {
         Route::post('/companies/{id}/approve', [PlatformDashboardController::class, 'approveCompany']);
         Route::post('/companies/{id}/decline', [PlatformDashboardController::class, 'declineCompany']);
         Route::get('/analytics', [PlatformDashboardController::class, 'getAnalytics']);
+        Route::get('/analytics/company-growth', [PlatformDashboardController::class, 'getCompanyGrowth']);
+        Route::get('/analytics/vehicle-usage', [PlatformDashboardController::class, 'getVehicleUsage']);
+        Route::get('/analytics/trips-per-company', [PlatformDashboardController::class, 'getTripsPerCompany']);
+        Route::get('/analytics/subscription-revenue', [PlatformDashboardController::class, 'getSubscriptionRevenue']);
         Route::get('/subscriptions', [PlatformDashboardController::class, 'getSubscriptions']);
         Route::get('/messages', [PlatformDashboardController::class, 'getMessages']);
         Route::get('/settings', [PlatformDashboardController::class, 'getSettings']);
@@ -194,6 +204,11 @@ Route::middleware('authorize.api.token')->group(function () {
         Route::apiResource('fuel-fillups', FuelFillupController::class);
         Route::apiResource('reminders', ReminderController::class);
 
+        // Driver maintenance checklist routes (driver-specific)
+        Route::post('/inspections/submit-checklist', [InspectionController::class, 'submitChecklist']);
+        Route::get('/inspections/pending-reviews', [InspectionController::class, 'getPendingReviews']);
+        Route::patch('/inspections/{inspection}/review', [InspectionController::class, 'reviewChecklist']);
+
         // Dashboard data (restricted to approved companies)
         Route::get('/dashboard', [InfoDashboardController::class, 'index']);
         Route::get('/dashboard/stats', [InfoDashboardController::class, 'index']);
@@ -216,5 +231,32 @@ Route::middleware('authorize.api.token')->group(function () {
             Route::get('/fuel-costs', [ChartController::class, 'fuelCosts']);
             Route::get('/service-costs', [ChartController::class, 'serviceCosts']);
         });
+
+        // ========== TRIP SIMULATION ROUTES ==========
+        // Real-time vehicle movement simulation along routes
+        
+        // Create a new trip (Company)
+        Route::post('/trips-simulation', [TripSimulationController::class, 'createTrip']);
+        
+        // Approve trip and start simulation (Driver)
+        Route::post('/trips/{tripId}/approve', [TripSimulationController::class, 'approveTrip']);
+        
+        // Update vehicle location during simulation (Simulator script)
+        Route::post('/vehicle/location', [TripSimulationController::class, 'updateLocation']);
+        
+        // Get all locations for a trip (Dashboard history/playback)
+        Route::get('/trips/{tripId}/locations', [TripSimulationController::class, 'getTripLocations']);
+        
+        // Get simulation status for a trip
+        Route::get('/trips/{tripId}/simulation', [TripSimulationController::class, 'getSimulationStatus']);
+        
+        // Stop/complete a simulation
+        Route::post('/trips/{tripId}/simulation/stop', [TripSimulationController::class, 'stopSimulation']);
+        
+        // Get all active trips for company dashboard (with pagination)
+        Route::get('/trips-simulation/company/active', [TripSimulationController::class, 'getActiveTripsByCompany']);
+        
+        // Get driver's assigned trip
+        Route::get('/driver/trip', [TripSimulationController::class, 'getDriverTrip']);
     });
 });

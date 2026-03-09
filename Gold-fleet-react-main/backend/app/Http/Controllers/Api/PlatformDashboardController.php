@@ -380,6 +380,144 @@ class PlatformDashboardController extends Controller
     }
 
     /**
+     * Get Company Growth Data
+     * Returns monthly company creation trend
+     */
+    public function getCompanyGrowth()
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user || $user->role !== 'platform_admin') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $companyGrowth = [];
+            $now = Carbon::now();
+            
+            for ($i = 5; $i >= 0; $i--) {
+                $month = $now->copy()->subMonths($i);
+                $monthName = $month->format('M');
+                
+                $count = Company::where('created_at', '<=', $month->endOfMonth())->count();
+                
+                $companyGrowth[] = [
+                    'month' => $monthName,
+                    'companies' => $count
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $companyGrowth
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get Vehicle Usage Data
+     * Returns vehicle count by company
+     */
+    public function getVehicleUsage()
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user || $user->role !== 'platform_admin') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $vehicleUsage = Company::withCount('vehicles')
+                ->orderBy('vehicles_count', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($company) {
+                    return [
+                        'name' => $company->name,
+                        'vehicles' => $company->vehicles_count
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $vehicleUsage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get Trips Per Company Data
+     * Returns trip count by company
+     */
+    public function getTripsPerCompany()
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user || $user->role !== 'platform_admin') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $tripsByCompany = Company::with(['vehicles.trips'])
+                ->orderBy('name')
+                ->limit(10)
+                ->get()
+                ->map(function ($company) {
+                    $tripCount = $company->vehicles->sum(function ($vehicle) {
+                        return $vehicle->trips->count();
+                    });
+                    return [
+                        'name' => $company->name,
+                        'trips' => $tripCount
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $tripsByCompany
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get Subscription Revenue Data
+     * Returns revenue trend by subscription plan
+     */
+    public function getSubscriptionRevenue()
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user || $user->role !== 'platform_admin') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            // Revenue by plan (demo data)
+            $revenueByPlan = [
+                ['month' => 'Jan', 'basic' => 2400, 'pro' => 2210, 'enterprise' => 2290],
+                ['month' => 'Feb', 'basic' => 3398, 'pro' => 2908, 'enterprise' => 2000],
+                ['month' => 'Mar', 'basic' => 2800, 'pro' => 3800, 'enterprise' => 2181],
+                ['month' => 'Apr', 'basic' => 3800, 'pro' => 3908, 'enterprise' => 2500],
+                ['month' => 'May', 'basic' => 4300, 'pro' => 4800, 'enterprise' => 2210],
+                ['month' => 'Jun', 'basic' => 3300, 'pro' => 4300, 'enterprise' => 2100],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $revenueByPlan
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get Subscriptions
      */
     public function getSubscriptions()

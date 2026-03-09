@@ -12,7 +12,10 @@ class FuelFillupController extends Controller
      */
     public function index()
     {
-        $fuelFillups = FuelFillup::with('vehicle', 'driver', 'driver.user')->get();
+        $companyId = auth()->user()->company_id ?? 1;
+        $fuelFillups = FuelFillup::with('vehicle', 'driver', 'driver.user')
+            ->where('company_id', $companyId)
+            ->get();
         return response()->json(['data' => $fuelFillups]);
     }
 
@@ -76,6 +79,9 @@ class FuelFillupController extends Controller
      */
     public function show(FuelFillup $fuelFillup)
     {
+        if ($fuelFillup->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $fuelFillup->load('vehicle', 'driver', 'driver.user')]);
     }
 
@@ -84,6 +90,9 @@ class FuelFillupController extends Controller
      */
     public function edit(FuelFillup $fuelFillup)
     {
+        if ($fuelFillup->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         return response()->json(['data' => $fuelFillup->load('vehicle', 'driver', 'driver.user')]);
     }
 
@@ -92,6 +101,9 @@ class FuelFillupController extends Controller
      */
     public function update(Request $request, FuelFillup $fuelFillup)
     {
+        if ($fuelFillup->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $validated = $request->validate([
                 'vehicle_id' => 'required|integer|exists:vehicles,id',
@@ -138,6 +150,9 @@ class FuelFillupController extends Controller
      */
     public function destroy(FuelFillup $fuelFillup)
     {
+        if ($fuelFillup->company_id !== auth()->user()->company_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
         try {
             $fuelFillup->delete();
             return response()->json(['success' => true, 'message' => 'Fuel fill-up deleted successfully.']);

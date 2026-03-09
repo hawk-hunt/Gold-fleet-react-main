@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { useFormValidation } from '../hooks/useFormValidation';
 import { compressImage } from '../utils/imageCompression';
 import { ModernFormLayout, ModernTextInput, ModernSelectInput, ModernFileInput, FormFieldGroup } from '../components/ModernFormLayout';
+import { getAllMakes, getModelsByMake } from '../data/vehicleMakesModels';
 
 export default function VehicleForm() {
   const { id } = useParams();
@@ -172,22 +173,20 @@ export default function VehicleForm() {
         ]}
         required
       />
-      <ModernTextInput
+      <ModernSelectInput
         label="Make"
         name="make"
-        type="text"
         value={form.values.make ?? ''}
         onChange={form.handleChange}
-        placeholder="Toyota"
+        options={getAllMakes().map(make => ({ value: make, label: make }))}
         required
       />
-      <ModernTextInput
+      <ModernSelectInput
         label="Model"
         name="model"
-        type="text"
         value={form.values.model ?? ''}
         onChange={form.handleChange}
-        placeholder="Corolla"
+        options={getModelsByMake(form.values.make).map(model => ({ value: model, label: model }))}
         required
       />
       <ModernTextInput

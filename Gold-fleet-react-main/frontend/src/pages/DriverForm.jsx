@@ -13,7 +13,6 @@ export default function DriverForm() {
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [vehicles, setVehicles] = useState([]);
   const [setupLink, setSetupLink] = useState('');
   const [showLinkModal, setShowLinkModal] = useState(false);
 
@@ -25,7 +24,6 @@ export default function DriverForm() {
       license_number: '',
       license_expiry: new Date().toISOString().split('T')[0],
       status: 'active',
-      vehicle_id: '',
       address: '',
     },
     {
@@ -49,21 +47,10 @@ export default function DriverForm() {
   );
 
   useEffect(() => {
-    loadVehicles();
     if (id) {
       loadDriver();
     }
   }, [id]);
-
-  const loadVehicles = async () => {
-    try {
-      const data = await api.getVehicles();
-      const vehiclesList = data.data || data || [];
-      setVehicles(Array.isArray(vehiclesList) ? vehiclesList : []);
-    } catch (err) {
-      console.error('Failed to load vehicles:', err);
-    }
-  };
 
   const loadDriver = async () => {
     try {
@@ -254,19 +241,6 @@ export default function DriverForm() {
           { value: 'suspended', label: 'Suspended' }
         ]}
         required
-      />
-      <ModernSelectInput
-        label="Assigned Vehicle"
-        name="vehicle_id"
-        value={form.values.vehicle_id ?? ''}
-        onChange={form.handleChange}
-        options={[
-          { value: '', label: 'None' },
-          ...vehicles.map((v) => ({
-            value: v.id,
-            label: `${v.make} ${v.model} - ${v.plate_number}`
-          }))
-        ]}
       />
       <ModernTextInput
         label="Address"

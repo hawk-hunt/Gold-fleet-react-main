@@ -89,3 +89,4 @@ class Inspection extends Model
         }
         return $this->result ?? 'Completed';
     }
+}

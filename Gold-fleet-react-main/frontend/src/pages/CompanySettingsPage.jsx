@@ -13,6 +13,7 @@ export default function CompanySettingsPage() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [addingMember, setAddingMember] = useState(false);
+  const [logoPreview, setLogoPreview] = useState(null);
   const [formData, setFormData] = useState({
     company_name: '',
     company_email: '',
@@ -24,7 +25,8 @@ export default function CompanySettingsPage() {
     company_country: '',
     company_registration_number: '',
     company_tax_id: '',
-    company_website: ''
+    company_website: '',
+    company_logo: null
   });
 
   useEffect(() => {
@@ -77,11 +79,27 @@ export default function CompanySettingsPage() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      const file = files[0];
+      if (file) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: file
+        }));
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setLogoPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -91,15 +109,26 @@ export default function CompanySettingsPage() {
     setSaving(true);
 
     try {
+      // Use FormData to handle file uploads
+      const submitData = new FormData();
+      
+      // Add all form fields
+      Object.keys(formData).forEach(key => {
+        if (key === 'company_logo' && formData[key] instanceof File) {
+          submitData.append(key, formData[key]);
+        } else if (key !== 'company_logo') {
+          submitData.append(key, formData[key]);
+        }
+      });
+
       const response = await fetch('http://localhost:8000/api/company-settings', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}`
         },
-        body: JSON.stringify(formData)
+        body: submitData
       });
 
       const data = await response.json();
@@ -398,6 +427,41 @@ export default function CompanySettingsPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Logo and Preferences */}
+          <div className="border-t border-gray-200 pt-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Company Logo</h2>
+            <div>
+              <label htmlFor="company_logo" className="block text-sm font-medium text-gray-700 mb-2">
+                Company Logo
+              </label>
+              <div className="space-y-3">
+                <div className="flex items-center justify-center w-full">
+                  <label className="w-full flex flex-col items-center justify-center px-4 py-6 bg-white text-blue-500 rounded-lg shadow-lg tracking-wide uppercase border border-blue-300 cursor-pointer hover:bg-blue-50">
+                    <svg className="w-8 h-8" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M16.88 9.1A4 4 0 0 1 16 17H4a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.86A4 4 0 0 1 17 7v2.1z" />
+                    </svg>
+                    <span className="mt-2 text-sm leading-normal">Select a logo file</span>
+                    <input
+                      type="file"
+                      id="company_logo"
+                      name="company_logo"
+                      onChange={handleChange}
+                      className="hidden"
+                      accept="image/*"
+                    />
+                  </label>
+                </div>
+                {logoPreview && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                    <img src={logoPreview} alt="Logo preview" className="h-20 w-20 object-contain rounded border border-gray-300" />
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">PNG, JPG, or GIF files up to 5MB</p>
               </div>
             </div>
           </div>

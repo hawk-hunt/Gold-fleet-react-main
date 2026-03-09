@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\CompanyApproved;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
@@ -82,6 +83,9 @@ class CompanyApprovalController extends Controller
 
             // Approve the company
             $company->approveCompany($user);
+
+            // Dispatch event to create conversation and send notifications
+            CompanyApproved::dispatch($company);
 
             // Send notifications and messages to company users
             $this->notifyCompanyApproval($company);

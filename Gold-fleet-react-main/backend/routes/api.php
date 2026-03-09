@@ -21,6 +21,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FuelFillupController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PhoneTrackerController;
 use App\Http\Controllers\SimulationController;
@@ -169,10 +170,20 @@ Route::middleware('authorize.api.token')->group(function () {
     Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
 
+    // Messaging and Conversations (Company Admin ↔ Platform Admin)
+    Route::get('/conversations', [ConversationController::class, 'indexForCompanyAdmin']); // Company admin views their conversations
+    Route::post('/conversations', [ConversationController::class, 'createForCompanyAdmin']); // Company admin creates new conversation
+    Route::get('/conversations/{conversation}', [ConversationController::class, 'show']); // View specific conversation
+    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']); // Send message in conversation
+    Route::patch('/conversations/{conversation}/close', [ConversationController::class, 'closeConversation']); // Close conversation
+    Route::get('/conversations/unread-count', [ConversationController::class, 'getUnreadCount']); // Get unread message count
+
     // Admin messaging routes (require admin role)
     Route::middleware('role:admin')->group(function () {
         Route::post('/admin/send-message', [NotificationController::class, 'sendAdminMessage']);
         Route::post('/admin/broadcast-message', [NotificationController::class, 'broadcastMessage']);
+        Route::get('/admin/conversations', [ConversationController::class, 'indexForPlatformAdmin']); // Platform admin views all conversations
+        Route::patch('/conversations/{conversation}/assign', [ConversationController::class, 'assignToPlatformAdmin']); // Assign conversation to admin
     });
 
     // Plans and Subscriptions (view allowed, modifications may require approval)

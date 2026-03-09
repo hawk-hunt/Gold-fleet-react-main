@@ -8,6 +8,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
   const { user, logout } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -297,15 +298,50 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
           </div>
 
           {/* Settings */}
-          <button
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors hidden sm:inline-block"
-            aria-label="Settings"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => {
+                setSettingsOpen(!settingsOpen);
+                setProfileOpen(false);
+                setNotificationsOpen(false);
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors hidden sm:inline-block"
+              aria-label="Settings"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+
+            {/* Settings dropdown */}
+            {settingsOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-900">Settings</h3>
+                </div>
+                <div className="py-2">
+                  <button
+                    onClick={() => { 
+                      setSettingsOpen(false); 
+                      navigate('/company-settings'); 
+                    }}
+                    className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                      </svg>
+                      <div>
+                        <p className="font-medium text-gray-900">Company Information Settings</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Manage company details and preferences</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* User profile dropdown */}
           <div className="relative">
@@ -375,12 +411,13 @@ export default function Header({ sidebarOpen, setSidebarOpen, isLarge, sidebarWi
       )}
 
       {/* Backdrop for dropdowns */}
-      {(notificationsOpen || profileOpen) && (
+      {(notificationsOpen || profileOpen || settingsOpen) && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setNotificationsOpen(false);
             setProfileOpen(false);
+            setSettingsOpen(false);
           }}
         />
       )}

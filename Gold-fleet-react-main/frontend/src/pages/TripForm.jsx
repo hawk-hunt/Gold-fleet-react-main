@@ -1,11 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaRoad, FaMapMarkerAlt, FaSearch } from 'react-icons/fa';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { api } from '../services/api';
 import { ModernFormLayout, ModernTextInput, ModernSelectInput, FormFieldGroup } from '../components/ModernFormLayout';
+
+// Fix Leaflet default icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // Haversine distance calculation
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -47,6 +55,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
   const [searchQuery, setSearchQuery] = useState(value);
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [tempMarker, setTempMarker] = useState(null);
   const mapRef = useRef(null);
   const searchResultsRef = useRef(null);
 
@@ -141,21 +150,45 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
 
   const handleMapClick = async (e) => {
     const { lat, lng } = e.latlng;
+    
+    // Show temporary marker immediately for visual feedback
+    setTempMarker({ lat, lon: lng });
+    
     try {
       // Reverse geocode to get location name using backend
       const response = await api.reverseGeocode(lat, lng);
-      if (response.success && response.data) {
-        const locationObj = {
-          name: response.data.name,
-          lat,
-          lon: lng,
-        };
-        onLocationChange(locationObj.name);
-        onCoordinatesChange(locationObj);
-        setShowMap(false);
+      
+      let locationName = 'Selected Location';
+      
+      // Try to get name from response
+      if (response && response.data && response.data.name) {
+        locationName = response.data.name;
+      } else if (response && response.data && response.data.display_name) {
+        locationName = response.data.display_name;
       }
+      
+      const locationObj = {
+        name: locationName,
+        lat,
+        lon: lng,
+      };
+      onLocationChange(locationObj.name);
+      onCoordinatesChange(locationObj);
+      setTempMarker(null);
+      setShowMap(false);
+      console.log('Map location selected:', locationObj);
     } catch (err) {
       console.error('Reverse geocode error:', err);
+      // Still set the location even if reverse geocoding fails
+      const fallbackObj = {
+        name: `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+        lat,
+        lon: lng,
+      };
+      onLocationChange(fallbackObj.name);
+      onCoordinatesChange(fallbackObj);
+      setTempMarker(null);
+      setShowMap(false);
     }
   };
 
@@ -249,7 +282,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
               <FaMapMarkerAlt className="text-yellow-600 mt-1 flex-shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-yellow-900">Click on the map to select {label.toLowerCase()}</p>
-                <p className="text-xs text-yellow-700">The location will be automatically detected from the coordinates</p>
+                <p className="text-xs text-yellow-700">Red marker shows your click. Location will be auto-detected.</p>
               </div>
             </div>
             {/* Map Container */}
@@ -263,11 +296,13 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; OpenStreetMap contributors'
                 />
-                {location && location.lat && (
+                
+                {/* Show previously selected location */}
+                {location && location.lat && !tempMarker && (
                   <Marker position={[parseFloat(location.lat), parseFloat(location.lon)]}>
                     <Popup>
                       <div className="text-sm">
-                        <p className="font-semibold">{location.name}</p>
+                        <p className="font-semibold">✓ {location.name}</p>
                         <p className="text-xs text-gray-600">
                           {parseFloat(location.lat).toFixed(4)}, {parseFloat(location.lon).toFixed(4)}
                         </p>
@@ -275,14 +310,42 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
                     </Popup>
                   </Marker>
                 )}
+                
+                {/* Show temporary marker while selecting */}
+                {tempMarker && (
+                  <>
+                    <Marker position={[tempMarker.lat, tempMarker.lon]}>
+                      <Popup>
+                        <div className="text-sm">
+                          <p className="font-semibold">🔍 Detecting location...</p>
+                          <p className="text-xs text-gray-600">
+                            {parseFloat(tempMarker.lat).toFixed(4)}, {parseFloat(tempMarker.lon).toFixed(4)}
+                          </p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                    <Circle
+                      center={[tempMarker.lat, tempMarker.lon]}
+                      radius={50}
+                      pathOptions={{ color: 'red', fillOpacity: 0.1, weight: 2 }}
+                    />
+                  </>
+                )}
+                
                 <ClickableMap onClick={handleMapClick} />
               </MapContainer>
             </div>
             {/* Map Footer */}
-            <div className="bg-gray-50 border-t border-gray-200 p-3 flex justify-end gap-2">
+            <div className="bg-gray-50 border-t border-gray-200 p-3 flex justify-between items-center">
+              <p className="text-xs text-gray-600">
+                {tempMarker ? '⏳ Detecting location from coordinates...' : '👆 Click anywhere on the map'}
+              </p>
               <button
                 type="button"
-                onClick={() => setShowMap(false)}
+                onClick={() => {
+                  setShowMap(false);
+                  setTempMarker(null);
+                }}
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
               >
                 Close Map
@@ -432,6 +495,28 @@ export default function TripForm() {
     setLoading(true);
     setError('');
 
+    // Validate required fields
+    if (!formData.vehicle_id) {
+      setError('Please select a vehicle');
+      setLoading(false);
+      return;
+    }
+    if (!formData.driver_id) {
+      setError('Please select a driver');
+      setLoading(false);
+      return;
+    }
+    if (!formData.start_location) {
+      setError('Please set start location (type or use map)');
+      setLoading(false);
+      return;
+    }
+    if (!formData.end_location) {
+      setError('Please set end location (type or use map)');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Format time to Y-m-d\TH:i format (remove seconds if present)
       const formatTimeForBackend = (timeString) => {
@@ -444,12 +529,22 @@ export default function TripForm() {
         return timeString;
       };
 
-      // Create a copy of formData with properly formatted times
+      // Create a copy of formData with properly formatted values
       const submitData = {
-        ...formData,
+        vehicle_id: parseInt(formData.vehicle_id),
+        driver_id: parseInt(formData.driver_id),
+        start_location: formData.start_location?.toString() || '',
+        end_location: formData.end_location?.toString() || '',
         start_time: formatTimeForBackend(formData.start_time),
         end_time: formatTimeForBackend(formData.end_time),
+        start_mileage: formData.start_mileage ? parseFloat(formData.start_mileage) : 0,
+        end_mileage: formData.end_mileage ? parseFloat(formData.end_mileage) : 0,
+        distance: formData.distance ? parseFloat(formData.distance) : 0,
+        trip_date: formData.trip_date,
+        status: formData.status,
       };
+
+      console.log('Submitting trip:', submitData);
 
       if (id) {
         await api.updateTrip(id, submitData);
@@ -458,7 +553,12 @@ export default function TripForm() {
       }
       navigate('/trips');
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to save trip');
+      const errorMsg = err.response?.data?.message || 
+                      (err.response?.data?.errors && Object.values(err.response.data.errors).flat().join(', ')) ||
+                      err.message || 
+                      'Failed to save trip';
+      setError(errorMsg);
+      console.error('Trip submit error:', err);
     } finally {
       setLoading(false);
     }

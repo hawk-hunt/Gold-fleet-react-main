@@ -69,17 +69,27 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
     }
   }, [searchResults]);
 
-  // Force map to render when showMap changes
+  // Force map to render when showMap changes or location changes
   useEffect(() => {
     if (showMap) {
-      setTimeout(() => {
+      // Delay to ensure DOM is updated
+      const timer = setTimeout(() => {
+        // Trigger map resize if it exists
         const mapElement = document.querySelector('.leaflet-container');
         if (mapElement && mapElement._leaflet_map) {
           mapElement._leaflet_map.invalidateSize();
+          // If location exists, center on it with zoom 15, otherwise use default
+          if (location && location.lat) {
+            mapElement._leaflet_map.setView(
+              [parseFloat(location.lat), parseFloat(location.lon)], 
+              15
+            );
+          }
         }
-      }, 100);
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [showMap]);
+  }, [showMap, location]);
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
@@ -95,11 +105,20 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
     setSearching(true);
     try {
       const response = await api.geocode(query);
-      if (response.success && response.data) {
+      console.log('Geocode response:', response);
+      
+      if (response.success && response.data && Array.isArray(response.data)) {
         setSearchResults(response.data);
+      } else if (Array.isArray(response)) {
+        // Handle case where response is directly an array
+        setSearchResults(response);
+      } else {
+        console.warn('Unexpected response format:', response);
+        setSearchResults([]);
       }
     } catch (err) {
       console.error('Search error:', err);
+      setSearchResults([]);
     } finally {
       setSearching(false);
     }
@@ -111,10 +130,13 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
       lat: parseFloat(result.lat),
       lon: parseFloat(result.lon),
     };
+    // Update to show the selected location name in the input
+    setSearchQuery(locationObj.name);
     onLocationChange(locationObj.name);
     onCoordinatesChange(locationObj);
     setSearchResults([]);
     setShowMap(false);
+    console.log('Selected location:', locationObj);
   };
 
   const handleMapClick = async (e) => {
@@ -142,7 +164,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
       <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
       <div className="space-y-2">
         {/* Search Input */}
-        <div className="relative z-40">
+        <div className="relative">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <FaSearch className="absolute left-3 top-3 text-gray-400" />
@@ -155,6 +177,7 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
                 }}
                 placeholder={`Search for ${label.toLowerCase()}...`}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                autoComplete="off"
               />
             </div>
             <button
@@ -171,21 +194,30 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
 
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && (
-            <div ref={searchResultsRef} className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
+            <div 
+              ref={searchResultsRef} 
+              className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-yellow-300 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto"
+              style={{ 
+                pointerEvents: 'auto',
+                minWidth: '100%'
+              }}
+            >
               {searching ? (
-                <div className="p-3 text-gray-500">Searching...</div>
+                <div className="p-4 text-center text-gray-500 font-medium">Searching locations...</div>
+              ) : searchResults.length === 0 ? (
+                <div className="p-4 text-center text-gray-400">No results found</div>
               ) : (
                 searchResults.map((result, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSelectResult(result)}
-                    className="w-full text-left px-4 py-2 hover:bg-yellow-50 border-b border-gray-200 last:border-b-0 text-sm flex items-start gap-2"
+                    className="w-full text-left px-4 py-3 hover:bg-yellow-100 active:bg-yellow-200 border-b border-gray-100 last:border-b-0 text-sm flex items-start gap-3 transition-all duration-100"
                   >
                     <FaMapMarkerAlt className="text-yellow-600 mt-1 flex-shrink-0" />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate">{result.name || result.display_name}</p>
-                      <p className="text-xs text-gray-500 truncate">{result.type}</p>
+                      <p className="text-xs text-gray-500 truncate">{result.type || 'Location'}</p>
                     </div>
                   </button>
                 ))
@@ -198,31 +230,63 @@ function LocationPicker({ label, value, location, onLocationChange, onCoordinate
         {location && (
           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
             <p className="text-sm font-medium text-yellow-900">Selected:</p>
-            <p className="text-sm text-yellow-800">{location.name}</p>
-            <p className="text-xs text-yellow-700">Lat: {location.lat?.toFixed(4)}, Lon: {location.lon?.toFixed(4)}</p>
+            <p className="text-sm text-yellow-800">
+              {typeof location === 'object' ? location.name : location}
+            </p>
+            {typeof location === 'object' && location.lat && (
+              <p className="text-xs text-yellow-700">
+                Lat: {parseFloat(location.lat).toFixed(4)}, Lon: {parseFloat(location.lon).toFixed(4)}
+              </p>
+            )}
           </div>
         )}
 
         {/* Map Selector */}
         {showMap && (
-          <div style={{ marginTop: '1rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', width: '100%', height: '500px', position: 'relative', zIndex: 1 }}>
-            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+          <div className="mt-4 border-2 border-yellow-300 rounded-md overflow-hidden bg-white shadow-lg">
+            {/* Map Instructions */}
+            <div className="bg-yellow-50 border-b border-yellow-200 p-3 flex items-start gap-2">
+              <FaMapMarkerAlt className="text-yellow-600 mt-1 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-yellow-900">Click on the map to select {label.toLowerCase()}</p>
+                <p className="text-xs text-yellow-700">The location will be automatically detected from the coordinates</p>
+              </div>
+            </div>
+            {/* Map Container */}
+            <div style={{ width: '100%', height: '500px', position: 'relative' }}>
               <MapContainer
-                center={[5.6037, -0.1870]}
-                zoom={7}
-                style={{ width: '100%', height: '100%', zIndex: 1 }}
+                center={location && location.lat ? [location.lat, location.lon] : [5.6037, -0.1870]}
+                zoom={location && location.lat ? 15 : 7}
+                style={{ width: '100%', height: '100%' }}
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; OpenStreetMap contributors'
                 />
-                {location && (
-                  <Marker position={[location.lat, location.lon]}>
-                    <Popup>{location.name}</Popup>
+                {location && location.lat && (
+                  <Marker position={[parseFloat(location.lat), parseFloat(location.lon)]}>
+                    <Popup>
+                      <div className="text-sm">
+                        <p className="font-semibold">{location.name}</p>
+                        <p className="text-xs text-gray-600">
+                          {parseFloat(location.lat).toFixed(4)}, {parseFloat(location.lon).toFixed(4)}
+                        </p>
+                      </div>
+                    </Popup>
                   </Marker>
                 )}
                 <ClickableMap onClick={handleMapClick} />
               </MapContainer>
+            </div>
+            {/* Map Footer */}
+            <div className="bg-gray-50 border-t border-gray-200 p-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowMap(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Close Map
+              </button>
             </div>
           </div>
         )}

@@ -17,9 +17,9 @@ const ProtectedRoute = ({ children }) => {
     )
   }
 
-  // If no token, redirect to landing page (not authenticated)
+  // If no token, redirect to login page (not authenticated)
   if (!token) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/login" replace />
   }
 
   // User is authenticated, render children

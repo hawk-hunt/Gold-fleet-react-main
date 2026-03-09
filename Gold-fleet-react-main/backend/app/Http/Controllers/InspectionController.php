@@ -349,6 +349,9 @@ class InspectionController extends Controller
 
             // Notify driver of review
             $this->notifyDriverOfReview($inspection, $validated['result']);
+            
+            // Notify admin of completed inspection (especially for passed inspections)
+            $this->notifyAdminOfCompletedInspection($inspection);
 
             return response()->json([
                 'success' => true,
@@ -381,12 +384,17 @@ class InspectionController extends Controller
                     'company_id' => $inspection->company_id,
                     'user_id' => $admin->id,
                     'type' => 'inspection_checklist',
+                    'source_type' => 'driver_checklist',
+                    'source_id' => $inspection->id,
+                    'source_model' => 'Inspection',
                     'title' => 'New Maintenance Checklist',
                     'message' => "{$driver->user->name} submitted a maintenance checklist for {$inspection->vehicle->make} {$inspection->vehicle->model}",
                     'data' => [
                         'inspection_id' => $inspection->id,
                         'vehicle_id' => $inspection->vehicle_id,
                         'driver_id' => $driver->id,
+                        'driver_name' => $driver->user->name,
+                        'vehicle_name' => "{$inspection->vehicle->make} {$inspection->vehicle->model}",
                         'action_url' => "/admin/inspections/{$inspection->id}",
                     ],
                 ]);
@@ -408,20 +416,77 @@ class InspectionController extends Controller
                 'conditional_pass' => 'Conditionally Approved',
             };
 
+            $notificationType = match($result) {
+                'pass' => 'inspection_passed',
+                'fail' => 'inspection_failed',
+                'conditional_pass' => 'inspection_conditional',
+            };
+
             \App\Models\Notification::create([
                 'company_id' => $inspection->company_id,
                 'user_id' => $inspection->driver->user_id,
-                'type' => 'inspection_reviewed',
+                'type' => $notificationType,
+                'source_type' => 'inspection',
+                'source_id' => $inspection->id,
+                'source_model' => 'Inspection',
                 'title' => 'Inspection Review Complete',
                 'message' => "Your maintenance checklist for {$inspection->vehicle->make} {$inspection->vehicle->model} was {$resultLabel}",
                 'data' => [
                     'inspection_id' => $inspection->id,
                     'result' => $result,
+                    'vehicle_name' => "{$inspection->vehicle->make} {$inspection->vehicle->model}",
+                    'admin_notes' => $inspection->notes,
                     'action_url' => "/driver/inspections/{$inspection->id}",
                 ],
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to notify driver: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify company admin that inspection passed
+     */
+    private function notifyAdminOfCompletedInspection(Inspection $inspection)
+    {
+        try {
+            // Get all admin users for this company
+            $admins = \App\Models\User::where('company_id', $inspection->company_id)
+                ->where('role', 'admin')
+                ->get();
+
+            $resultLabel = match($inspection->result) {
+                'pass' => 'Passed',
+                'fail' => 'Failed',
+                'conditional_pass' => 'Conditionally Passed',
+                default => 'Completed',
+            };
+
+            foreach ($admins as $admin) {
+                if ($inspection->result === 'pass') {
+                    \App\Models\Notification::create([
+                        'company_id' => $inspection->company_id,
+                        'user_id' => $admin->id,
+                        'type' => 'inspection_passed',
+                        'source_type' => 'inspection',
+                        'source_id' => $inspection->id,
+                        'source_model' => 'Inspection',
+                        'title' => 'Inspection Passed ✓',
+                        'message' => "Inspection for {$inspection->vehicle->make} {$inspection->vehicle->model} by {$inspection->driver->user->name} has {$resultLabel}",
+                        'data' => [
+                            'inspection_id' => $inspection->id,
+                            'vehicle_id' => $inspection->vehicle_id,
+                            'driver_id' => $inspection->driver_id,
+                            'driver_name' => $inspection->driver->user->name,
+                            'vehicle_name' => "{$inspection->vehicle->make} {$inspection->vehicle->model}",
+                            'result' => $inspection->result,
+                            'action_url' => "/admin/inspections/{$inspection->id}",
+                        ],
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to notify admin of completed inspection: ' . $e->getMessage());
         }
     }
 }

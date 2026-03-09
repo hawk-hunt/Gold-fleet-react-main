@@ -22,12 +22,12 @@ export default function PlatformRouter() {
   return (
     <Routes>
       {/* Public Platform Routes */}
-      <Route path="platform/login" element={<PlatformLogin />} />
-      <Route path="platform/signup" element={<PlatformSignup />} />
+      <Route path="login" element={<PlatformLogin />} />
+      <Route path="signup" element={<PlatformSignup />} />
 
       {/* Protected Platform Routes */}
       <Route
-        path="platform/*"
+        path="*"
         element={
           <PlatformProtectedRoute>
             <PlatformLayout>

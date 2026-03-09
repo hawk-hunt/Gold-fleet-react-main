@@ -40,30 +40,61 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// Custom vehicle marker icon
+// Custom vehicle marker icon with better styling
 const vehicleIcon = L.divIcon({
-  iconSize: [38, 38],
-  iconAnchor: [19, 38],
-  popupAnchor: [0, -38],
+  iconSize: [48, 48],
+  iconAnchor: [24, 24],
+  popupAnchor: [0, -24],
   className: 'vehicle-marker',
   html: `
     <div style="
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #CFAF4B;
-      border: 3px solid white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      position: relative;
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      color: white;
     ">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
-        <path d="M8 1a1 1 0 0 1 1 1v4h4a1 1 0 0 1 .82 1.573l-4 6A1 1 0 0 1 8 14a1 1 0 0 1-.82-.427l-4-6A1 1 0 0 1 3 6h4V2a1 1 0 0 1 1-1z"/>
-      </svg>
+      <div style="
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        border: 3px solid white;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.6), inset 0 0 10px rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="white" viewBox="0 0 16 16"
+        style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+          <!-- Vehicle icon -->
+          <path d="M8 1a1 1 0 0 1 1 1v4h4a1 1 0 0 1 .82 1.573l-4 6A1 1 0 0 1 8 14a1 1 0 0 1-.82-.427l-4-6A1 1 0 0 1 3 6h4V2a1 1 0 0 1 1-1z"/>
+        </svg>
+      </div>
+      <!-- Pulsing outer ring -->
+      <div style="
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid rgba(59, 130, 246, 0.4);
+        animation: pulse 2s infinite;
+      "></div>
     </div>
+    <style>
+      @keyframes pulse {
+        0% { 
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% { 
+          transform: scale(1.4);
+          opacity: 0;
+        }
+      }
+    </style>
   `
 });
 
@@ -374,6 +405,17 @@ export default function DriverDashboard() {
       setTripDistance(0);
     }
   };
+
+  // Center map on current location when tracking
+  useEffect(() => {
+    if (mapRef.current && currentLocation && activeTab === 'overview') {
+      const map = mapRef.current._leaflet_map || mapRef.current;
+      if (map) {
+        // Smooth pan to current location
+        map.panTo(currentLocation, { animate: true, duration: 0.5 });
+      }
+    }
+  }, [currentLocation, activeTab]);
 
   // Format time to Y-m-d\TH:i format (remove seconds)
   const formatTimeForBackend = (timeString) => {

@@ -14,6 +14,9 @@ class Notification extends Model
         'company_id',
         'user_id',
         'type',
+        'source_type',
+        'source_id',
+        'source_model',
         'title',
         'message',
         'data',
@@ -50,6 +53,31 @@ class Notification extends Model
     public function scopeForCompany($query, $companyId)
     {
         return $query->where('company_id', $companyId);
+    }
+
+    public function scopeBySourceType($query, $sourceType)
+    {
+        return $query->where('source_type', $sourceType);
+    }
+
+    public function scopeInspectionNotifications($query)
+    {
+        return $query->where('source_type', 'inspection');
+    }
+
+    public function scopeDriverChecklistNotifications($query)
+    {
+        return $query->where('source_type', 'driver_checklist');
+    }
+
+    public function scopeAdminMessageNotifications($query)
+    {
+        return $query->where('source_type', 'admin_message');
+    }
+
+    public function scopePlatformAdminNotifications($query)
+    {
+        return $query->where('source_type', 'platform_admin');
     }
 
     public function markAsRead()

@@ -176,8 +176,8 @@ function AppRoutes() {
       <Route path="/company-settings" element={<ProtectedLayout><CompanySettingsPage /></ProtectedLayout>} />
       <Route path="/notifications" element={<ProtectedLayout><Notifications /></ProtectedLayout>} />
 
-      {/* Platform Owner Panel - /platform/* routes */}
-      <Route path="/*" element={<PlatformRouter />} />
+      {/* Platform Owner Panel - /platform/* routes - MUST be before catch-all but after specific routes */}
+      <Route path="/platform/*" element={<PlatformRouter />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

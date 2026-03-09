@@ -201,6 +201,12 @@ Route::middleware('authorize.api.token')->group(function () {
     // Company's own payment history
     Route::get('/payments/my', [PlatformPaymentController::class, 'myPayments']);
 
+    // ========== DRIVER MAINTENANCE CHECKLIST ROUTES (NO APPROVAL REQUIRED) ==========
+    // Drivers can submit maintenance checklists whether or not company is approved
+    Route::post('/inspections/submit-checklist', [InspectionController::class, 'submitChecklist']);
+    Route::get('/inspections/pending-reviews', [InspectionController::class, 'getPendingReviews']);
+    Route::patch('/inspections/{inspection}/review', [InspectionController::class, 'reviewChecklist']);
+
     // ========== FLEET MANAGEMENT ROUTES - REQUIRE COMPANY APPROVAL ==========
     // These routes are protected by EnsureCompanyApproved middleware
     Route::middleware('ensure.company.approved')->group(function () {
@@ -214,11 +220,6 @@ Route::middleware('authorize.api.token')->group(function () {
         Route::apiResource('expenses', ExpenseController::class);
         Route::apiResource('fuel-fillups', FuelFillupController::class);
         Route::apiResource('reminders', ReminderController::class);
-
-        // Driver maintenance checklist routes (driver-specific)
-        Route::post('/inspections/submit-checklist', [InspectionController::class, 'submitChecklist']);
-        Route::get('/inspections/pending-reviews', [InspectionController::class, 'getPendingReviews']);
-        Route::patch('/inspections/{inspection}/review', [InspectionController::class, 'reviewChecklist']);
 
         // Dashboard data (restricted to approved companies)
         Route::get('/dashboard', [InfoDashboardController::class, 'index']);
